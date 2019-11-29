@@ -1,5 +1,7 @@
 from __future__ import absolute_import, annotations
 
+from dataclasses import dataclass, field
+
 from spacy.language import Language
 from spacy.tokens import Doc
 

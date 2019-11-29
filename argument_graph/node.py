@@ -4,6 +4,7 @@ import textwrap
 import logging
 from dataclasses import dataclass, field
 from typing import Any, Optional, List, Dict, Set
+from enum import Enum
 
 import networkx as nx
 import pygraphviz as gv
@@ -11,8 +12,6 @@ from spacy.language import Language
 from spacy.tokens import Doc
 
 from . import utils
-from .graph import Graph
-from .edge import Edge
 from .analysis import Analysis
 
 
@@ -70,14 +69,6 @@ class Node:
     w: int = 0
     h: int = 0
     major_claim: bool = False
-
-    @property
-    def text(self) -> Doc:
-        return self._text
-
-    @text.setter
-    def text(self, value: str) -> None:
-        self._text = self.nlp(value)
 
     @property
     def scheme(self) -> int:

@@ -40,7 +40,7 @@ class Graph:
     _edges: List[Edge] = field(init=False, default_factory=list)
     participants: List[Any] = field(default_factory=list)
     analysis: Analysis = field(default_factory=Analysis)
-    nlp = field(default_factory=English)
+    nlp: Language = field(default_factory=English)
 
     @property
     def nodes(self) -> List[Node]:

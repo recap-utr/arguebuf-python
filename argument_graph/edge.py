@@ -10,7 +10,6 @@ from spacy.language import Language
 
 from . import utils
 from .node import Node
-from .graph import Graph
 from .analysis import Analysis
 
 
