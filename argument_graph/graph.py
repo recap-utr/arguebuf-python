@@ -32,7 +32,6 @@ class Graph:
     Manual updates are therefore only necessary for update operations.
     """
 
-    language: str = "en"
     key: str = field(default_factory=utils.unique_id)
     _nodes: List[Node] = field(init=False, default_factory=list)
     _inodes: List[Node] = field(init=False, default_factory=list)
@@ -40,7 +39,6 @@ class Graph:
     _edges: List[Edge] = field(init=False, default_factory=list)
     participants: List[Any] = field(default_factory=list)
     analysis: Analysis = field(default_factory=Analysis)
-    nlp: Language = field(default_factory=English)
 
     @property
     def nodes(self) -> List[Node]:
@@ -94,7 +92,7 @@ class Graph:
         self._edges.remove(edge)
 
     @staticmethod
-    def from_ova(key: str, obj: Any, nlp: Language) -> Graph:
+    def from_ova(key: str, obj: Any, nlp: Optional[Language] = None) -> Graph:
         g = Graph(
             key=key,
             participants=obj.get("participants"),
@@ -115,7 +113,7 @@ class Graph:
         }
 
     @staticmethod
-    def from_aif(key: str, obj: Any, nlp: Language) -> Graph:
+    def from_aif(key: str, obj: Any, nlp: Optional[Language] = None) -> Graph:
         g = Graph(key=key)
         node_dict = {}
 
@@ -125,7 +123,7 @@ class Graph:
             g.add_node(node)
 
         for edge in obj.get("edges"):
-            g.add_edge(Edge.from_aif(edge, nlp, node_dict))
+            g.add_edge(Edge.from_aif(edge, node_dict, nlp))
 
         return g
 

@@ -1,17 +1,19 @@
 from __future__ import absolute_import, annotations
 
 from dataclasses import dataclass, field
+from typing import Union
 
 from spacy.language import Language
 from spacy.tokens import Doc
+
+from . import utils
 
 
 @dataclass
 class Analysis:
     """Needed to store metadata for OVA."""
 
-    nlp: Language
-    _text: Doc = None
+    text: Union[str, Doc] = None
     annotator_name: str = ""
     document_source: str = ""
     document_title: str = ""
@@ -20,18 +22,10 @@ class Analysis:
     def annotated_text(self):
         return self.text
 
-    @property
-    def text(self) -> Doc:
-        return self._text
-
-    @text.setter
-    def text(self, value: str) -> None:
-        self._text = self.nlp(value)
-
     @staticmethod
-    def from_ova(obj: Any, nlp: Language) -> Analysis:
+    def from_ova(obj: Any, nlp: Optional[Language] = None) -> Analysis:
         return Analysis(
-            text=nlp(obj.get("plain_txt")),
+            text=utils.parse(obj.get("plain_txt"), nlp),
             annotator_name=obj.get("annotatorName"),
             document_source=obj.get("documentSource"),
             document_title=obj.get("documentTitle"),

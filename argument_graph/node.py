@@ -3,15 +3,16 @@ from __future__ import absolute_import, annotations
 import textwrap
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional, List, Dict, Set
+from typing import Any, Optional, List, Dict, Set, Union
 from enum import Enum
 
 import networkx as nx
 import pygraphviz as gv
 from spacy.language import Language
 from spacy.tokens import Doc
+import pendulum
 
-from . import utils
+from . import utils, dt
 from .analysis import Analysis
 
 
@@ -50,9 +51,8 @@ class Node:
     Attributes `text_begin` and `text_end` are a list for compatability with OVA, but there will always be exactly one start or end.
     """
 
-    nlp: Language
     key: int = field(default_factory=utils.unique_id)
-    _text: Doc = None
+    text: Union[str, Doc] = None
     category: NodeCategory = NodeCategory.I
     x: int = 0.0
     y: int = 0.0
@@ -64,7 +64,7 @@ class Node:
     visible: bool = True
     imgurl: str = ""
     annotator: str = ""
-    date: str = ""
+    date: pendulum.DateTime = field(default_factory=pendulum.now)
     participant_id: int = 0
     w: int = 0
     h: int = 0
@@ -99,11 +99,10 @@ class Node:
         return "aliceblue"
 
     @staticmethod
-    def from_ova(obj: Any, nlp: Language) -> Node:
+    def from_ova(obj: Any, nlp: Optional[Language] = None) -> Node:
         return Node(
-            nlp=nlp,
             key=obj.get("id"),
-            text=nlp(obj.get("text")),
+            text=utils.parse(obj.get("text"), nlp),
             category=NodeCategory(obj.get("type")),
             x=obj.get("x"),
             y=obj.get("y"),
@@ -115,7 +114,7 @@ class Node:
             visible=obj.get("visible"),
             imgurl=obj.get("imgurl"),
             annotator=obj.get("annotator"),
-            date=obj.get("date"),
+            date=dt.from_ova(obj.get("date")),
             participant_id=int(obj.get("participantID")),
             w=obj.get("w"),
             h=obj.get("h"),
@@ -138,7 +137,7 @@ class Node:
             "visible": self.visible,
             "imgurl": self.imgurl,
             "annotator": self.annotator,
-            "date": self.date or utils.ova_date(),
+            "date": dt.to_ova(self.date),
             "participantID": str(self.participant_id),
             "w": self.w,
             "h": self.h,
@@ -147,13 +146,12 @@ class Node:
         }
 
     @staticmethod
-    def from_aif(obj: Any, nlp: Language) -> Node:
+    def from_aif(obj: Any, nlp: Optional[Language] = None) -> Node:
         return Node(
-            nlp=nlp,
             key=obj.get("nodeID"),
-            text=nlp(obj.get("text")),
+            text=utils.parse(obj.get("text"), nlp),
             category=NodeCategory(obj.get("type")),
-            date=obj.get("timestamp"),
+            date=dt.from_aif(obj.get("timestamp")),
         )
 
     def to_aif(self) -> dict:
@@ -161,7 +159,7 @@ class Node:
             "nodeID": self.key,
             "text": self.text or "",
             "type": self.type.value,
-            "timestamp": self.date or utils.aif_date(),
+            "timestamp": dt.to_aif(self.date),
         }
 
     def to_nx(self, g: nx.DiGraph) -> None:

@@ -1,15 +1,7 @@
 from __future__ import absolute_import, annotations
 
-import datetime
 import uuid
-
-
-def ova_date() -> str:
-    return "{date:%d/%m/%Y - %H:%M:%S}".format(date=datetime.datetime.now())
-
-
-def aif_date() -> str:
-    return "{date:%Y-%m-%d %H:%M:%S}".format(date=datetime.datetime.now())
+from spacy.language import Language
 
 
 def unique_id() -> int:
@@ -18,3 +10,7 @@ def unique_id() -> int:
 
 def xstr(data: Any):
     return "" if data is None else str(data)
+
+
+def parse(text: str, nlp: Optional[Language]):
+    return nlp(text) if nlp else text
