@@ -14,7 +14,7 @@ aif_data = [
             "timestamp": "2015-12-14 12:09:15"
         }
         """,
-        "119935",
+        119935,
         "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
         ag.NodeCategory.I,
         pendulum.datetime(2015, 12, 14, 12, 9, 15),
@@ -62,7 +62,7 @@ ova_data = [
 
 
 @pytest.mark.parametrize("aif_json,key,text,category,date", aif_data)
-def test_aif(aif_json, key, text, category, date):
+def test_from_aif(aif_json, key, text, category, date):
     node = ag.Node.from_aif(json.loads(aif_json))
 
     assert node.key == key
@@ -74,7 +74,7 @@ def test_aif(aif_json, key, text, category, date):
 @pytest.mark.parametrize(
     "ova_json,key,text,category, date,color,text_length,scheme,major_claim", ova_data
 )
-def test_aif(
+def test_from_ova(
     ova_json, key, text, category, date, color, text_length, scheme, major_claim
 ):
     node = ag.Node.from_ova(json.loads(ova_json))

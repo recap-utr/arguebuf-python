@@ -101,7 +101,7 @@ class Node:
     @staticmethod
     def from_ova(obj: Any, nlp: Optional[Language] = None) -> Node:
         return Node(
-            key=obj.get("id"),
+            key=int(obj.get("id")),
             text=utils.parse(obj.get("text"), nlp),
             category=NodeCategory(obj.get("type")),
             x=obj.get("x"),
@@ -148,7 +148,7 @@ class Node:
     @staticmethod
     def from_aif(obj: Any, nlp: Optional[Language] = None) -> Node:
         return Node(
-            key=obj.get("nodeID"),
+            key=int(obj.get("nodeID")),
             text=utils.parse(obj.get("text"), nlp),
             category=NodeCategory(obj.get("type")),
             date=dt.from_aif(obj.get("timestamp")),

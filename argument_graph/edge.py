@@ -35,8 +35,8 @@ class Edge:
         if not nodes:
             nodes = {}
 
-        start_key = obj.get("from").get("id")
-        end_key = obj.get("to").get("id")
+        start_key = int(obj.get("from").get("id"))
+        end_key = int(obj.get("to").get("id"))
 
         return Edge(
             start=nodes.get(start_key) or Node.from_ova(obj.get("from"), nlp),
@@ -59,11 +59,13 @@ class Edge:
     def from_aif(
         obj: Any, nodes: Dict[int, Node], nlp: Optional[Language] = None
     ) -> Edge:
-        start_key = obj.get("fromID")
-        end_key = obj.get("toID")
+        start_key = int(obj.get("fromID"))
+        end_key = int(obj.get("toID"))
 
         return Edge(
-            start=nodes.get(start_key), end=nodes.get(end_key), key=obj.get("edgeID")
+            start=nodes.get(start_key),
+            end=nodes.get(end_key),
+            key=int(obj.get("edgeID")),
         )
 
     def to_aif(self) -> dict:
