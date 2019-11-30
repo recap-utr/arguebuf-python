@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Optional, List, Dict, Set
 from pathlib import Path
+import json
 
 import networkx as nx
 import pygraphviz as gv
@@ -151,11 +152,13 @@ class Graph:
         }
 
     @staticmethod
-    def from_dict(obj: Dict[str, Any], nlp: Optional[Language] = None) -> Graph:
+    def from_dict(
+        key: str, obj: Dict[str, Any], nlp: Optional[Language] = None
+    ) -> Graph:
         if "analysis" in obj:
-            return Graph.from_ova(obj, nlp)
+            return Graph.from_ova(key, obj, nlp)
         else:
-            return Graph.from_aif(obj, nlp)
+            return Graph.from_aif(key, obj, nlp)
 
     def to_dict(self) -> dict:
         if self.category == GraphCategory.OVA:
@@ -164,6 +167,18 @@ class Graph:
             return self.to_aif()
         else:
             return self.to_ova()
+
+    @staticmethod
+    def from_file(path: Path, nlp: Optional[Language] = None) -> Graph:
+        with open(path, "r") as file:
+            return Graph.from_dict(file.name, json.load(file), nlp)
+
+    def to_file(self, path: Path) -> None:
+        if path.is_dir():
+            path = path / self.key
+
+        with open(path, "w") as file:
+            json.dump(self.to_dict(), file)
 
     def to_nx(self) -> nx.DiGraph:
         g = nx.DiGraph()

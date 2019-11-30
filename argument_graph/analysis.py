@@ -9,6 +9,9 @@ from spacy.tokens import Doc, Span
 from . import utils
 
 
+# TODO: Implement annotated text
+
+
 @dataclass
 class Analysis:
     """Needed to store metadata for OVA."""
