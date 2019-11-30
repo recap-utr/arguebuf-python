@@ -205,4 +205,4 @@ class Graph:
         if path.is_dir():
             path = path / f"{self.key}.{format}"
 
-        g.draw(path=path, format=format, prog=prog)
+        g.draw(path=str(path), format=format, prog=prog)
