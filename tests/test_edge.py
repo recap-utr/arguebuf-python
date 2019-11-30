@@ -90,10 +90,10 @@ ova_data = [
 ]
 
 
-@pytest.mark.parametrize("aif_json,key,start,end", aif_data)
-def test_from_aif(aif_json, key, start, end):
+@pytest.mark.parametrize("data,key,start,end", aif_data)
+def test_aif(data, key, start, end):
     edge = ag.Edge.from_aif(
-        json.loads(aif_json), {start: ag.Node(start), end: ag.Node(end)}
+        json.loads(data), {start: ag.Node(start), end: ag.Node(end)}
     )
 
     assert edge.key == key
@@ -101,9 +101,9 @@ def test_from_aif(aif_json, key, start, end):
     assert edge.end.key == end
 
 
-@pytest.mark.parametrize("ova_json,start,end,date", ova_data)
-def test_from_ova(ova_json, start, end, date):
-    edge = ag.Edge.from_ova(json.loads(ova_json))
+@pytest.mark.parametrize("data,start,end,date", ova_data)
+def test_ova(data, start, end, date):
+    edge = ag.Edge.from_ova(json.loads(data))
 
     assert isinstance(edge.start, ag.Node)
     assert isinstance(edge.end, ag.Node)

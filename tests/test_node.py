@@ -61,9 +61,9 @@ ova_data = [
 ]
 
 
-@pytest.mark.parametrize("aif_json,key,text,category,date", aif_data)
-def test_from_aif(aif_json, key, text, category, date):
-    node = ag.Node.from_aif(json.loads(aif_json))
+@pytest.mark.parametrize("data,key,text,category,date", aif_data)
+def test_aif(data, key, text, category, date):
+    node = ag.Node.from_aif(json.loads(data))
 
     assert node.key == key
     assert node.text == text
@@ -72,12 +72,10 @@ def test_from_aif(aif_json, key, text, category, date):
 
 
 @pytest.mark.parametrize(
-    "ova_json,key,text,category, date,color,text_length,scheme,major_claim", ova_data
+    "data,key,text,category, date,color,text_length,scheme,major_claim", ova_data
 )
-def test_from_ova(
-    ova_json, key, text, category, date, color, text_length, scheme, major_claim
-):
-    node = ag.Node.from_ova(json.loads(ova_json))
+def test_ova(data, key, text, category, date, color, text_length, scheme, major_claim):
+    node = ag.Node.from_ova(json.loads(data))
 
     assert node.key == key
     assert node.text == text

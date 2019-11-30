@@ -167,7 +167,7 @@ class Graph:
     @staticmethod
     def from_file(path: Path, nlp: Optional[Language] = None) -> Graph:
         with open(path, "r") as file:
-            return Graph.from_dict(file.name, json.load(file), nlp)
+            return Graph.from_dict(path.name, json.load(file), nlp)
 
     def to_file(self, path: Path) -> None:
         if path.is_dir():
