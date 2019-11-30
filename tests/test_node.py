@@ -50,12 +50,25 @@ ova_data = [
         }
         """,
         119935,
-        "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
-        ag.NodeCategory.I,
-        pendulum.datetime(2019, 3, 6, 14, 31, 23),
+        656,
+        317,
         "b",
+        "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
+        None,
+        None,
         114,
+        "",
+        ag.NodeCategory.I,
         0,
+        {},
+        {},
+        True,
+        "",
+        "",
+        pendulum.datetime(2019, 3, 6, 14, 31, 23),
+        0,
+        200,
+        90,
         False,
         None,
         None,
@@ -78,18 +91,31 @@ def test_aif_node(data, key, text, category, date):
 
 
 @pytest.mark.parametrize(
-    "data,key,text,category, date,color,text_length,scheme,major_claim,is_check_worthy,source",
+    "data,key,x,y,color,text,text_begin,text_end,text_length,comment,category,scheme,descriptors,cqdesc,visible,imgurl,annotator,date,participant_id,w,h,major_claim,is_check_worthy,source",
     ova_data,
 )
 def test_ova_node(
     data,
     key,
-    text,
-    category,
-    date,
+    x,
+    y,
     color,
+    text,
+    text_begin,
+    text_end,
     text_length,
+    comment,
+    category,
     scheme,
+    descriptors,
+    cqdesc,
+    visible,
+    imgurl,
+    annotator,
+    date,
+    participant_id,
+    w,
+    h,
     major_claim,
     is_check_worthy,
     source,
@@ -98,12 +124,25 @@ def test_ova_node(
     node = ag.Node.from_ova(data_json)
 
     assert node.key == key
-    assert node.text == text
-    assert node.category == category
-    assert node.date == date
+    assert node.x == x
+    assert node.y == y
     assert node.ova_color == color
+    assert node.text == text
+    assert node.text_begin == text_begin
+    assert node.text_end == text_end
     assert node.text_length == text_length
+    assert node.comment == comment
+    assert node.category == category
     assert node.scheme == scheme
+    assert node.descriptors == descriptors
+    assert node.cqdesc == cqdesc
+    assert node.visible == visible
+    assert node.imgurl == imgurl
+    assert node.annotator == annotator
+    assert node.date == date
+    assert node.participant_id == participant_id
+    assert node.w == w
+    assert node.h == h
     assert node.major_claim == major_claim
     assert node.is_check_worthy == is_check_worthy
     assert node.source == source

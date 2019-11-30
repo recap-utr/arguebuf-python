@@ -219,7 +219,7 @@ class Node:
             "x": self.x or 0,
             "y": self.y or 0,
             "text_begin": _int2list(self.text_begin),
-            "text_end": _int2list(self.text_begin),
+            "text_end": _int2list(self.text_end),
             "text_length": _int2list(self.text_length),
             "comment": self.comment or "",
             "scheme": str(self.scheme) or "0",
