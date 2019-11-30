@@ -24,8 +24,8 @@ class Edge:
     start: Node
     end: Node
     key: int = field(default_factory=utils.unique_id)
-    visible: bool = True
-    annotator: str = ""
+    visible: bool = None
+    annotator: str = None
     date: pendulum.DateTime = field(default_factory=pendulum.now)
 
     @staticmethod

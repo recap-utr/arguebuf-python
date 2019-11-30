@@ -257,7 +257,10 @@ class Node:
 
     def to_nx(self, g: nx.DiGraph) -> None:
         g.add_node(
-            self.key, label=self.text, type=self.category.value, mc=self.major_claim
+            self.key,
+            label=self.text,
+            type=self.category.value,
+            mc=bool(self.major_claim),
         )
 
     def to_gv(
@@ -276,7 +279,7 @@ class Node:
             fontcolor=fg_color or "black",
             fillcolor=bg_color or self.gv_color,
             style="filled",
-            root=self.major_claim,
+            root=bool(self.major_claim),
             shape="box",
         )
 

@@ -741,6 +741,8 @@ ova_data = [
         """,
         9,
         8,
+        list,
+        ag.Analysis,
     )
 ]
 
@@ -860,6 +862,8 @@ aif_data = [
         """,
         9,
         8,
+        type(None),
+        type(None),
     )
 ]
 
@@ -867,13 +871,17 @@ aif_data = [
 mixed_data = aif_data + ova_data
 
 
-@pytest.mark.parametrize("data,nodes,edges", mixed_data)
-def test_graph(data, nodes, edges):
+@pytest.mark.parametrize(
+    "data,n_nodes,n_edges,type_participants,type_analysis", mixed_data
+)
+def test_graph(data, n_nodes, n_edges, type_participants, type_analysis):
     data_json = json.loads(data)
     graph = ag.Graph.from_dict("", data_json)
 
-    assert len(graph.nodes) == nodes
-    assert len(graph.edges) == edges
+    assert len(graph.nodes) == n_nodes
+    assert len(graph.edges) == n_edges
+    assert isinstance(graph.participants, type_participants)
+    assert isinstance(graph.analysis, type_analysis)
 
     export = graph.to_dict()
     assert export == data_json

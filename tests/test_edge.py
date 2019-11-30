@@ -89,6 +89,8 @@ ova_data = [
         """,
         119935,
         119940,
+        True,
+        "",
         pendulum.datetime(2019, 3, 6, 14, 31, 23),
     )
 ]
@@ -112,8 +114,8 @@ def test_aif_edge(data, key, start, end):
     assert export.get("formEdgeID") == None
 
 
-@pytest.mark.parametrize("data,start,end,date", ova_data)
-def test_ova_edge(data, start, end, date):
+@pytest.mark.parametrize("data,start,end,visible,annotator,date", ova_data)
+def test_ova_edge(data, start, end, visible, annotator, date):
     data_json = json.loads(data)
     edge = ag.Edge.from_ova(data_json)
 
@@ -121,6 +123,8 @@ def test_ova_edge(data, start, end, date):
     assert isinstance(edge.end, ag.Node)
     assert edge.start.key == start
     assert edge.end.key == end
+    assert edge.visible == visible
+    assert edge.annotator == annotator
     assert edge.date == date
 
     export = edge.to_ova()

@@ -47,8 +47,8 @@ class Graph:
     _inodes: List[Node] = field(init=False, default_factory=list)
     _snodes: List[Node] = field(init=False, default_factory=list)
     _edges: List[Edge] = field(init=False, default_factory=list)
-    participants: List[Any] = field(default_factory=list)
-    analysis: Analysis = field(default_factory=Analysis)
+    participants: List[Any] = None
+    analysis: Analysis = None
     category: GraphCategory = GraphCategory.OTHER
 
     @property
@@ -124,8 +124,8 @@ class Graph:
         return {
             "nodes": [node.to_ova() for node in self.nodes],
             "edges": [edge.to_ova() for edge in self.edges],
-            "participants": self.participants,
-            "analysis": self.analysis.to_ova(),
+            "participants": self.participants or [],
+            "analysis": self.analysis.to_ova() or {},
         }
 
     @staticmethod
