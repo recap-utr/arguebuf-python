@@ -275,7 +275,7 @@ class Node:
     ) -> None:
         g.add_node(
             f"{key_prefix}{self.key}{key_suffix}",
-            label=f"{label_prefix}\n{textwrap.fill(self.text, 20)}\n{label_suffix}",
+            label=f"{label_prefix}\n{textwrap.fill(self.text, 20)}\n{label_suffix}".strip(),
             fontcolor=fg_color or "black",
             fillcolor=bg_color or self.gv_color,
             style="filled",
