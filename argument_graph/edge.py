@@ -70,9 +70,9 @@ class Edge:
 
     def to_aif(self) -> dict:
         return {
-            "edgeID": self.key,
-            "fromID": self.start.to_aif(),
-            "toID": self.end.to_aif(),
+            "edgeID": str(self.key),
+            "fromID": str(self.start.key),
+            "toID": str(self.end.key),
             "formEdgeID": None,
         }
 

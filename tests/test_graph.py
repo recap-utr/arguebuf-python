@@ -31,7 +31,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 200,
                     "h": 90,
-                    "majorClaim": false
+                    "majorClaim": false,
+                    "is_check_worthy": "no",
+                    "source": ""
                 },
                 {
                     "id": 119936,
@@ -56,7 +58,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 200,
                     "h": 90,
-                    "majorClaim": false
+                    "majorClaim": false,
+                    "is_check_worthy": "no",
+                    "source": ""
                 },
                 {
                     "id": 119937,
@@ -81,7 +85,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 200,
                     "h": 70,
-                    "majorClaim": true
+                    "majorClaim": true,
+                    "is_check_worthy": "no",
+                    "source": ""
                 },
                 {
                     "id": 119938,
@@ -106,7 +112,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 200,
                     "h": 70,
-                    "majorClaim": false
+                    "majorClaim": false,
+                    "is_check_worthy": "no",
+                    "source": ""
                 },
                 {
                     "id": 119939,
@@ -131,7 +139,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 200,
                     "h": 70,
-                    "majorClaim": false
+                    "majorClaim": false,
+                    "is_check_worthy": "no",
+                    "source": ""
                 },
                 {
                     "id": 119940,
@@ -159,7 +169,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 52,
                     "h": 30,
-                    "majorClaim": false
+                    "majorClaim": false,
+                    "is_check_worthy": "no",
+                    "source": ""
                 },
                 {
                     "id": 119941,
@@ -186,7 +198,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 143,
                     "h": 30,
-                    "majorClaim": false
+                    "majorClaim": false,
+                    "is_check_worthy": "no",
+                    "source": ""
                 },
                 {
                     "id": 119942,
@@ -209,7 +223,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 103,
                     "h": 30,
-                    "majorClaim": false
+                    "majorClaim": false,
+                    "is_check_worthy": "no",
+                    "source": ""
                 },
                 {
                     "id": 119943,
@@ -232,7 +248,9 @@ ova_data = [
                     "participantID": "0",
                     "w": 103,
                     "h": 30,
-                    "majorClaim": false
+                    "majorClaim": false,
+                    "is_check_worthy": "no",
+                    "source": ""
                 }
             ],
             "edges": [
@@ -260,7 +278,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 200,
                         "h": 90,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "to": {
                         "id": 119940,
@@ -288,7 +308,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 52,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "visible": true,
                     "annotator": "",
@@ -321,7 +343,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 52,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "to": {
                         "id": 119937,
@@ -346,7 +370,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 200,
                         "h": 70,
-                        "majorClaim": true
+                        "majorClaim": true,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "visible": true,
                     "annotator": "",
@@ -376,7 +402,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 200,
                         "h": 90,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "to": {
                         "id": 119941,
@@ -403,7 +431,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 143,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "visible": true,
                     "annotator": "",
@@ -435,7 +465,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 143,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "to": {
                         "id": 119937,
@@ -460,7 +492,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 200,
                         "h": 70,
-                        "majorClaim": true
+                        "majorClaim": true,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "visible": true,
                     "annotator": "",
@@ -490,7 +524,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 200,
                         "h": 70,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "to": {
                         "id": 119942,
@@ -513,7 +549,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 103,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "visible": true,
                     "annotator": "",
@@ -541,7 +579,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 103,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "to": {
                         "id": 119937,
@@ -566,7 +606,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 200,
                         "h": 70,
-                        "majorClaim": true
+                        "majorClaim": true,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "visible": true,
                     "annotator": "",
@@ -596,7 +638,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 200,
                         "h": 70,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "to": {
                         "id": 119943,
@@ -619,7 +663,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 103,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "visible": true,
                     "annotator": "",
@@ -647,7 +693,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 103,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "to": {
                         "id": 119942,
@@ -670,7 +718,9 @@ ova_data = [
                         "participantID": "0",
                         "w": 103,
                         "h": 30,
-                        "majorClaim": false
+                        "majorClaim": false,
+                        "is_check_worthy": "no",
+                        "source": ""
                     },
                     "visible": true,
                     "annotator": "",
@@ -679,16 +729,18 @@ ova_data = [
             ],
             "participants": [],
             "analysis": {
+                "ovaVersion": "1.2.0",
                 "txt": "<span class=\\"highlighted\\" id=\\"node119935\\">One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.</span> <span class=\\"highlighted\\" id=\\"node119936\\">And when bad luck does strike and you step into one of the many 'land mines' you have to painstakingly scrape the remains off your soles.</span> <span class=\\"highlighted\\" id=\\"node119937\\">Higher fines are therefore the right measure against negligent, lazy or simply thoughtless dog owners.</span> <span class=\\"highlighted\\" id=\\"node119938\\">Of course, first they'd actually need to be caught in the act by public order officers,</span> <span class=\\"highlighted\\" id=\\"node119939\\">but once they have to dig into their pockets, their laziness will sure vanish!</span><br>",
                 "plain_txt": "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt. And when bad luck does strike and you step into one of the many 'land mines' you have to painstakingly scrape the remains off your soles. Higher fines are therefore the right measure against negligent, lazy or simply thoughtless dog owners. Of course, first they'd actually need to be caught in the act by public order officers, but once they have to dig into their pockets, their laziness will sure vanish!\\n",
                 "annotatorName": "Anna Ludwig",
-                "documentTitle": "nodeset6362.json"
+                "documentTitle": "nodeset6362.json",
+                "documentSource": "",
+                "documentDate": "30/11/2019"
             }
         }
         """,
         9,
         8,
-        0,
     )
 ]
 
@@ -808,7 +860,6 @@ aif_data = [
         """,
         9,
         8,
-        0,
     )
 ]
 
@@ -816,10 +867,13 @@ aif_data = [
 mixed_data = aif_data + ova_data
 
 
-@pytest.mark.parametrize("data,nodes,edges,participants", mixed_data)
-def test_dict(data, nodes, edges, participants):
-    graph = ag.Graph.from_dict("", json.loads(data))
+@pytest.mark.parametrize("data,nodes,edges", mixed_data)
+def test_graph(data, nodes, edges):
+    data_json = json.loads(data)
+    graph = ag.Graph.from_dict("", data_json)
 
     assert len(graph.nodes) == nodes
     assert len(graph.edges) == edges
-    assert len(graph.participants) == participants
+
+    export = graph.to_dict()
+    assert export == data_json

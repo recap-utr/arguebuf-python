@@ -108,9 +108,15 @@ class Graph:
             analysis=Analysis.from_ova(obj.get("analysis"), nlp),
             category=GraphCategory.OVA,
         )
+        node_dict = {}
+
+        for node_obj in obj.get("nodes"):
+            node = Node.from_ova(node_obj, nlp)
+            node_dict[node.key] = node
+            g.add_node(node)
 
         for edge in obj.get("edges"):
-            g.add_edge(Edge.from_ova(edge, nlp))
+            g.add_edge(Edge.from_ova(edge, node_dict, nlp))
 
         return g
 
@@ -143,8 +149,7 @@ class Graph:
         return {
             "nodes": [node.to_aif() for node in self.nodes],
             "edges": [edge.to_aif() for edge in self.edges],
-            "participants": self.participants,
-            "analysis": self.analysis.to_aif(),
+            "locutions": [],
         }
 
     @staticmethod

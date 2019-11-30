@@ -22,9 +22,13 @@ data = [
 
 @pytest.mark.parametrize("data,text,annotator,title", data)
 def test_analysis(data, text, annotator, title):
-    analysis = ag.Analysis.from_ova(json.loads(data))
+    data_json = json.loads(data)
+    analysis = ag.Analysis.from_ova(data_json)
 
     assert analysis.text == text
     assert bool(analysis.annotated_text)
     assert analysis.annotator_name == annotator
     assert analysis.document_title == title
+
+    export = analysis.to_ova()
+    assert export.items() >= data_json.items()

@@ -48,7 +48,9 @@ ova_data = [
                 "participantID": "0",
                 "w": 200,
                 "h": 90,
-                "majorClaim": false
+                "majorClaim": false,
+                "is_check_worthy": "no",
+                "source": ""
             },
             "to": {
                 "id": 119940,
@@ -76,7 +78,9 @@ ova_data = [
                 "participantID": "0",
                 "w": 52,
                 "h": 30,
-                "majorClaim": false
+                "majorClaim": false,
+                "is_check_worthy": "no",
+                "source": ""
             },
             "visible": true,
             "annotator": "",
@@ -91,7 +95,7 @@ ova_data = [
 
 
 @pytest.mark.parametrize("data,key,start,end", aif_data)
-def test_aif(data, key, start, end):
+def test_aif_edge(data, key, start, end):
     edge = ag.Edge.from_aif(
         json.loads(data), {start: ag.Node(start), end: ag.Node(end)}
     )
@@ -100,13 +104,24 @@ def test_aif(data, key, start, end):
     assert edge.start.key == start
     assert edge.end.key == end
 
+    export = edge.to_aif()
+
+    assert export.get("edgeID") == str(key)
+    assert export.get("fromID") == str(start)
+    assert export.get("toID") == str(end)
+    assert export.get("formEdgeID") == None
+
 
 @pytest.mark.parametrize("data,start,end,date", ova_data)
-def test_ova(data, start, end, date):
-    edge = ag.Edge.from_ova(json.loads(data))
+def test_ova_edge(data, start, end, date):
+    data_json = json.loads(data)
+    edge = ag.Edge.from_ova(data_json)
 
     assert isinstance(edge.start, ag.Node)
     assert isinstance(edge.end, ag.Node)
     assert edge.start.key == start
     assert edge.end.key == end
     assert edge.date == date
+
+    export = edge.to_ova()
+    assert export == data_json

@@ -57,25 +57,45 @@ ova_data = [
         114,
         0,
         False,
+        None,
+        None,
     )
 ]
 
 
 @pytest.mark.parametrize("data,key,text,category,date", aif_data)
-def test_aif(data, key, text, category, date):
-    node = ag.Node.from_aif(json.loads(data))
+def test_aif_node(data, key, text, category, date):
+    data_json = json.loads(data)
+    node = ag.Node.from_aif(data_json)
 
     assert node.key == key
     assert node.text == text
     assert node.category == category
     assert node.date == date
 
+    export = node.to_aif()
+    assert export.items() >= data_json.items()
+
 
 @pytest.mark.parametrize(
-    "data,key,text,category, date,color,text_length,scheme,major_claim", ova_data
+    "data,key,text,category, date,color,text_length,scheme,major_claim,is_check_worthy,source",
+    ova_data,
 )
-def test_ova(data, key, text, category, date, color, text_length, scheme, major_claim):
-    node = ag.Node.from_ova(json.loads(data))
+def test_ova_node(
+    data,
+    key,
+    text,
+    category,
+    date,
+    color,
+    text_length,
+    scheme,
+    major_claim,
+    is_check_worthy,
+    source,
+):
+    data_json = json.loads(data)
+    node = ag.Node.from_ova(data_json)
 
     assert node.key == key
     assert node.text == text
@@ -85,3 +105,8 @@ def test_ova(data, key, text, category, date, color, text_length, scheme, major_
     assert node.text_length == text_length
     assert node.scheme == scheme
     assert node.major_claim == major_claim
+    assert node.is_check_worthy == is_check_worthy
+    assert node.source == source
+
+    export = node.to_ova()
+    assert export.items() >= data_json.items()
