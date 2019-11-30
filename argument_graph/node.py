@@ -9,7 +9,7 @@ from enum import Enum
 import networkx as nx
 import pygraphviz as gv
 from spacy.language import Language
-from spacy.tokens import Doc
+from spacy.tokens import Doc, Span
 import pendulum
 
 from . import utils, dt
@@ -52,7 +52,7 @@ class Node:
     """
 
     key: int = field(default_factory=utils.unique_id)
-    text: Union[str, Doc] = None
+    text: Union[str, Doc, Span] = None
     category: NodeCategory = NodeCategory.I
     x: int = 0.0
     y: int = 0.0

@@ -9,6 +9,7 @@ import networkx as nx
 import pygraphviz as gv
 from spacy.language import Language
 from spacy.lang.en import English
+from enum import Enum
 
 from . import utils
 from .node import Node, NodeCategory
@@ -18,6 +19,14 @@ from .analysis import Analysis
 
 # TODO: How should duplicates be handled?
 # TODO: Should id() be used for comparison?
+
+
+class GraphCategory(Enum):
+    AIF = "aif"
+    OVA = "ova"
+    OTHER = "other"
+
+
 @dataclass
 class Graph:
     """Graph in AIF format.
@@ -39,6 +48,7 @@ class Graph:
     _edges: List[Edge] = field(init=False, default_factory=list)
     participants: List[Any] = field(default_factory=list)
     analysis: Analysis = field(default_factory=Analysis)
+    category: GraphCategory = GraphCategory.OTHER
 
     @property
     def nodes(self) -> List[Node]:
@@ -92,11 +102,14 @@ class Graph:
         self._edges.remove(edge)
 
     @staticmethod
-    def from_ova(key: str, obj: Any, nlp: Optional[Language] = None) -> Graph:
+    def from_ova(
+        key: str, obj: Dict[str, Any], nlp: Optional[Language] = None
+    ) -> Graph:
         g = Graph(
             key=key,
             participants=obj.get("participants"),
             analysis=Analysis.from_ova(obj.get("analysis"), nlp),
+            category=GraphCategory.OVA,
         )
 
         for edge in obj.get("edges"):
@@ -113,8 +126,10 @@ class Graph:
         }
 
     @staticmethod
-    def from_aif(key: str, obj: Any, nlp: Optional[Language] = None) -> Graph:
-        g = Graph(key=key)
+    def from_aif(
+        key: str, obj: Dict[str, Any], nlp: Optional[Language] = None
+    ) -> Graph:
+        g = Graph(key=key, category=GraphCategory.AIF)
         node_dict = {}
 
         for node_obj in obj.get("nodes"):
@@ -134,6 +149,21 @@ class Graph:
             "participants": self.participants,
             "analysis": self.analysis.to_aif(),
         }
+
+    @staticmethod
+    def from_dict(obj: Dict[str, Any], nlp: Optional[Language] = None) -> Graph:
+        if "analysis" in obj:
+            return Graph.from_ova(obj, nlp)
+        else:
+            return Graph.from_aif(obj, nlp)
+
+    def to_dict(self) -> dict:
+        if self.category == GraphCategory.OVA:
+            return self.to_ova()
+        elif self.category == GraphCategory.AIF:
+            return self.to_aif()
+        else:
+            return self.to_ova()
 
     def to_nx(self) -> nx.DiGraph:
         g = nx.DiGraph()

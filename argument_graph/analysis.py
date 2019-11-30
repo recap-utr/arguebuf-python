@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Union
 
 from spacy.language import Language
-from spacy.tokens import Doc
+from spacy.tokens import Doc, Span
 
 from . import utils
 
@@ -13,7 +13,7 @@ from . import utils
 class Analysis:
     """Needed to store metadata for OVA."""
 
-    text: Union[str, Doc] = None
+    text: Union[str, Doc, Span] = None
     annotator_name: str = ""
     document_source: str = ""
     document_title: str = ""
