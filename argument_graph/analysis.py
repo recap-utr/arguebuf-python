@@ -9,26 +9,26 @@ from spacy.tokens import Doc, Span
 from . import utils
 
 
-# TODO: Implement annotated text
-
-
 @dataclass
 class Analysis:
     """Needed to store metadata for OVA."""
 
     text: Union[str, Doc, Span] = None
+    annotated_text: str = ""
     annotator_name: str = ""
     document_source: str = ""
     document_title: str = ""
 
-    @property
-    def annotated_text(self):
-        return self.text
+    # TODO: Implement annotated text without duplication
+    # @property
+    # def annotated_text(self):
+    #     return self.text
 
     @staticmethod
     def from_ova(obj: Any, nlp: Optional[Language] = None) -> Analysis:
         return Analysis(
             text=utils.parse(obj.get("plain_txt"), nlp),
+            annotated_text=obj.get("txt"),
             annotator_name=obj.get("annotatorName"),
             document_source=obj.get("documentSource"),
             document_title=obj.get("documentTitle"),

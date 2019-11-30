@@ -68,9 +68,6 @@ class Graph:
         return self._edges
 
     def add_node(self, node: Node) -> None:
-        if node.graph and id(node.graph) != id(self):
-            raise ValueError("This node is already linked to another graph.")
-
         self._nodes.append(node)
 
         if node.category == NodeCategory.I:
@@ -80,7 +77,6 @@ class Graph:
 
     def remove_node(self, node: Node) -> None:
         self._nodes.remove(node)
-        node.graph = None
 
         if node.category == NodeCategory.I:
             self._inodes.remove(node)
@@ -178,7 +174,7 @@ class Graph:
             path = path / self.key
 
         with open(path, "w") as file:
-            json.dump(self.to_dict(), file)
+            json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
 
     def to_nx(self) -> nx.DiGraph:
         g = nx.DiGraph()
