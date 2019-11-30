@@ -172,11 +172,11 @@ class Graph:
     @staticmethod
     def from_file(path: Path, nlp: Optional[Language] = None) -> Graph:
         with open(path, "r") as file:
-            return Graph.from_dict(path.name, json.load(file), nlp)
+            return Graph.from_dict(path.stem, json.load(file), nlp)
 
     def to_file(self, path: Path) -> None:
         if path.is_dir():
-            path = path / self.key
+            path = path / f"{self.key}.json"
 
         with open(path, "w") as file:
             json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
@@ -199,6 +199,10 @@ class Graph:
 
         return g
 
-    def draw(self, path: Path, layout="dot") -> None:
+    def draw(self, path: Path, format: str, prog: str = "dot", args: str = "") -> None:
         g = self.to_gv()
-        g.draw(path, prog=layout)
+
+        if path.is_dir():
+            path = path / f"{self.key}.{format}"
+
+        g.draw(path=path, format=format, prog=prog)
