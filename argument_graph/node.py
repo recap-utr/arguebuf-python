@@ -131,7 +131,7 @@ class Node:
             "text_end": [self.text_end],
             "text_length": self.text_length,
             "comment": self.comment,
-            "type": self.type.value,
+            "type": self.category.value,
             "descriptors": self.descriptors,
             "cqdesc": self.cqdesc,
             "visible": self.visible,
@@ -158,7 +158,7 @@ class Node:
         return {
             "nodeID": self.key,
             "text": self.text or "",
-            "type": self.type.value,
+            "type": self.category.value,
             "timestamp": dt.to_aif(self.date),
         }
 
