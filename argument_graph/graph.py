@@ -100,14 +100,17 @@ class Graph:
 
     @staticmethod
     def from_ova(
-        key: str, obj: Dict[str, Any], nlp: Optional[Language] = None
+        obj: Dict[str, Any], key: Optional[str] = None, nlp: Optional[Language] = None
     ) -> Graph:
         g = Graph(
-            key=key,
             participants=obj.get("participants"),
             analysis=Analysis.from_ova(obj.get("analysis"), nlp),
             category=GraphCategory.OVA,
         )
+
+        if key:
+            g.key = key
+
         node_dict = {}
 
         for node_obj in obj.get("nodes"):
@@ -130,9 +133,14 @@ class Graph:
 
     @staticmethod
     def from_aif(
-        key: str, obj: Dict[str, Any], nlp: Optional[Language] = None
+        obj: Dict[str, Any], key: Optional[str] = None, nlp: Optional[Language] = None
     ) -> Graph:
-        g = Graph(key=key, category=GraphCategory.AIF)
+
+        g = Graph(category=GraphCategory.AIF)
+
+        if key:
+            g.key = key
+
         node_dict = {}
 
         for node_obj in obj.get("nodes"):
@@ -154,12 +162,12 @@ class Graph:
 
     @staticmethod
     def from_dict(
-        key: str, obj: Dict[str, Any], nlp: Optional[Language] = None
+        obj: Dict[str, Any], key: Optional[str] = None, nlp: Optional[Language] = None
     ) -> Graph:
         if "analysis" in obj:
-            return Graph.from_ova(key, obj, nlp)
+            return Graph.from_ova(obj, key, nlp)
         else:
-            return Graph.from_aif(key, obj, nlp)
+            return Graph.from_aif(obj, key, nlp)
 
     def to_dict(self) -> dict:
         if self.category == GraphCategory.OVA:
@@ -199,7 +207,9 @@ class Graph:
 
         return g
 
-    def draw(self, path: Path, format: str, prog: str = "dot", args: str = "") -> None:
+    def draw(
+        self, path: Path, format: str = "pdf", prog: str = "dot", args: str = ""
+    ) -> None:
         g = self.to_gv()
 
         if path.is_dir():

@@ -25,6 +25,7 @@ class NodeCategory(Enum):
     - CA: Conflict
     - MA: Rephrase
     - TA: Transition
+    - YA: Not used
     """
 
     I = "I"
@@ -33,6 +34,7 @@ class NodeCategory(Enum):
     MA = "MA"
     TA = "TA"
     PA = "PA"
+    YA = "YA"
 
 
 # TODO: Duplicate keys: 17, 251, 252, 61, 254, 253
@@ -156,17 +158,24 @@ other_schemes = {
 
 schemes = {**ra_schemes, **ca_schemes, **other_schemes}
 
-ColorMapping = collections.namedtuple("ColorMapping", "bg border fg")
-colors = {
-    "r": ColorMapping("#fbdedb", "#e74c3c", "#333333"),
-    "g": ColorMapping("#def8e9", "#2ecc71", "#333333"),
-    "b": ColorMapping("#ddeef9", "#3498db", "#333333"),
-    "w": ColorMapping("#e9eded", "#95a5a6", "#333333"),
-    "y": ColorMapping("#fdf6d9", "#f1c40f", "#333333"),
-    "p": ColorMapping("#eee3f3", "#9b59b6", "#333333"),
-    "o": ColorMapping("#fbeadb", "#e67e22", "#333333"),
-    "t": ColorMapping("#dcfaf4", "#1abc9c", "#333333"),
-    "m": ColorMapping("#3498db", "#3498db", "#333333"),
+
+@dataclass
+class ColorMapping:
+    bg: str = "#ffffff"
+    fg: str = "#333333"
+    border: str = "#000000"
+
+
+color_mappings = {
+    "r": ColorMapping(bg="#fbdedb", border="#e74c3c"),
+    "g": ColorMapping(bg="#def8e9", border="#2ecc71"),
+    "b": ColorMapping(bg="#ddeef9", border="#3498db"),
+    "w": ColorMapping(bg="#e9eded", border="#95a5a6"),
+    "y": ColorMapping(bg="#fdf6d9", border="#f1c40f"),
+    "p": ColorMapping(bg="#eee3f3", border="#9b59b6"),
+    "o": ColorMapping(bg="#fbeadb", border="#e67e22"),
+    "t": ColorMapping(bg="#dcfaf4", border="#1abc9c"),
+    "m": ColorMapping(bg="#3498db", border="#3498db"),
 }
 
 
@@ -225,8 +234,12 @@ class Node:
 
     @property
     def ova_color(self) -> str:
-        # TODO: w, y
-        if self.category == NodeCategory.RA:
+        if self.category == NodeCategory.I:
+            if self.major_claim:
+                return "m"
+            else:
+                return "b"
+        elif self.category == NodeCategory.RA:
             return "g"
         elif self.category == NodeCategory.CA:
             return "r"
@@ -236,12 +249,12 @@ class Node:
             return "o"
         elif self.category == NodeCategory.PA:
             return "t"
-        elif self.major_claim:
-            return "m"
-        return "b"
+        elif self.category == NodeCategory.YA:
+            return "y"
+        return "w"
 
     @property
-    def gv_color(self) -> str:
+    def gv_color(self) -> ColorMapping:
         # if self.category == NodeCategory.RA:
         #     return "palegreen"
         # elif self.category == NodeCategory.CA:
@@ -249,7 +262,7 @@ class Node:
         # elif self.major_claim:
         #     return "lightskyblue"
         # return "aliceblue"
-        return colors[self.ova_color]
+        return color_mappings[self.ova_color]
 
     @staticmethod
     def from_ova(obj: Dict[str, Any], nlp: Optional[Language] = None) -> Node:
@@ -332,21 +345,31 @@ class Node:
     def to_gv(
         self,
         g: gv.AGraph,
-        bg_color: str = "",
-        fg_color: str = "",
+        color: Optional[ColorMapping] = None,
         label_prefix: str = "",
         label_suffix: str = "",
         key_prefix: str = "",
         key_suffix: str = "",
+        wrap_col: int = 36,
+        margin: Tuple(float) = (0.15, 0.1),
     ) -> None:
+        if not color:
+            color = self.gv_color
+
         g.add_node(
             f"{key_prefix}{self.key}{key_suffix}",
-            label=f"{label_prefix}\n{textwrap.fill(self.text, 20)}\n{label_suffix}".strip(),
-            fontcolor=fg_color or self.gv_color.fg,
-            fillcolor=bg_color or self.gv_color.bg,
+            label=f"{label_prefix}\n{textwrap.fill(self.text, wrap_col)}\n{label_suffix}".strip(),
+            fontname="Arial",
+            fontsize=11,
+            fontcolor=color.fg,
+            fillcolor=color.bg,
+            color=color.border,
             style="filled",
             root=bool(self.major_claim),
             shape="box",
+            width=0,
+            height=0,
+            margin=f"{margin[0]},{margin[1]}",
         )
 
     def __eq__(self, other: Node) -> bool:

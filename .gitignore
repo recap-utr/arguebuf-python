@@ -1,4 +1,6 @@
 .vscode/
+out/
+data/
 
 
 # Created by https://www.gitignore.io/api/macos,python,visualstudiocode

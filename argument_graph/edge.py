@@ -79,8 +79,14 @@ class Edge:
     def to_nx(self, g: nx.DiGraph) -> None:
         g.add_edge(self.start.key, self.end.key)
 
-    def to_gv(self, g: gv.AGraph, suffix: str = "") -> None:
-        g.add_edge(f"{self.start.key}{suffix}", f"{self.end.key}{suffix}")
+    def to_gv(
+        self, g: gv.AGraph, color="#666666", prefix: str = "", suffix: str = ""
+    ) -> None:
+        g.add_edge(
+            f"{prefix}{self.start.key}{suffix}",
+            f"{prefix}{self.end.key}{suffix}",
+            color=color,
+        )
 
     def __eq__(self, other: Edge) -> bool:
         return self.start == other.start and self.end == other.end

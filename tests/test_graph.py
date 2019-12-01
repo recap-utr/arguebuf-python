@@ -1,5 +1,6 @@
 import pytest
 import json
+from pathlib import Path
 import argument_graph as ag
 
 
@@ -874,9 +875,9 @@ mixed_data = aif_data + ova_data
 @pytest.mark.parametrize(
     "data,n_nodes,n_edges,type_participants,type_analysis", mixed_data
 )
-def test_graph(data, n_nodes, n_edges, type_participants, type_analysis):
+def test_graph(tmp_path, data, n_nodes, n_edges, type_participants, type_analysis):
     data_json = json.loads(data)
-    graph = ag.Graph.from_dict("", data_json)
+    graph = ag.Graph.from_dict(data_json)
 
     assert len(graph.nodes) == n_nodes
     assert len(graph.edges) == n_edges
@@ -885,3 +886,5 @@ def test_graph(data, n_nodes, n_edges, type_participants, type_analysis):
 
     export = graph.to_dict()
     assert export == data_json
+
+    graph.draw(Path("out"), "pdf")
