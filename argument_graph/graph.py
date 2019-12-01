@@ -171,14 +171,14 @@ class Graph:
 
     @staticmethod
     def from_file(path: Path, nlp: Optional[Language] = None) -> Graph:
-        with open(path, "r") as file:
+        with path.open("r") as file:
             return Graph.from_dict(path.stem, json.load(file), nlp)
 
     def to_file(self, path: Path) -> None:
         if path.is_dir():
             path = path / f"{self.key}.json"
 
-        with open(path, "w") as file:
+        with path.open("w") as file:
             json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
 
     def to_nx(self) -> nx.DiGraph:
