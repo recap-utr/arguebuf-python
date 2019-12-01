@@ -153,7 +153,7 @@ other_schemes = {
     "Default Preference": 161,
 }
 
-schemes = {**ra_schemes ** ca_schemes, **other_schemes}
+schemes = {**ra_schemes, **ca_schemes, **other_schemes}
 
 
 def _int2list(value: Optional[int]) -> List[int]:
