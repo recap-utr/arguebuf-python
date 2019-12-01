@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Optional, List, Dict, Set, Union
 from enum import Enum
+import collections
 
 import networkx as nx
 import pygraphviz as gv
@@ -155,6 +156,19 @@ other_schemes = {
 
 schemes = {**ra_schemes, **ca_schemes, **other_schemes}
 
+ColorMapping = collections.namedtuple("ColorMapping", "bg border fg")
+colors = {
+    "r": ColorMapping("#fbdedb", "#e74c3c", "#333333"),
+    "g": ColorMapping("#def8e9", "#2ecc71", "#333333"),
+    "b": ColorMapping("#ddeef9", "#3498db", "#333333"),
+    "w": ColorMapping("#e9eded", "#95a5a6", "#333333"),
+    "y": ColorMapping("#fdf6d9", "#f1c40f", "#333333"),
+    "p": ColorMapping("#eee3f3", "#9b59b6", "#333333"),
+    "o": ColorMapping("#fbeadb", "#e67e22", "#333333"),
+    "t": ColorMapping("#dcfaf4", "#1abc9c", "#333333"),
+    "m": ColorMapping("#3498db", "#3498db", "#333333"),
+}
+
 
 def _int2list(value: Optional[int]) -> List[int]:
     return [value] if value else []
@@ -211,23 +225,31 @@ class Node:
 
     @property
     def ova_color(self) -> str:
+        # TODO: w, y
         if self.category == NodeCategory.RA:
             return "g"
         elif self.category == NodeCategory.CA:
             return "r"
+        elif self.category == NodeCategory.TA:
+            return "p"
+        elif self.category == NodeCategory.MA:
+            return "o"
+        elif self.category == NodeCategory.PA:
+            return "t"
         elif self.major_claim:
             return "m"
         return "b"
 
     @property
     def gv_color(self) -> str:
-        if self.category == NodeCategory.RA:
-            return "palegreen"
-        elif self.category == NodeCategory.CA:
-            return "tomato"
-        elif self.major_claim:
-            return "lightskyblue"
-        return "aliceblue"
+        # if self.category == NodeCategory.RA:
+        #     return "palegreen"
+        # elif self.category == NodeCategory.CA:
+        #     return "tomato"
+        # elif self.major_claim:
+        #     return "lightskyblue"
+        # return "aliceblue"
+        return colors[self.ova_color]
 
     @staticmethod
     def from_ova(obj: Dict[str, Any], nlp: Optional[Language] = None) -> Node:
@@ -320,8 +342,8 @@ class Node:
         g.add_node(
             f"{key_prefix}{self.key}{key_suffix}",
             label=f"{label_prefix}\n{textwrap.fill(self.text, 20)}\n{label_suffix}".strip(),
-            fontcolor=fg_color or "black",
-            fillcolor=bg_color or self.gv_color,
+            fontcolor=fg_color or self.gv_color.fg,
+            fillcolor=bg_color or self.gv_color.bg,
             style="filled",
             root=bool(self.major_claim),
             shape="box",
