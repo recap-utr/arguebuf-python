@@ -19,14 +19,19 @@ from .analysis import Analysis
 class NodeCategory(Enum):
     """Enum for types of nodes.
 
-    - CA: Conflict node.
-    - I: Information node.
-    - RA: Inference node.
+    - I: Information
+    - RA: Inference
+    - CA: Conflict
+    - MA: Rephrase
+    - TA: Transition
     """
 
-    CA = "CA"
     I = "I"
     RA = "RA"
+    CA = "CA"
+    MA = "MA"
+    TA = "TA"
+    PA = "PA"
 
 
 # TODO: Duplicate keys: 17, 251, 252, 61, 254, 253
@@ -107,9 +112,48 @@ ra_schemes = {
     "Witness Testimony": 248,
 }
 
-ca_schemes = {"Default Conflict": 71}
+ca_schemes = {
+    "Ad hominem": 172,
+    "Alternative Means": 34,
+    "Biased Classification": 37,
+    "Calling Out": 146,
+    "Commitment Exception": 38,
+    "Conflict From Goodwill": 181,
+    "Conflict From Moral Virtue": 179,
+    "Conflict From Practical Wisdom": 180,
+    "Conflict From Virtue/Goodwill": 406,
+    "Conflict From Wisdom/Goodwill": 405,
+    "Conflict From Wisdom/Virtue": 404,
+    "Conflict From Wisdom/Virtue/Goodwill": 407,
+    "Conflicting Goals": 39,
+    "Default Conflict": 71,
+    "Differences Undermine Similarity": 40,
+    "ERAd Hominem": 164,
+    "Exception Similarity Case": 41,
+    "Expertise Inconsistency": 42,
+    "General Acceptance Doubt": 43,
+    "Irrational Fear Appeal": 44,
+    "Lack Of Complete Knowledge": 45,
+    "Lack Of Expert Reliability": 46,
+    "Logical": 36,
+    "Opposed Commitment": 48,
+    "Other Causal Factors Involved": 52,
+    # "Other Causal Factors Involved": 53,
+    "Property Not Existant": 54,
+    "Required Steps": 55,
+    "Resolving Inconsistency": 56,
+    "Sign From Other Events": 57,
+    "Vested Interest": 171,
+    "Weakest Link": 58,
+}
 
-schemes = {**ra_schemes, **ca_schemes}
+other_schemes = {
+    "Default Rephrase": 144,
+    "Default Transition": 82,
+    "Default Preference": 161,
+}
+
+schemes = {**ra_schemes ** ca_schemes, **other_schemes}
 
 
 def _int2list(value: Optional[int]) -> List[int]:
