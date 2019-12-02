@@ -134,8 +134,8 @@ class Graph:
         return {
             "nodes": [node.to_ova() for node in self.nodes],
             "edges": [edge.to_ova() for edge in self.edges],
-            "participants": self.participants or [],
-            "analysis": self.analysis.to_ova() or {},
+            "participants": self.participants if self.participants else [],
+            "analysis": self.analysis.to_ova() if self.analysis else {},
         }
 
     @staticmethod
