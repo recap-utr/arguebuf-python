@@ -189,6 +189,16 @@ class Graph:
         with path.open("w") as file:
             json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
 
+    @staticmethod
+    def from_folder(
+        path: Path, nlp: Optional[Language] = None, suffix: str = ".json"
+    ) -> List[Graph]:
+        files = path.rglob(f"*{suffix}")
+        return [Graph.from_file(file, nlp) for file in files]
+
+    def to_folder(self, path: Path) -> None:
+        self.to_file(path)
+
     def to_nx(self) -> nx.DiGraph:
         g = nx.DiGraph()
         for edge in self.edges:

@@ -183,6 +183,9 @@ def _int2list(value: Optional[int]) -> List[int]:
     return [value] if value else []
 
 
+# TODO: Automatically calculate values for width, height, x and y
+
+
 @dataclass
 class Node:
     """Node in the AIF format.
