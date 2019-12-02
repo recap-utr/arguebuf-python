@@ -67,6 +67,13 @@ class Graph:
     def edges(self) -> List[Edge]:
         return self._edges
 
+    @property
+    def _uid(self):
+        return self.key
+
+    def __hash__(self):
+        return hash(self._uid)
+
     def add_node(self, node: Node) -> None:
         self._nodes.append(node)
 

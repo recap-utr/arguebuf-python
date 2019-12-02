@@ -28,6 +28,13 @@ class Edge:
     annotator: str = None
     date: pendulum.DateTime = field(default_factory=pendulum.now)
 
+    @property
+    def _uid(self):
+        return (self.key, self.start.key, self.end.key)
+
+    def __hash__(self):
+        return hash(self._uid)
+
     @staticmethod
     def from_ova(
         obj: Any, nodes: Dict[int, Node] = None, nlp: Optional[Language] = None

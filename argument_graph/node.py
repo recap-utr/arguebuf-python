@@ -267,6 +267,13 @@ class Node:
         # return "aliceblue"
         return color_mappings[self.ova_color]
 
+    @property
+    def _uid(self):
+        return (self.key, utils.xstr(self.text), self.category.value)
+
+    def __hash__(self):
+        return hash(self._uid)
+
     @staticmethod
     def from_ova(obj: Dict[str, Any], nlp: Optional[Language] = None) -> Node:
         return Node(
@@ -341,8 +348,9 @@ class Node:
         g.add_node(
             self.key,
             label=self.text,
-            type=self.category.value,
-            mc=bool(self.major_claim),
+            # Custom attributes
+            category=self.category.value,
+            major_claim=self.major_claim,
         )
 
     def to_gv(

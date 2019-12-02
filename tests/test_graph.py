@@ -888,3 +888,5 @@ def test_graph(tmp_path, data, n_nodes, n_edges, type_participants, type_analysi
     assert export == data_json
 
     graph.draw(Path("out"), "pdf")
+
+    graph.to_nx()

@@ -22,10 +22,23 @@ class Analysis:
     document_title: str = None
     document_date: pendulum.DateTime = field(default_factory=pendulum.now)
 
+    @property
+    def _uid(self):
+        return (
+            self.text,
+            self.annotator_name,
+            self.document_source,
+            self.document_title,
+            self.document_date,
+        )
+
     # TODO: Implement annotated text without duplication
     # @property
     # def annotated_text(self):
     #     return self.text
+
+    def __hash__(self):
+        return hash(self._uid)
 
     @staticmethod
     def from_ova(obj: Any, nlp: Optional[Language] = None) -> Analysis:
