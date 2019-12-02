@@ -226,13 +226,17 @@ class Node:
     source: Optional[str] = None
 
     @property
+    def plain_text(self) -> str:
+        return utils.xstr(self.text)
+
+    @property
     def scheme(self) -> int:
-        return schemes.get(self.text, 0)
+        return schemes.get(self.plain_text, 0)
 
     @property
     def text_length(self) -> Optional[int]:
         if self.category == NodeCategory.I:
-            return len(utils.xstr(self.text))
+            return len(self.plain_text)
         return None
 
     @property
@@ -269,7 +273,7 @@ class Node:
 
     @property
     def _uid(self):
-        return (self.key, utils.xstr(self.text), self.category.value)
+        return (self.key, self.plain_text, self.category.value)
 
     def __hash__(self):
         return hash(self._uid)
@@ -303,7 +307,7 @@ class Node:
     def to_ova(self) -> dict:
         return {
             "id": self.key,
-            "text": self.text,
+            "text": self.plain_text,
             "type": self.category.value,
             "x": self.x or 0,
             "y": self.y or 0,
@@ -339,7 +343,7 @@ class Node:
     def to_aif(self) -> dict:
         return {
             "nodeID": str(self.key),
-            "text": self.text,
+            "text": self.plain_text,
             "type": self.category.value,
             "timestamp": dt.to_aif(self.date),
         }
@@ -347,7 +351,7 @@ class Node:
     def to_nx(self, g: nx.DiGraph) -> None:
         g.add_node(
             self.key,
-            label=self.text,
+            label=self.plain_text,
             # Custom attributes
             category=self.category.value,
             major_claim=self.major_claim,
@@ -367,9 +371,11 @@ class Node:
         if not color:
             color = self.gv_color
 
+        label = textwrap.fill(self.plain_text, wrap_col)
+
         g.add_node(
             f"{key_prefix}{self.key}{key_suffix}",
-            label=f"{label_prefix}\n{textwrap.fill(self.text, wrap_col)}\n{label_suffix}".strip(),
+            label=f"{label_prefix}\n{label}\n{label_suffix}".strip(),
             fontname="Arial",
             fontsize=11,
             fontcolor=color.fg,
