@@ -1,7 +1,7 @@
 import pytest
 import pendulum
 import json
-import argument_graph as ag
+import recap_argument_graph as ag
 
 
 data = [
