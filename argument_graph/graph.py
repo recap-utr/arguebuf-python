@@ -43,29 +43,17 @@ class Graph:
     """
 
     key: str = field(default_factory=utils.unique_id)
-    _nodes: List[Node] = field(init=False, default_factory=list)
-    _inodes: List[Node] = field(init=False, default_factory=list)
-    _snodes: List[Node] = field(init=False, default_factory=list)
-    _edges: List[Edge] = field(init=False, default_factory=list)
+    nodes: List[Node] = field(init=False, default_factory=list)
+    inodes: List[Node] = field(init=False, default_factory=list)
+    snodes: List[Node] = field(init=False, default_factory=list)
+    edges: List[Edge] = field(init=False, default_factory=list)
+    incoming_nodes: Dict[Node, List[Node]] = field(init=False, default_factory=dict)
+    incoming_edges: Dict[Node, List[Edge]] = field(init=False, default_factory=dict)
+    outgoing_nodes: Dict[Node, List[Node]] = field(init=False, default_factory=dict)
+    outgoing_edges: Dict[Node, List[Edge]] = field(init=False, default_factory=dict)
     participants: List[Any] = None
     analysis: Analysis = None
     category: GraphCategory = GraphCategory.OTHER
-
-    @property
-    def nodes(self) -> List[Node]:
-        return self._nodes
-
-    @property
-    def inodes(self) -> List[Node]:
-        return self._inodes
-
-    @property
-    def snodes(self) -> List[Node]:
-        return self._snodes
-
-    @property
-    def edges(self) -> List[Edge]:
-        return self._edges
 
     @property
     def _uid(self):
@@ -75,35 +63,55 @@ class Graph:
         return hash(self._uid)
 
     def add_node(self, node: Node) -> None:
-        self._nodes.append(node)
+        self.nodes.append(node)
 
         if node.category == NodeCategory.I:
-            self._inodes.append(node)
+            self.inodes.append(node)
         else:
-            self._snodes.append(node)
+            self.snodes.append(node)
+
+        self.incoming_nodes[node] = []
+        self.incoming_edges[node] = []
+        self.outgoing_nodes[node] = []
+        self.outgoing_edges[node] = []
 
     def remove_node(self, node: Node) -> None:
-        self._nodes.remove(node)
+        self.nodes.remove(node)
 
         if node.category == NodeCategory.I:
-            self._inodes.remove(node)
+            self.inodes.remove(node)
         else:
-            self._snodes.remove(node)
+            self.snodes.remove(node)
 
-        for edge in self._edges:
+        for edge in self.edges:
             if node == edge.start or node == edge.end:
                 self.remove_edge(edge)
 
-    def add_edge(self, edge: Edge) -> None:
-        self._edges.append(edge)
+        del self.incoming_nodes[node]
+        del self.incoming_edges[node]
+        del self.outgoing_nodes[node]
+        del self.outgoing_edges[node]
 
-        if edge.start not in self._nodes:
+    def add_edge(self, edge: Edge) -> None:
+        self.edges.append(edge)
+
+        if edge.start not in self.nodes:
             self.add_node(edge.start)
-        if edge.end not in self._nodes:
+        if edge.end not in self.nodes:
             self.add_node(edge.end)
 
+        self.outgoing_edges[edge.start].append(edge)
+        self.incoming_edges[edge.end].append(edge)
+        self.outgoing_nodes[edge.start] = edge.end
+        self.outgoing_nodes[edge.end] = edge.start
+
     def remove_edge(self, edge: Edge) -> None:
-        self._edges.remove(edge)
+        self.edges.remove(edge)
+
+        self.outgoing_edges[edge.start].remove(edge)
+        self.incoming_edges[edge.end].remove(edge)
+        self.outgoing_nodes[edge.start].remove(edge.end)
+        self.incoming_nodes[edge.end].remove(edge.start)
 
     @staticmethod
     def from_ova(

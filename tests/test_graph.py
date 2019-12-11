@@ -884,6 +884,8 @@ def test_graph(tmp_path, data, n_nodes, n_edges, type_participants, type_analysi
     assert isinstance(graph.participants, type_participants)
     assert isinstance(graph.analysis, type_analysis)
 
+    # TODO: Add assertions about incoming/outgoing attributes
+
     export = graph.to_dict()
     assert export == data_json
 
