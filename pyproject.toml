@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "Argument-Graph"
+name = "ReCAP-Argument-Graph"
 version = "0.1.0"
 description = ""
 authors = ["Mirko Lenz <info@mirko-lenz.de>"]
