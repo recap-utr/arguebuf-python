@@ -1,10 +1,7 @@
 from __future__ import absolute_import, annotations
 
 from dataclasses import dataclass, field
-from typing import Union
-
-from spacy.language import Language
-from spacy.tokens import Doc, Span
+from typing import Union, Callable
 import pendulum
 
 from . import utils, dt
@@ -15,7 +12,7 @@ class Analysis:
     """Needed to store metadata for OVA."""
 
     ova_version: str = None
-    text: Union[None, str, Doc, Span] = None
+    text: Union[None, str, Any] = None
     annotated_text: str = None
     annotator_name: str = None
     document_source: str = None
@@ -41,7 +38,7 @@ class Analysis:
         return hash(self._uid)
 
     @staticmethod
-    def from_ova(obj: Any, nlp: Optional[Language] = None) -> Analysis:
+    def from_ova(obj: Any, nlp: Optional[Callable[[str], Any]] = None) -> Analysis:
         return Analysis(
             ova_version=obj.get("ovaVersion"),
             text=utils.parse(obj.get("plain_txt"), nlp),

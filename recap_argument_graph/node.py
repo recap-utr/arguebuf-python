@@ -9,8 +9,6 @@ import collections
 
 import networkx as nx
 import pygraphviz as gv
-from spacy.language import Language
-from spacy.tokens import Doc, Span
 import pendulum
 
 from . import utils, dt
@@ -205,7 +203,7 @@ class Node:
     """
 
     key: int = field(default_factory=utils.unique_id)
-    text: Union[str, Doc, Span] = ""
+    text: Union[str, Any] = ""
     category: NodeCategory = NodeCategory.I
     x: Optional[int] = None
     y: Optional[int] = None
@@ -279,7 +277,9 @@ class Node:
         return hash(self._uid)
 
     @staticmethod
-    def from_ova(obj: Dict[str, Any], nlp: Optional[Language] = None) -> Node:
+    def from_ova(
+        obj: Dict[str, Any], nlp: Optional[Callable[[str], Any]] = None
+    ) -> Node:
         return Node(
             key=obj["id"],
             text=utils.parse(obj["text"], nlp),
@@ -332,7 +332,7 @@ class Node:
         }
 
     @staticmethod
-    def from_aif(obj: Any, nlp: Optional[Language] = None) -> Node:
+    def from_aif(obj: Any, nlp: Optional[Callable[[str], Any]] = None) -> Node:
         return Node(
             key=int(obj["nodeID"]),
             text=utils.parse(obj["text"], nlp),

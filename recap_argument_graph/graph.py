@@ -8,8 +8,6 @@ import json
 
 import networkx as nx
 import pygraphviz as gv
-from spacy.language import Language
-from spacy.lang.en import English
 from enum import Enum
 
 from . import utils
@@ -115,7 +113,9 @@ class Graph:
 
     @staticmethod
     def from_ova(
-        obj: Dict[str, Any], key: Optional[str] = None, nlp: Optional[Language] = None
+        obj: Dict[str, Any],
+        key: Optional[str] = None,
+        nlp: Optional[Callable[[str], Any]] = None,
     ) -> Graph:
         g = Graph(
             participants=obj.get("participants"),
@@ -148,7 +148,9 @@ class Graph:
 
     @staticmethod
     def from_aif(
-        obj: Dict[str, Any], key: Optional[str] = None, nlp: Optional[Language] = None
+        obj: Dict[str, Any],
+        key: Optional[str] = None,
+        nlp: Optional[Callable[[str], Any]] = None,
     ) -> Graph:
 
         g = Graph(category=GraphCategory.AIF)
@@ -177,7 +179,9 @@ class Graph:
 
     @staticmethod
     def from_dict(
-        obj: Dict[str, Any], key: Optional[str] = None, nlp: Optional[Language] = None
+        obj: Dict[str, Any],
+        key: Optional[str] = None,
+        nlp: Optional[Callable[[str], Any]] = None,
     ) -> Graph:
         if "analysis" in obj:
             return Graph.from_ova(obj, key, nlp)
@@ -193,7 +197,7 @@ class Graph:
             return self.to_ova()
 
     @staticmethod
-    def from_file(path: Path, nlp: Optional[Language] = None) -> Graph:
+    def from_file(path: Path, nlp: Optional[Callable[[str], Any]] = None) -> Graph:
         with path.open("r") as file:
             return Graph.from_dict(json.load(file), path.stem, nlp)
 
@@ -206,7 +210,7 @@ class Graph:
 
     @staticmethod
     def from_folder(
-        path: Path, nlp: Optional[Language] = None, suffix: str = ".json"
+        path: Path, nlp: Optional[Callable[[str], Any]] = None, suffix: str = ".json"
     ) -> List[Graph]:
         files = path.rglob(f"*{suffix}")
         return [Graph.from_file(file, nlp) for file in files]

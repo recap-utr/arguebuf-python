@@ -6,7 +6,6 @@ from typing import Any, Optional, List, Dict, Set
 
 import networkx as nx
 import pygraphviz as gv
-from spacy.language import Language
 import pendulum
 
 from . import utils, dt
@@ -37,7 +36,9 @@ class Edge:
 
     @staticmethod
     def from_ova(
-        obj: Any, nodes: Dict[int, Node] = None, nlp: Optional[Language] = None
+        obj: Any,
+        nodes: Dict[int, Node] = None,
+        nlp: Optional[Callable[[str], Any]] = None,
     ) -> Edge:
         if not nodes:
             nodes = {}
@@ -64,7 +65,7 @@ class Edge:
 
     @staticmethod
     def from_aif(
-        obj: Any, nodes: Dict[int, Node], nlp: Optional[Language] = None
+        obj: Any, nodes: Dict[int, Node], nlp: Optional[Callable[[str], Any]] = None
     ) -> Edge:
         start_key = int(obj.get("fromID"))
         end_key = int(obj.get("toID"))
