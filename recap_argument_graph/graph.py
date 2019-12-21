@@ -217,11 +217,11 @@ class Graph:
         return g
 
     @staticmethod
-    def open(path: Path, nlp: Optional[Callable[[str], Any]] = None) -> Graph:
+    def from_file(path: Path, nlp: Optional[Callable[[str], Any]] = None) -> Graph:
         with path.open("r") as file:
             return Graph.from_dict(json.load(file), path.stem, nlp)
 
-    def save(self, path: Path) -> None:
+    def to_file(self, path: Path) -> None:
         if path.is_dir():
             path = path / f"{self.key}.json"
 
@@ -229,11 +229,11 @@ class Graph:
             json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
 
     @staticmethod
-    def open_folder(
+    def from_folder(
         path: Path, nlp: Optional[Callable[[str], Any]] = None, suffix: str = ".json"
     ) -> List[Graph]:
         files = path.rglob(f"*{suffix}")
-        return [Graph.open(file, nlp) for file in files]
+        return [Graph.from_file(file, nlp) for file in files]
 
     def render(
         self, path: Path, format: str = "pdf", engine: str = "dot", view: bool = False
@@ -249,3 +249,8 @@ class Graph:
         g.render(
             filename=str(filename), directory=str(directory), cleanup=True, view=view
         )
+
+    open = from_file
+    open_folder = from_folder
+    to_folder = to_file
+    save = to_file
