@@ -1,7 +1,7 @@
 from __future__ import absolute_import, annotations
 
 from dataclasses import dataclass, field
-from typing import Union, Callable
+from typing import Union, Callable, Any, Optional
 import pendulum
 
 from . import utils, dt

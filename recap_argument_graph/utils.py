@@ -1,6 +1,7 @@
 from __future__ import absolute_import, annotations
 
 import uuid
+from typing import Any, Optional, Callable
 
 
 def unique_id() -> int:

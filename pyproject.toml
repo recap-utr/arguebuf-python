@@ -6,9 +6,9 @@ authors = ["Mirko Lenz <info@mirko-lenz.de>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-pygraphviz = "^1.5"
 networkx = "^2.4"
 pendulum = "^2.0"
+graphviz = "^0.13.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"

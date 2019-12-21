@@ -1,18 +1,15 @@
 from __future__ import absolute_import, annotations
 
 import textwrap
-import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional, List, Dict, Set, Union
 from enum import Enum
-import collections
+from typing import Any, Optional, List, Dict, Union, Tuple, Callable
 
+import graphviz as gv
 import networkx as nx
-import pygraphviz as gv
 import pendulum
 
 from . import utils, dt
-from .analysis import Analysis
 
 
 class NodeCategory(Enum):
@@ -359,33 +356,33 @@ class Node:
 
     def to_gv(
         self,
-        g: gv.AGraph,
+        g: gv.Digraph,
         color: Optional[ColorMapping] = None,
         label_prefix: str = "",
         label_suffix: str = "",
         key_prefix: str = "",
         key_suffix: str = "",
         wrap_col: int = 36,
-        margin: Tuple(float) = (0.15, 0.1),
+        margin: Tuple[float] = (0.15, 0.1),
     ) -> None:
         if not color:
             color = self.gv_color
 
         label = textwrap.fill(self.plain_text, wrap_col)
 
-        g.add_node(
+        g.node(
             f"{key_prefix}{self.key}{key_suffix}",
             label=f"{label_prefix}\n{label}\n{label_suffix}".strip(),
             fontname="Arial",
-            fontsize=11,
+            fontsize="11",
             fontcolor=color.fg,
             fillcolor=color.bg,
             color=color.border,
             style="filled",
-            root=bool(self.major_claim),
+            root=str(bool(self.major_claim)),
             shape="box",
-            width=0,
-            height=0,
+            width="0",
+            height="0",
             margin=f"{margin[0]},{margin[1]}",
         )
 

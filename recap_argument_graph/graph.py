@@ -2,12 +2,12 @@ from __future__ import absolute_import, annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional, List, Dict, Set
+from typing import Any, Optional, List, Dict, Set, Callable
 from pathlib import Path
 import json
 
 import networkx as nx
-import pygraphviz as gv
+import graphviz as gv
 from enum import Enum
 
 from . import utils
@@ -196,28 +196,6 @@ class Graph:
         else:
             return self.to_ova()
 
-    @staticmethod
-    def from_file(path: Path, nlp: Optional[Callable[[str], Any]] = None) -> Graph:
-        with path.open("r") as file:
-            return Graph.from_dict(json.load(file), path.stem, nlp)
-
-    def to_file(self, path: Path) -> None:
-        if path.is_dir():
-            path = path / f"{self.key}.json"
-
-        with path.open("w") as file:
-            json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
-
-    @staticmethod
-    def from_folder(
-        path: Path, nlp: Optional[Callable[[str], Any]] = None, suffix: str = ".json"
-    ) -> List[Graph]:
-        files = path.rglob(f"*{suffix}")
-        return [Graph.from_file(file, nlp) for file in files]
-
-    def to_folder(self, path: Path) -> None:
-        self.to_file(path)
-
     def to_nx(self) -> nx.DiGraph:
         g = nx.DiGraph()
         for edge in self.edges:
@@ -227,8 +205,10 @@ class Graph:
 
         return g
 
-    def to_gv(self) -> gv.AGraph:
-        g = gv.AGraph(strict=True, directed=True, rankdir="BT")
+    def to_gv(self, format: str = "pdf", engine: str = "dot") -> gv.Digraph:
+        g = gv.Digraph(name=str(self.key), strict=True, format=format, engine=engine,)
+        g.attr(rankdir="BT")
+
         for edge in self.edges:
             edge.start.to_gv(g)
             edge.end.to_gv(g)
@@ -236,12 +216,36 @@ class Graph:
 
         return g
 
-    def draw(
-        self, path: Path, format: str = "pdf", prog: str = "dot", args: str = ""
-    ) -> None:
-        g = self.to_gv()
+    @staticmethod
+    def open(path: Path, nlp: Optional[Callable[[str], Any]] = None) -> Graph:
+        with path.open("r") as file:
+            return Graph.from_dict(json.load(file), path.stem, nlp)
 
+    def save(self, path: Path) -> None:
         if path.is_dir():
-            path = path / f"{self.key}.{format}"
+            path = path / f"{self.key}.json"
 
-        g.draw(path=str(path), format=format, prog=prog)
+        with path.open("w") as file:
+            json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
+
+    @staticmethod
+    def open_folder(
+        path: Path, nlp: Optional[Callable[[str], Any]] = None, suffix: str = ".json"
+    ) -> List[Graph]:
+        files = path.rglob(f"*{suffix}")
+        return [Graph.open(file, nlp) for file in files]
+
+    def render(
+        self, path: Path, format: str = "pdf", engine: str = "dot", view: bool = False
+    ) -> None:
+        filename = self.key
+        directory = path
+
+        if path.is_file():
+            filename = path.name
+            directory = path.parent
+
+        g = self.to_gv(format, engine)
+        g.render(
+            filename=str(filename), directory=str(directory), cleanup=True, view=view
+        )

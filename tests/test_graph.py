@@ -889,6 +889,6 @@ def test_graph(tmp_path, data, n_nodes, n_edges, type_participants, type_analysi
     export = graph.to_dict()
     assert export == data_json
 
-    graph.draw(Path("out"), "pdf")
+    graph.render(Path("out"), "pdf")
 
     graph.to_nx()

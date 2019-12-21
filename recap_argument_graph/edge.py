@@ -1,16 +1,14 @@
 from __future__ import absolute_import, annotations
 
-import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional, List, Dict, Set
+from typing import Any, Optional, Dict, Callable
 
+import graphviz as gv
 import networkx as nx
-import pygraphviz as gv
 import pendulum
 
 from . import utils, dt
 from .node import Node
-from .analysis import Analysis
 
 
 @dataclass
@@ -88,9 +86,9 @@ class Edge:
         g.add_edge(self.start.key, self.end.key)
 
     def to_gv(
-        self, g: gv.AGraph, color="#666666", prefix: str = "", suffix: str = ""
+        self, g: gv.Digraph, color="#666666", prefix: str = "", suffix: str = ""
     ) -> None:
-        g.add_edge(
+        g.edge(
             f"{prefix}{self.start.key}{suffix}",
             f"{prefix}{self.end.key}{suffix}",
             color=color,
