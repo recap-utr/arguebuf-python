@@ -1,8 +1,11 @@
 from __future__ import absolute_import, annotations
 
+import pendulum
+from lxml import html
+
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional, List, Dict, Set, Callable
+from typing import Any, Optional, List, Dict, Set, Callable, Union
 from pathlib import Path
 import json
 
@@ -10,10 +13,9 @@ import networkx as nx
 import graphviz as gv
 from enum import Enum
 
-from . import utils
+from . import utils, dt
 from .node import Node, NodeCategory
 from .edge import Edge
-from .analysis import Analysis
 
 
 # TODO: How should duplicates be handled?
@@ -49,9 +51,15 @@ class Graph:
     incoming_edges: Dict[Node, List[Edge]] = field(init=False, default_factory=dict)
     outgoing_nodes: Dict[Node, List[Node]] = field(init=False, default_factory=dict)
     outgoing_edges: Dict[Node, List[Edge]] = field(init=False, default_factory=dict)
-    participants: List[Any] = None
-    analysis: Analysis = None
+    participants: Optional[List[Any]] = None
+    # analysis: Analysis = None
     category: GraphCategory = GraphCategory.OTHER
+    ova_version: str = None
+    text: Union[None, str, Any] = None
+    annotator_name: Optional[str] = None
+    document_source: Optional[str] = None
+    document_title: Optional[str] = None
+    document_date: Optional[pendulum.DateTime] = field(default_factory=pendulum.now)
 
     @property
     def _uid(self):
@@ -117,10 +125,17 @@ class Graph:
         key: Optional[str] = None,
         nlp: Optional[Callable[[str], Any]] = None,
     ) -> Graph:
+        analysis = obj.get("analysis")
+
         g = Graph(
-            participants=obj.get("participants"),
-            analysis=Analysis.from_ova(obj.get("analysis"), nlp),
             category=GraphCategory.OVA,
+            participants=obj.get("participants"),
+            ova_version=analysis.get("ovaVersion"),
+            text=utils.parse(analysis.get("plain_txt"), nlp),
+            annotator_name=analysis.get("annotatorName"),
+            document_source=analysis.get("documentSource"),
+            document_title=analysis.get("documentTitle"),
+            document_date=dt.from_analysis(analysis.get("documentDate")),
         )
 
         if key:
@@ -136,14 +151,43 @@ class Graph:
         for edge in obj.get("edges"):
             g.add_edge(Edge.from_ova(edge, node_dict, nlp))
 
+        if analysis and analysis.get("txt"):
+            parsed = html.fromstring(
+                f"<html><head></head><body>{analysis.get('txt')}</body></html>"
+            )
+            spans = parsed.body.findall("span")
+
+            for span in spans:
+                node_key = int(span.attrib["id"].replace("node", ""))
+                node = node_dict.get(node_key)
+
+                if node:
+                    node.raw_text = span.text_content()
+
         return g
 
     def to_ova(self) -> dict:
+        annotated_text = utils.xstr(self.text).replace("\n", "<br>")
+
+        for node in self.nodes:
+            annotated_text = annotated_text.replace(
+                node.raw_text,
+                f'<span class="highlighted" id="node{node.key}">{node.raw_text}</span>',
+            )
+
         return {
             "nodes": [node.to_ova() for node in self.nodes],
             "edges": [edge.to_ova() for edge in self.edges],
             "participants": self.participants if self.participants else [],
-            "analysis": self.analysis.to_ova() if self.analysis else {},
+            "analysis": {
+                "ovaVersion": self.ova_version or "",
+                "txt": annotated_text,
+                "plain_txt": utils.xstr(self.text),
+                "annotatorName": self.annotator_name or "",
+                "documentSource": self.document_source or "",
+                "documentTitle": self.document_title or "",
+                "documentDate": dt.to_analysis(self.document_date),
+            },
         }
 
     @staticmethod
@@ -153,7 +197,7 @@ class Graph:
         nlp: Optional[Callable[[str], Any]] = None,
     ) -> Graph:
 
-        g = Graph(category=GraphCategory.AIF)
+        g = Graph(category=GraphCategory.AIF, document_date=None)
 
         if key:
             g.key = key

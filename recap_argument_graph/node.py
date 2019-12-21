@@ -201,6 +201,7 @@ class Node:
 
     key: int = field(default_factory=utils.unique_id)
     text: Union[str, Any] = ""
+    _raw_text: Optional[str] = None
     category: NodeCategory = NodeCategory.I
     x: Optional[int] = None
     y: Optional[int] = None
@@ -219,6 +220,14 @@ class Node:
     major_claim: Optional[bool] = None
     is_check_worthy: Optional[str] = None
     source: Optional[str] = None
+
+    @property
+    def raw_text(self) -> str:
+        return self._raw_text or self.plain_text
+
+    @raw_text.setter
+    def raw_text(self, value):
+        self._raw_text = value
 
     @property
     def plain_text(self) -> str:

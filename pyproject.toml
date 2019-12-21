@@ -9,6 +9,7 @@ python = "^3.7"
 networkx = "^2.4"
 pendulum = "^2.0"
 graphviz = "^0.13.2"
+lxml = "^4.4.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
