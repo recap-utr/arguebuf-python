@@ -1,21 +1,19 @@
 from __future__ import absolute_import, annotations
 
+import json
+from dataclasses import dataclass, field, InitVar
+from enum import Enum
+from pathlib import Path
+from typing import Any, Optional, List, Dict, Callable, Union
+
+import graphviz as gv
+import networkx as nx
 import pendulum
 from lxml import html
 
-import logging
-from dataclasses import dataclass, field
-from typing import Any, Optional, List, Dict, Set, Callable, Union
-from pathlib import Path
-import json
-
-import networkx as nx
-import graphviz as gv
-from enum import Enum
-
 from . import utils, dt
-from .node import Node, NodeCategory
-from .edge import Edge
+from .edge import Edge, Edges
+from .node import Node, Nodes, NodeCategory
 
 
 # TODO: How should duplicates be handled?
@@ -43,19 +41,21 @@ class Graph:
     """
 
     key: str = field(default_factory=utils.unique_id)
-    nodes: List[Node] = field(init=False, default_factory=list)
-    inodes: List[Node] = field(init=False, default_factory=list)
-    snodes: List[Node] = field(init=False, default_factory=list)
-    edges: List[Edge] = field(init=False, default_factory=list)
-    incoming_nodes: Dict[Node, List[Node]] = field(init=False, default_factory=dict)
-    incoming_edges: Dict[Node, List[Edge]] = field(init=False, default_factory=dict)
-    outgoing_nodes: Dict[Node, List[Node]] = field(init=False, default_factory=dict)
-    outgoing_edges: Dict[Node, List[Edge]] = field(init=False, default_factory=dict)
+    nodes: Nodes = field(init=False, default_factory=Nodes)
+    inodes: Nodes = field(init=False, default_factory=Nodes)
+    snodes: Nodes = field(init=False, default_factory=Nodes)
+    edges: Edges = field(init=False, default_factory=Edges)
+    init_nodes: InitVar[List[Node]] = None
+    init_edges: InitVar[List[Edge]] = None
+    incoming_nodes: Dict[Node, Nodes] = field(init=False, default_factory=dict)
+    incoming_edges: Dict[Node, Edges] = field(init=False, default_factory=dict)
+    outgoing_nodes: Dict[Node, Nodes] = field(init=False, default_factory=dict)
+    outgoing_edges: Dict[Node, Edges] = field(init=False, default_factory=dict)
     participants: Optional[List[Any]] = None
-    # analysis: Analysis = None
     category: GraphCategory = GraphCategory.OTHER
     ova_version: str = None
     text: Union[None, str, Any] = None
+    highlighted_text: Optional[str] = None
     annotator_name: Optional[str] = None
     document_source: Optional[str] = None
     document_title: Optional[str] = None
@@ -68,26 +68,35 @@ class Graph:
     def __hash__(self):
         return hash(self._uid)
 
+    def __post_init__(self, init_nodes: List[Node], init_edges: List[Edge]):
+        if init_nodes:
+            for node in init_nodes:
+                self.add_node(node)
+
+        if init_edges:
+            for edge in init_edges:
+                self.add_edge(edge)
+
     def add_node(self, node: Node) -> None:
-        self.nodes.append(node)
+        self.nodes._store.append(node)
 
         if node.category == NodeCategory.I:
-            self.inodes.append(node)
+            self.inodes._store.append(node)
         else:
-            self.snodes.append(node)
+            self.snodes._store.append(node)
 
-        self.incoming_nodes[node] = []
-        self.incoming_edges[node] = []
-        self.outgoing_nodes[node] = []
-        self.outgoing_edges[node] = []
+        self.incoming_nodes[node] = Nodes()
+        self.incoming_edges[node] = Edges()
+        self.outgoing_nodes[node] = Nodes()
+        self.outgoing_edges[node] = Edges()
 
     def remove_node(self, node: Node) -> None:
-        self.nodes.remove(node)
+        self.nodes._store.remove(node)
 
         if node.category == NodeCategory.I:
-            self.inodes.remove(node)
+            self.inodes._store.remove(node)
         else:
-            self.snodes.remove(node)
+            self.snodes._store.remove(node)
 
         for edge in self.edges:
             if node == edge.start or node == edge.end:
@@ -99,25 +108,26 @@ class Graph:
         del self.outgoing_edges[node]
 
     def add_edge(self, edge: Edge) -> None:
-        self.edges.append(edge)
+        self.edges._store.append(edge)
 
         if edge.start not in self.nodes:
             self.add_node(edge.start)
+
         if edge.end not in self.nodes:
             self.add_node(edge.end)
 
-        self.outgoing_edges[edge.start].append(edge)
-        self.incoming_edges[edge.end].append(edge)
-        self.outgoing_nodes[edge.start] = edge.end
-        self.outgoing_nodes[edge.end] = edge.start
+        self.outgoing_edges[edge.start]._store.append(edge)
+        self.incoming_edges[edge.end]._store.append(edge)
+        self.outgoing_nodes[edge.start]._store.append(edge.end)
+        self.outgoing_nodes[edge.end]._store.append(edge.start)
 
     def remove_edge(self, edge: Edge) -> None:
-        self.edges.remove(edge)
+        self.edges._store.remove(edge)
 
-        self.outgoing_edges[edge.start].remove(edge)
-        self.incoming_edges[edge.end].remove(edge)
-        self.outgoing_nodes[edge.start].remove(edge.end)
-        self.incoming_nodes[edge.end].remove(edge.start)
+        self.outgoing_edges[edge.start]._store.remove(edge)
+        self.incoming_edges[edge.end]._store.remove(edge)
+        self.outgoing_nodes[edge.start]._store.remove(edge.end)
+        self.incoming_nodes[edge.end]._store.remove(edge.start)
 
     @staticmethod
     def from_ova(
@@ -132,6 +142,7 @@ class Graph:
             participants=obj.get("participants"),
             ova_version=analysis.get("ovaVersion"),
             text=utils.parse(analysis.get("plain_txt"), nlp),
+            highlighted_text=analysis.get("txt"),
             annotator_name=analysis.get("annotatorName"),
             document_source=analysis.get("documentSource"),
             document_title=analysis.get("documentTitle"),
@@ -152,12 +163,18 @@ class Graph:
             g.add_edge(Edge.from_ova(edge, node_dict, nlp))
 
         if analysis and analysis.get("txt"):
-            parsed = html.fromstring(
-                f"<html><head></head><body>{analysis.get('txt')}</body></html>"
-            )
-            spans = parsed.body.findall("span")
+            txt = analysis["txt"]
+            doc = html.fromstring(f"<html><head></head><body>{txt}</body></html>")
+
+            # Retain newlines.
+            for br in doc.xpath("*//br"):
+                br.tail = "\n" + br.tail if br.tail else "\n"
+
+            # Highlights are always contained in one span.
+            spans = doc.body.findall("span")
 
             for span in spans:
+                # The id is prefixed with 'node', e.g. 'node5'.
                 node_key = int(span.attrib["id"].replace("node", ""))
                 node = node_dict.get(node_key)
 
@@ -167,13 +184,18 @@ class Graph:
         return g
 
     def to_ova(self) -> dict:
-        annotated_text = utils.xstr(self.text).replace("\n", "<br>")
+        highlighted_text = self.highlighted_text
 
-        for node in self.nodes:
-            annotated_text = annotated_text.replace(
-                node.raw_text,
-                f'<span class="highlighted" id="node{node.key}">{node.raw_text}</span>',
-            )
+        if not highlighted_text:
+            highlighted_text = utils.xstr(self.text)
+
+            for node in self.nodes:
+                highlighted_text = highlighted_text.replace(
+                    node.raw_text,
+                    f'<span class="highlighted" id="node{node.key}">{node.raw_text}</span>',
+                )
+
+            highlighted_text = highlighted_text.replace("\n", "<br>")
 
         return {
             "nodes": [node.to_ova() for node in self.nodes],
@@ -181,7 +203,7 @@ class Graph:
             "participants": self.participants if self.participants else [],
             "analysis": {
                 "ovaVersion": self.ova_version or "",
-                "txt": annotated_text,
+                "txt": highlighted_text,
                 "plain_txt": utils.xstr(self.text),
                 "annotatorName": self.annotator_name or "",
                 "documentSource": self.document_source or "",
@@ -277,7 +299,7 @@ class Graph:
         path: Path, nlp: Optional[Callable[[str], Any]] = None, suffix: str = ".json"
     ) -> List[Graph]:
         files = path.rglob(f"*{suffix}")
-        return [Graph.from_file(file, nlp) for file in files]
+        return [Graph.from_file(file, nlp) for file in sorted(files)]
 
     def render(
         self, path: Path, format: str = "pdf", engine: str = "dot", view: bool = False

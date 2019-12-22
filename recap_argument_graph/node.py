@@ -1,5 +1,6 @@
 from __future__ import absolute_import, annotations
 
+import collections
 import textwrap
 from dataclasses import dataclass, field
 from enum import Enum
@@ -152,6 +153,7 @@ other_schemes = {
 }
 
 schemes = {**ra_schemes, **ca_schemes, **other_schemes}
+schemes = {key.lower(): value for key, value in schemes.items()}
 
 
 @dataclass
@@ -175,7 +177,7 @@ color_mappings = {
 
 
 def _int2list(value: Optional[int]) -> List[int]:
-    return [value] if value else []
+    return [value] if value != None else []
 
 
 # TODO: Automatically calculate values for width, height, x and y
@@ -208,7 +210,7 @@ class Node:
     text_begin: Optional[int] = None
     text_end: Optional[int] = None
     comment: Optional[str] = None
-    descriptors: Optional[Dict[str, Any]] = None
+    descriptors: Optional[Dict[str, int]] = None
     cqdesc: Optional[Dict[str, Any]] = None
     visible: Optional[bool] = None
     imgurl: Optional[str] = None
@@ -235,7 +237,7 @@ class Node:
 
     @property
     def scheme(self) -> int:
-        return schemes.get(self.plain_text, 0)
+        return schemes.get(self.plain_text.lower(), 0)
 
     @property
     def text_length(self) -> Optional[int]:
@@ -397,3 +399,20 @@ class Node:
 
     def __eq__(self, other: Node) -> bool:
         return self.key == other.key
+
+
+@dataclass(order=True)
+class Nodes(collections.abc.Sequence):
+    _store: List[Node] = field(default_factory=list)
+
+    def __len__(self):
+        return self._store.__len__()
+
+    def __getitem__(self, key):
+        return self._store.__getitem__(key)
+
+    def __repr__(self):
+        return self._store.__repr__()
+
+    def __str__(self):
+        return self._store.__str__()
