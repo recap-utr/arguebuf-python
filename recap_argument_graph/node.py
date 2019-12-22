@@ -32,7 +32,7 @@ class NodeCategory(Enum):
     YA = "YA"
 
 
-# TODO: Duplicate keys: 17, 251, 252, 61, 254, 253
+# Duplicate keys: 17, 251, 252, 61, 254, 253
 ra_schemes = {
     "Alternatives (Cognitive Schemes)": 251,
     "Alternatives": 235,
