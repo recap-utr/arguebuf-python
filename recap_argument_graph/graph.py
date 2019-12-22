@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass, field, InitVar
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, List, Dict, Callable, Union
+from typing import Any, Optional, List, Dict, Callable, Union, Sequence, Mapping
 
 import graphviz as gv
 import networkx as nx
@@ -12,8 +12,9 @@ import pendulum
 from lxml import html
 
 from . import utils, dt
-from .edge import Edge, Edges
-from .node import Node, Nodes, NodeCategory
+from .edge import Edge
+from .node import Node, NodeCategory
+from .utils import ImmutableList, ImmutableDict
 
 
 # TODO: How should duplicates be handled?
@@ -30,27 +31,29 @@ class GraphCategory(Enum):
 class Graph:
     """Graph in AIF format.
 
-    Attributes `id`, `nodes` and `edges` are mandatory.
-
-    **Important:** The attributes `nodes`, `inodes` and `snodes` are not in sync after init.
-    In other word, `inodes` is not updated if a new element is added to `nodes`.
-    Thus, all three list need to be updated manually.
-
-    **However**, the initial value for `nodes` is parsed and the lists `inodes` and `snodes` are filled accordingly.
-    Manual updates are therefore only necessary for update operations.
+    No attribute is mandatory.
+    All nodes and edges attributes are read-only.
     """
 
     key: str = field(default_factory=utils.unique_id)
-    nodes: Nodes = field(init=False, default_factory=Nodes)
-    inodes: Nodes = field(init=False, default_factory=Nodes)
-    snodes: Nodes = field(init=False, default_factory=Nodes)
-    edges: Edges = field(init=False, default_factory=Edges)
+    nodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
+    inodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
+    snodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
+    edges: ImmutableList[Edge] = field(init=False, default_factory=ImmutableList)
     init_nodes: InitVar[List[Node]] = None
     init_edges: InitVar[List[Edge]] = None
-    incoming_nodes: Dict[Node, Nodes] = field(init=False, default_factory=dict)
-    incoming_edges: Dict[Node, Edges] = field(init=False, default_factory=dict)
-    outgoing_nodes: Dict[Node, Nodes] = field(init=False, default_factory=dict)
-    outgoing_edges: Dict[Node, Edges] = field(init=False, default_factory=dict)
+    incoming_nodes: ImmutableDict[Node, ImmutableList[Node]] = field(
+        init=False, default_factory=ImmutableDict
+    )
+    incoming_edges: ImmutableDict[Node, ImmutableList[Edge]] = field(
+        init=False, default_factory=ImmutableDict
+    )
+    outgoing_nodes: ImmutableDict[Node, ImmutableList[Node]] = field(
+        init=False, default_factory=ImmutableDict
+    )
+    outgoing_edges: ImmutableDict[Node, ImmutableList[Edge]] = field(
+        init=False, default_factory=ImmutableDict
+    )
     participants: Optional[List[Any]] = None
     category: GraphCategory = GraphCategory.OTHER
     ova_version: str = None
@@ -78,6 +81,8 @@ class Graph:
                 self.add_edge(edge)
 
     def add_node(self, node: Node) -> None:
+        """Add a node."""
+
         self.nodes._store.append(node)
 
         if node.category == NodeCategory.I:
@@ -85,12 +90,14 @@ class Graph:
         else:
             self.snodes._store.append(node)
 
-        self.incoming_nodes[node] = Nodes()
-        self.incoming_edges[node] = Edges()
-        self.outgoing_nodes[node] = Nodes()
-        self.outgoing_edges[node] = Edges()
+        self.incoming_nodes._store[node] = ImmutableList()
+        self.incoming_edges._store[node] = ImmutableList()
+        self.outgoing_nodes._store[node] = ImmutableList()
+        self.outgoing_edges._store[node] = ImmutableList()
 
     def remove_node(self, node: Node) -> None:
+        """Remove a node and its corresponding edges."""
+
         self.nodes._store.remove(node)
 
         if node.category == NodeCategory.I:
@@ -102,12 +109,14 @@ class Graph:
             if node == edge.start or node == edge.end:
                 self.remove_edge(edge)
 
-        del self.incoming_nodes[node]
-        del self.incoming_edges[node]
-        del self.outgoing_nodes[node]
-        del self.outgoing_edges[node]
+        del self.incoming_nodes._store[node]
+        del self.incoming_edges._store[node]
+        del self.outgoing_nodes._store[node]
+        del self.outgoing_edges._store[node]
 
     def add_edge(self, edge: Edge) -> None:
+        """Add an edge and its nodes (if not already added)."""
+
         self.edges._store.append(edge)
 
         if edge.start not in self.nodes:
@@ -119,9 +128,11 @@ class Graph:
         self.outgoing_edges[edge.start]._store.append(edge)
         self.incoming_edges[edge.end]._store.append(edge)
         self.outgoing_nodes[edge.start]._store.append(edge.end)
-        self.outgoing_nodes[edge.end]._store.append(edge.start)
+        self.incoming_nodes[edge.end]._store.append(edge.start)
 
     def remove_edge(self, edge: Edge) -> None:
+        """Remove an edge."""
+
         self.edges._store.remove(edge)
 
         self.outgoing_edges[edge.start]._store.remove(edge)

@@ -225,28 +225,40 @@ class Node:
 
     @property
     def raw_text(self) -> str:
+        """Get the original raw text if available or the standard text as string."""
+
         return self._raw_text or self.plain_text
 
     @raw_text.setter
     def raw_text(self, value):
+        """Set the original raw text."""
+
         self._raw_text = value
 
     @property
     def plain_text(self) -> str:
+        """Get the regular text as string."""
+
         return utils.xstr(self.text)
 
     @property
     def scheme(self) -> int:
+        """Get argumentation scheme id based on `text`."""
+
         return schemes.get(self.plain_text.lower(), 0)
 
     @property
     def text_length(self) -> Optional[int]:
+        """Get text length for I-nodes."""
+
         if self.category == NodeCategory.I:
             return len(self.plain_text)
         return None
 
     @property
     def ova_color(self) -> str:
+        """Get the color used in OVA based on `category`."""
+
         if self.category == NodeCategory.I:
             if self.major_claim:
                 return "m"
@@ -268,6 +280,8 @@ class Node:
 
     @property
     def gv_color(self) -> ColorMapping:
+        """Get the colors used for graphviz based on the OVA color."""
+
         # if self.category == NodeCategory.RA:
         #     return "palegreen"
         # elif self.category == NodeCategory.CA:
@@ -399,20 +413,3 @@ class Node:
 
     def __eq__(self, other: Node) -> bool:
         return self.key == other.key
-
-
-@dataclass(order=True)
-class Nodes(collections.abc.Sequence):
-    _store: List[Node] = field(default_factory=list)
-
-    def __len__(self):
-        return self._store.__len__()
-
-    def __getitem__(self, key):
-        return self._store.__getitem__(key)
-
-    def __repr__(self):
-        return self._store.__repr__()
-
-    def __str__(self):
-        return self._store.__str__()

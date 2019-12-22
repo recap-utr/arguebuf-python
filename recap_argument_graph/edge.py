@@ -97,20 +97,3 @@ class Edge:
 
     def __eq__(self, other: Edge) -> bool:
         return self.start == other.start and self.end == other.end
-
-
-@dataclass(order=True)
-class Edges(collections.abc.Sequence):
-    _store: List[Edge] = field(default_factory=list)
-
-    def __len__(self):
-        return self._store.__len__()
-
-    def __getitem__(self, key):
-        return self._store.__getitem__(key)
-
-    def __repr__(self):
-        return self._store.__repr__()
-
-    def __str__(self):
-        return self._store.__str__()
