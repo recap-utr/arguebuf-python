@@ -11,6 +11,7 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 from lxml import html
+import logging
 
 from . import utils, dt
 from .edge import Edge
@@ -324,9 +325,16 @@ class Graph:
             directory = path.parent
 
         g = self.to_gv(format, engine)
-        g.render(
-            filename=str(filename), directory=str(directory), cleanup=True, view=view
-        )
+
+        try:
+            g.render(
+                filename=str(filename),
+                directory=str(directory),
+                cleanup=True,
+                view=view,
+            )
+        except Exception:
+            logging.error("Rendering not possible. GraphViz might not be installed.")
 
     open = from_file
     open_folder = from_folder
