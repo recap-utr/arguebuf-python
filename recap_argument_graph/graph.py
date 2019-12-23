@@ -1,10 +1,11 @@
 from __future__ import absolute_import, annotations
 
+import itertools
 import json
 from dataclasses import dataclass, field, InitVar
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, List, Dict, Callable, Union, Sequence, Mapping
+from typing import Any, Optional, List, Dict, Callable, Union
 
 import graphviz as gv
 import networkx as nx
@@ -17,17 +18,13 @@ from .node import Node, NodeCategory
 from .utils import ImmutableList, ImmutableDict
 
 
-# TODO: How should duplicates be handled?
-# TODO: Should id() be used for comparison?
-
-
 class GraphCategory(Enum):
     AIF = "aif"
     OVA = "ova"
     OTHER = "other"
 
 
-@dataclass
+@dataclass(eq=False)
 class Graph:
     """Graph in AIF format.
 
@@ -35,7 +32,7 @@ class Graph:
     All nodes and edges attributes are read-only.
     """
 
-    key: str = field(default_factory=utils.unique_id)
+    name: str
     nodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
     inodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
     snodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
@@ -63,13 +60,10 @@ class Graph:
     document_source: Optional[str] = None
     document_title: Optional[str] = None
     document_date: Optional[pendulum.DateTime] = field(default_factory=pendulum.now)
+    _key_iterator = itertools.count(start=1)
 
-    @property
-    def _uid(self):
-        return self.key
-
-    def __hash__(self):
-        return hash(self._uid)
+    def keygen(self):
+        return next(self._key_iterator)
 
     def __post_init__(self, init_nodes: List[Node], init_edges: List[Edge]):
         if init_nodes:
@@ -83,72 +77,76 @@ class Graph:
     def add_node(self, node: Node) -> None:
         """Add a node."""
 
-        self.nodes._store.append(node)
+        if node not in self.nodes:
+            self.nodes._store.append(node)
 
-        if node.category == NodeCategory.I:
-            self.inodes._store.append(node)
-        else:
-            self.snodes._store.append(node)
+            if node.category == NodeCategory.I:
+                self.inodes._store.append(node)
+            else:
+                self.snodes._store.append(node)
 
-        self.incoming_nodes._store[node] = ImmutableList()
-        self.incoming_edges._store[node] = ImmutableList()
-        self.outgoing_nodes._store[node] = ImmutableList()
-        self.outgoing_edges._store[node] = ImmutableList()
+            self.incoming_nodes._store[node] = ImmutableList()
+            self.incoming_edges._store[node] = ImmutableList()
+            self.outgoing_nodes._store[node] = ImmutableList()
+            self.outgoing_edges._store[node] = ImmutableList()
 
     def remove_node(self, node: Node) -> None:
         """Remove a node and its corresponding edges."""
 
-        self.nodes._store.remove(node)
+        if node in self.nodes:
+            self.nodes._store.remove(node)
 
-        if node.category == NodeCategory.I:
-            self.inodes._store.remove(node)
-        else:
-            self.snodes._store.remove(node)
+            if node.category == NodeCategory.I:
+                self.inodes._store.remove(node)
+            else:
+                self.snodes._store.remove(node)
 
-        for edge in self.edges:
-            if node == edge.start or node == edge.end:
-                self.remove_edge(edge)
+            for edge in self.edges:
+                if node == edge.start or node == edge.end:
+                    self.remove_edge(edge)
 
-        del self.incoming_nodes._store[node]
-        del self.incoming_edges._store[node]
-        del self.outgoing_nodes._store[node]
-        del self.outgoing_edges._store[node]
+            del self.incoming_nodes._store[node]
+            del self.incoming_edges._store[node]
+            del self.outgoing_nodes._store[node]
+            del self.outgoing_edges._store[node]
 
     def add_edge(self, edge: Edge) -> None:
         """Add an edge and its nodes (if not already added)."""
 
-        self.edges._store.append(edge)
-
-        if edge.start not in self.nodes:
+        if edge not in self.edges:
+            self.edges._store.append(edge)
+            self.add_node(edge.end)
             self.add_node(edge.start)
 
-        if edge.end not in self.nodes:
-            self.add_node(edge.end)
+            # if edge.start not in self.nodes:
+            # if edge.end not in self.nodes:
 
-        self.outgoing_edges[edge.start]._store.append(edge)
-        self.incoming_edges[edge.end]._store.append(edge)
-        self.outgoing_nodes[edge.start]._store.append(edge.end)
-        self.incoming_nodes[edge.end]._store.append(edge.start)
+            self.outgoing_edges[edge.start]._store.append(edge)
+            self.incoming_edges[edge.end]._store.append(edge)
+            self.outgoing_nodes[edge.start]._store.append(edge.end)
+            self.incoming_nodes[edge.end]._store.append(edge.start)
 
     def remove_edge(self, edge: Edge) -> None:
         """Remove an edge."""
 
-        self.edges._store.remove(edge)
+        if edge in self.edges:
+            self.edges._store.remove(edge)
 
-        self.outgoing_edges[edge.start]._store.remove(edge)
-        self.incoming_edges[edge.end]._store.remove(edge)
-        self.outgoing_nodes[edge.start]._store.remove(edge.end)
-        self.incoming_nodes[edge.end]._store.remove(edge.start)
+            self.outgoing_edges[edge.start]._store.remove(edge)
+            self.incoming_edges[edge.end]._store.remove(edge)
+            self.outgoing_nodes[edge.start]._store.remove(edge.end)
+            self.incoming_nodes[edge.end]._store.remove(edge.start)
 
     @staticmethod
     def from_ova(
         obj: Dict[str, Any],
-        key: Optional[str] = None,
+        name: Optional[str] = None,
         nlp: Optional[Callable[[str], Any]] = None,
     ) -> Graph:
         analysis = obj.get("analysis")
 
         g = Graph(
+            name=name or utils.unique_id(),
             category=GraphCategory.OVA,
             participants=obj.get("participants"),
             ova_version=analysis.get("ovaVersion"),
@@ -160,9 +158,6 @@ class Graph:
             document_date=dt.from_analysis(analysis.get("documentDate")),
         )
 
-        if key:
-            g.key = key
-
         node_dict = {}
 
         for node_obj in obj.get("nodes"):
@@ -171,7 +166,7 @@ class Graph:
             g.add_node(node)
 
         for edge in obj.get("edges"):
-            g.add_edge(Edge.from_ova(edge, node_dict, nlp))
+            g.add_edge(Edge.from_ova(edge, g.keygen(), node_dict, nlp))
 
         if analysis and analysis.get("txt"):
             txt = analysis["txt"]
@@ -202,8 +197,8 @@ class Graph:
 
             for node in self.nodes:
                 highlighted_text = highlighted_text.replace(
-                    node.raw_text,
-                    f'<span class="highlighted" id="node{node.key}">{node.raw_text}</span>',
+                    node.original_text,
+                    f'<span class="highlighted" id="node{node.key}">{node.original_text}</span>',
                 )
 
             highlighted_text = highlighted_text.replace("\n", "<br>")
@@ -226,14 +221,15 @@ class Graph:
     @staticmethod
     def from_aif(
         obj: Dict[str, Any],
-        key: Optional[str] = None,
+        name: Optional[str] = None,
         nlp: Optional[Callable[[str], Any]] = None,
     ) -> Graph:
 
-        g = Graph(category=GraphCategory.AIF, document_date=None)
-
-        if key:
-            g.key = key
+        g = Graph(
+            name=name or utils.unique_id(),
+            category=GraphCategory.AIF,
+            document_date=None,
+        )
 
         node_dict = {}
 
@@ -257,13 +253,13 @@ class Graph:
     @staticmethod
     def from_dict(
         obj: Dict[str, Any],
-        key: Optional[str] = None,
+        name: Optional[str] = None,
         nlp: Optional[Callable[[str], Any]] = None,
     ) -> Graph:
         if "analysis" in obj:
-            return Graph.from_ova(obj, key, nlp)
+            return Graph.from_ova(obj, name, nlp)
         else:
-            return Graph.from_aif(obj, key, nlp)
+            return Graph.from_aif(obj, name, nlp)
 
     def to_dict(self) -> dict:
         if self.category == GraphCategory.OVA:
@@ -283,7 +279,7 @@ class Graph:
         return g
 
     def to_gv(self, format: str = "pdf", engine: str = "dot") -> gv.Digraph:
-        g = gv.Digraph(name=str(self.key), strict=True, format=format, engine=engine,)
+        g = gv.Digraph(name=str(self.name), strict=True, format=format, engine=engine,)
         g.attr(rankdir="BT")
 
         for edge in self.edges:
@@ -300,7 +296,7 @@ class Graph:
 
     def to_file(self, path: Path) -> None:
         if path.is_dir():
-            path = path / f"{self.key}.json"
+            path = path / f"{self.name}.json"
 
         with path.open("w") as file:
             json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
@@ -315,7 +311,7 @@ class Graph:
     def render(
         self, path: Path, format: str = "pdf", engine: str = "dot", view: bool = False
     ) -> None:
-        filename = self.key
+        filename = self.name
         directory = path
 
         if path.is_file():

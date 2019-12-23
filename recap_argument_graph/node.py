@@ -1,6 +1,5 @@
 from __future__ import absolute_import, annotations
 
-import collections
 import textwrap
 from dataclasses import dataclass, field
 from enum import Enum
@@ -183,27 +182,13 @@ def _int2list(value: Optional[int]) -> List[int]:
 # TODO: Automatically calculate values for width, height, x and y
 
 
-@dataclass
+@dataclass(eq=False)
 class Node:
-    """Node in the AIF format.
+    """Node in the AIF format."""
 
-    All elements that start with an underscore should not be accessed directly!
-    The only exception is during init where you have to set _text.
-    There are many property methods for convenience reasons.
-
-    Required parameters for initialization are `id`, `text` and `type`.
-    All other attributes have default values.
-    One node per graph must have the attribute `major_claim = True`.
-
-    Attributes `text` and `tokens` are updated accordingly when using the respective property method.
-    If updating `_text` or `_tokens` directly, the other one refers to an old version.
-
-    Attributes `text_begin` and `text_end` are a list for compatability with OVA, but there will always be exactly one start or end.
-    """
-
-    key: int = field(default_factory=utils.unique_id)
+    key: int
     text: Union[str, Any] = ""
-    _raw_text: Optional[str] = None
+    raw_text: Optional[str] = None
     category: NodeCategory = NodeCategory.I
     x: Optional[int] = None
     y: Optional[int] = None
@@ -224,20 +209,14 @@ class Node:
     source: Optional[str] = None
 
     @property
-    def raw_text(self) -> str:
-        """Get the original raw text if available or the standard text as string."""
+    def original_text(self) -> str:
+        """Get `raw_text` if available or the standard `text` as string."""
 
-        return self._raw_text or self.plain_text
-
-    @raw_text.setter
-    def raw_text(self, value):
-        """Set the original raw text."""
-
-        self._raw_text = value
+        return self.raw_text or self.plain_text
 
     @property
     def plain_text(self) -> str:
-        """Get the regular text as string."""
+        """Get the standard `text` as string."""
 
         return utils.xstr(self.text)
 
@@ -290,13 +269,6 @@ class Node:
         #     return "lightskyblue"
         # return "aliceblue"
         return color_mappings[self.ova_color]
-
-    @property
-    def _uid(self):
-        return (self.key, self.plain_text, self.category.value)
-
-    def __hash__(self):
-        return hash(self._uid)
 
     @staticmethod
     def from_ova(
@@ -410,6 +382,3 @@ class Node:
             height="0",
             margin=f"{margin[0]},{margin[1]}",
         )
-
-    def __eq__(self, other: Node) -> bool:
-        return self.key == other.key

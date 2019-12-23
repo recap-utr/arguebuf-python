@@ -1,41 +1,45 @@
 from __future__ import absolute_import, annotations
 
-import collections
-from dataclasses import dataclass, field
-from typing import Any, Optional, Dict, Callable, List
+from dataclasses import dataclass, field, InitVar
+from typing import Any, Optional, Dict, Callable
 
 import graphviz as gv
 import networkx as nx
 import pendulum
 
-from . import utils, dt
+from . import dt
 from .node import Node
 
 
-@dataclass
+@dataclass(eq=False)
 class Edge:
-    """Edge in AIF format.
+    """Edge in AIF format."""
 
-    Attributes `from` and `to` are mandatory.
-    """
-
-    start: Node
-    end: Node
-    key: int = field(default_factory=utils.unique_id)
+    key: int
+    start: InitVar[Node]
+    _start: Node = field(init=False)
+    end: InitVar[Node]
+    _end: Node = field(init=False)
     visible: bool = None
     annotator: str = None
     date: pendulum.DateTime = field(default_factory=pendulum.now)
 
-    @property
-    def _uid(self):
-        return (self.key, self.start.key, self.end.key)
+    def __post_init__(self, start: Node, end: Node):
+        self._start = start
+        self._end = end
 
-    def __hash__(self):
-        return hash(self._uid)
+    @property
+    def start(self):
+        return self._start
+
+    @property
+    def end(self):
+        return self._end
 
     @staticmethod
     def from_ova(
         obj: Any,
+        key: int,
         nodes: Dict[int, Node] = None,
         nlp: Optional[Callable[[str], Any]] = None,
     ) -> Edge:
@@ -46,6 +50,7 @@ class Edge:
         end_key = int(obj.get("to").get("id"))
 
         return Edge(
+            key=key,
             start=nodes.get(start_key) or Node.from_ova(obj.get("from"), nlp),
             end=nodes.get(end_key) or Node.from_ova(obj.get("to"), nlp),
             visible=obj.get("visible"),
@@ -70,9 +75,9 @@ class Edge:
         end_key = int(obj.get("toID"))
 
         return Edge(
+            key=int(obj.get("edgeID")),
             start=nodes.get(start_key),
             end=nodes.get(end_key),
-            key=int(obj.get("edgeID")),
         )
 
     def to_aif(self) -> dict:
@@ -94,6 +99,3 @@ class Edge:
             f"{prefix}{self.end.key}{suffix}",
             color=color,
         )
-
-    def __eq__(self, other: Edge) -> bool:
-        return self.start == other.start and self.end == other.end

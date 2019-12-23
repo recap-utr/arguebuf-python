@@ -12,7 +12,34 @@ _node_attrs = ("text_length", "color", "source", "descriptors", "is_check_worthy
 _graph_attrs = ("documentDate", "documentSource", "ovaVersion")
 
 
-def test_graph(shared_datadir):
+def test_create_graph(shared_datadir):
+    g = ag.Graph("Test")
+
+    n1 = ag.Node(g.keygen(), "Node 1")
+    n2 = ag.Node(g.keygen(), "Node 2")
+    e = ag.Edge(g.keygen(), n1, n2)
+
+    g.add_edge(e)
+
+    assert n1.key == 1
+    assert n2.key == 2
+    assert e.key == 3
+
+    assert e.start == n1
+    assert e.end == n2
+
+    assert len(g.incoming_nodes[n1]) == 0
+    assert len(g.incoming_edges[n1]) == 0
+    assert len(g.incoming_nodes[n2]) == 1
+    assert len(g.incoming_edges[n2]) == 1
+
+    assert len(g.outgoing_nodes[n1]) == 1
+    assert len(g.outgoing_edges[n1]) == 1
+    assert len(g.outgoing_nodes[n2]) == 0
+    assert len(g.outgoing_edges[n2]) == 0
+
+
+def test_import_graph(shared_datadir):
     folder = shared_datadir / "in" / "graph"
 
     for file in sorted(folder.rglob("*.json")):

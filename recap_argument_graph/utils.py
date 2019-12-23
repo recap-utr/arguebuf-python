@@ -1,10 +1,18 @@
 from __future__ import absolute_import, annotations
 
+import itertools
 import uuid
 from dataclasses import dataclass, field
 from typing import Any, Optional, Callable, Dict, List, Sequence, Mapping, Iterable
 
 import typing
+
+
+# key_iterator = itertools.count(start=1)
+#
+#
+# def keygen() -> int:
+#     return next(key_iterator)
 
 
 def unique_id() -> int:

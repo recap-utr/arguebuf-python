@@ -112,7 +112,7 @@ def test_aif_edge(data, key, start, end):
 @pytest.mark.parametrize("data,start,end,visible,annotator,date", ova_data)
 def test_ova_edge(data, start, end, visible, annotator, date):
     data_json = json.loads(data)
-    edge = ag.Edge.from_ova(data_json)
+    edge = ag.Edge.from_ova(data_json, 1)
 
     assert isinstance(edge.start, ag.Node)
     assert isinstance(edge.end, ag.Node)
