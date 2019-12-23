@@ -166,7 +166,12 @@ class Graph:
             g.add_node(node)
 
         for edge in obj.get("edges"):
-            g.add_edge(Edge.from_ova(edge, g.keygen(), node_dict, nlp))
+            edge_key = g.keygen()
+
+            while edge_key in node_dict.keys():
+                edge_key = g.keygen()
+
+            g.add_edge(Edge.from_ova(edge, edge_key, node_dict, nlp))
 
         if analysis and analysis.get("txt"):
             txt = analysis["txt"]
