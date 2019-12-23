@@ -78,6 +78,9 @@ class Graph:
     def add_node(self, node: Node) -> None:
         """Add a node."""
 
+        if not isinstance(node, Node):
+            raise ValueError(f"Expected 'Node', but got '{type(node)}'")
+
         if node not in self.nodes:
             self.nodes._store.append(node)
 
@@ -93,6 +96,9 @@ class Graph:
 
     def remove_node(self, node: Node) -> None:
         """Remove a node and its corresponding edges."""
+
+        if not isinstance(node, Node):
+            raise ValueError(f"Expected 'Node', but got '{type(node)}'")
 
         if node in self.nodes:
             self.nodes._store.remove(node)
@@ -114,6 +120,9 @@ class Graph:
     def add_edge(self, edge: Edge) -> None:
         """Add an edge and its nodes (if not already added)."""
 
+        if not isinstance(edge, Edge):
+            raise ValueError(f"Expected 'Edge', but got '{type(edge)}'")
+
         if edge not in self.edges:
             self.edges._store.append(edge)
             self.add_node(edge.end)
@@ -129,6 +138,9 @@ class Graph:
 
     def remove_edge(self, edge: Edge) -> None:
         """Remove an edge."""
+
+        if not isinstance(edge, Edge):
+            raise ValueError(f"Expected 'Edge', but got '{type(edge)}'")
 
         if edge in self.edges:
             self.edges._store.remove(edge)
