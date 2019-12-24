@@ -15,8 +15,8 @@ _graph_attrs = ("documentDate", "documentSource", "ovaVersion")
 def test_create_graph(shared_datadir):
     g = ag.Graph("Test")
 
-    n1 = ag.Node(g.keygen(), "Node 1")
-    n2 = ag.Node(g.keygen(), "Node 2")
+    n1 = ag.Node(g.keygen(), "Node 1", ag.NodeCategory.I)
+    n2 = ag.Node(g.keygen(), "Node 2", ag.NodeCategory.I)
     e = ag.Edge(g.keygen(), n1, n2)
 
     g.add_edge(e)
@@ -60,7 +60,7 @@ def test_import_graph(shared_datadir):
         _clean_edges(export["edges"])
 
         assert export == raw, file
-        # assert DeepDiff(raw, export,) == {}, file
+        # assert DeepDiff(raw, export, ignore_order=True) == {}, file
 
         graph.to_gv()
         graph.to_nx()

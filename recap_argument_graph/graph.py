@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass, field, InitVar
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, List, Dict, Callable, Union
+from typing import Any, Optional, List, Dict, Callable, Union, Generator, Iterator, Set
 
 import graphviz as gv
 import networkx as nx
@@ -16,13 +16,16 @@ import logging
 from . import utils, dt
 from .edge import Edge
 from .node import Node, NodeCategory
-from .utils import ImmutableList, ImmutableDict
+from .utils import ImmutableList, ImmutableDict, ImmutableSet, MISSING
 
 
 class GraphCategory(Enum):
     AIF = "aif"
     OVA = "ova"
     OTHER = "other"
+
+
+# TODO: Add __slots__
 
 
 @dataclass(eq=False)
@@ -33,47 +36,162 @@ class Graph:
     All nodes and edges attributes are read-only.
     """
 
+    __slots__ = (
+        "name",
+        "_node_mappings",
+        "_inode_mappings",
+        "_snode_mappings",
+        "_edge_mappings",
+        "_incoming_nodes",
+        "_incoming_edges",
+        "_outgoing_nodes",
+        "_outgoing_edges",
+        "participants",
+        "category",
+        "ova_version",
+        "text",
+        "highlighted_text",
+        "annotator_name",
+        "document_source",
+        "document_title",
+        "document_date",
+        "_key_iterator",
+    )
+
     name: str
-    nodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
-    inodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
-    snodes: ImmutableList[Node] = field(init=False, default_factory=ImmutableList)
-    edges: ImmutableList[Edge] = field(init=False, default_factory=ImmutableList)
-    init_nodes: InitVar[List[Node]] = None
-    init_edges: InitVar[List[Edge]] = None
-    incoming_nodes: ImmutableDict[Node, ImmutableList[Node]] = field(
-        init=False, default_factory=ImmutableDict
-    )
-    incoming_edges: ImmutableDict[Node, ImmutableList[Edge]] = field(
-        init=False, default_factory=ImmutableDict
-    )
-    outgoing_nodes: ImmutableDict[Node, ImmutableList[Node]] = field(
-        init=False, default_factory=ImmutableDict
-    )
-    outgoing_edges: ImmutableDict[Node, ImmutableList[Edge]] = field(
-        init=False, default_factory=ImmutableDict
-    )
-    participants: Optional[List[Any]] = None
-    category: GraphCategory = GraphCategory.OTHER
-    ova_version: str = None
-    text: Union[None, str, Any] = None
-    highlighted_text: Optional[str] = None
-    annotator_name: Optional[str] = None
-    document_source: Optional[str] = None
-    document_title: Optional[str] = None
-    document_date: Optional[pendulum.DateTime] = field(default_factory=pendulum.now)
-    _key_iterator = itertools.count(start=1)
+    _node_mappings: ImmutableDict[int, Node]
+    _inode_mappings: ImmutableDict[int, Node]
+    _snode_mappings: ImmutableDict[int, Node]
+    _edge_mappings: ImmutableDict[int, Edge]
+    _incoming_nodes: ImmutableDict[Node, ImmutableSet[Node]]
+    _incoming_edges: ImmutableDict[Node, ImmutableSet[Edge]]
+    _outgoing_nodes: ImmutableDict[Node, ImmutableSet[Node]]
+    _outgoing_edges: ImmutableDict[Node, ImmutableSet[Edge]]
+    participants: Optional[List[Any]]
+    category: GraphCategory
+    ova_version: str
+    text: Union[None, str, Any]
+    highlighted_text: Optional[str]
+    annotator_name: Optional[str]
+    document_source: Optional[str]
+    document_title: Optional[str]
+    document_date: Optional[pendulum.DateTime]
+    _key_iterator: Iterator[int]
+
+    @property
+    def nodes(self):
+        return self._node_mappings.values()
+
+    @property
+    def inodes(self):
+        return self._inode_mappings.values()
+
+    @property
+    def snodes(self):
+        return self._snode_mappings.values()
+
+    @property
+    def edges(self):
+        return self._edge_mappings.values()
+
+    @property
+    def node_keys(self):
+        return self._node_mappings.keys()
+
+    @property
+    def inode_keys(self):
+        return self._inode_mappings.keys()
+
+    @property
+    def snode_keys(self):
+        return self._snode_mappings.keys()
+
+    @property
+    def edge_keys(self):
+        return self._edge_mappings.keys()
+
+    @property
+    def node_mappings(self):
+        return self._node_mappings
+
+    @property
+    def inode_mappings(self):
+        return self._inode_mappings
+
+    @property
+    def snode_mappings(self):
+        return self._snode_mappings
+
+    @property
+    def edge_mappings(self):
+        return self._edge_mappings
+
+    @property
+    def incoming_nodes(self):
+        return self._incoming_nodes
+
+    @property
+    def incoming_edges(self):
+        return self._incoming_edges
+
+    @property
+    def outgoing_nodes(self):
+        return self._outgoing_nodes
+
+    @property
+    def outgoing_edges(self):
+        return self._outgoing_edges
+
+    @property
+    def keys(self) -> Set[int]:
+        return set().union(self.node_keys, self.edge_keys)
+
+    def __init__(
+        self,
+        name: str,
+        category: GraphCategory = GraphCategory.OTHER,
+        ova_version: str = None,
+        text: Union[None, str, Any] = None,
+        highlighted_text: Optional[str] = None,
+        annotator_name: Optional[str] = None,
+        document_source: Optional[str] = None,
+        document_title: Optional[str] = None,
+        document_date: Union[MISSING, None, pendulum.DateTime] = MISSING,
+        participants: Optional[List[Any]] = None,
+    ):
+        self.name = name
+        self.category = category
+        self.ova_version = ova_version
+        self.text = text
+        self.highlighted_text = highlighted_text
+        self.annotator_name = annotator_name
+        self.document_source = document_source
+        self.document_title = document_title
+        self.document_date = (
+            pendulum.now() if document_date is MISSING else document_date
+        )
+        self.participants = participants
+
+        self._key_iterator = itertools.count(start=1)
+
+        self._node_mappings = ImmutableDict()
+        self._inode_mappings = ImmutableDict()
+        self._snode_mappings = ImmutableDict()
+        self._edge_mappings = ImmutableDict()
+
+        self._incoming_nodes = ImmutableDict()
+        self._incoming_edges = ImmutableDict()
+        self._outgoing_nodes = ImmutableDict()
+        self._outgoing_edges = ImmutableDict()
 
     def keygen(self):
-        return next(self._key_iterator)
+        key = next(self._key_iterator)
+        keys = self.keys
 
-    def __post_init__(self, init_nodes: List[Node], init_edges: List[Edge]):
-        if init_nodes:
-            for node in init_nodes:
-                self.add_node(node)
+        while key in keys:
+            key = next(self._key_iterator)
 
-        if init_edges:
-            for edge in init_edges:
-                self.add_edge(edge)
+        return key
 
     def add_node(self, node: Node) -> None:
         """Add a node."""
@@ -81,18 +199,22 @@ class Graph:
         if not isinstance(node, Node):
             raise ValueError(f"Expected 'Node', but got '{type(node)}'")
 
-        if node not in self.nodes:
-            self.nodes._store.append(node)
+        if node.key in self.node_keys:
+            raise ValueError(
+                f"Graph '{self.name}' already contains an element with key '{node.key}'."
+            )
 
-            if node.category == NodeCategory.I:
-                self.inodes._store.append(node)
-            else:
-                self.snodes._store.append(node)
+        self._node_mappings._store[node.key] = node
 
-            self.incoming_nodes._store[node] = ImmutableList()
-            self.incoming_edges._store[node] = ImmutableList()
-            self.outgoing_nodes._store[node] = ImmutableList()
-            self.outgoing_edges._store[node] = ImmutableList()
+        if node.category == NodeCategory.I:
+            self._inode_mappings._store[node.key] = node
+        else:
+            self._snode_mappings._store[node.key] = node
+
+        self.incoming_nodes._store[node] = ImmutableSet()
+        self.incoming_edges._store[node] = ImmutableSet()
+        self.outgoing_nodes._store[node] = ImmutableSet()
+        self.outgoing_edges._store[node] = ImmutableSet()
 
     def remove_node(self, node: Node) -> None:
         """Remove a node and its corresponding edges."""
@@ -100,22 +222,26 @@ class Graph:
         if not isinstance(node, Node):
             raise ValueError(f"Expected 'Node', but got '{type(node)}'")
 
-        if node in self.nodes:
-            self.nodes._store.remove(node)
+        if node.key not in self.node_keys:
+            raise ValueError(
+                f"Graph '{self.name}' does not contain an element with key '{node.key}'."
+            )
 
-            if node.category == NodeCategory.I:
-                self.inodes._store.remove(node)
-            else:
-                self.snodes._store.remove(node)
+        del self._node_mappings._store[node]
 
-            for edge in self.edges:
-                if node == edge.start or node == edge.end:
-                    self.remove_edge(edge)
+        if node.category == NodeCategory.I:
+            del self._inode_mappings._store[node]
+        else:
+            del self._snode_mappings._store[node]
 
-            del self.incoming_nodes._store[node]
-            del self.incoming_edges._store[node]
-            del self.outgoing_nodes._store[node]
-            del self.outgoing_edges._store[node]
+        for edge in self.edges:
+            if node == edge.start or node == edge.end:
+                self.remove_edge(edge)
+
+        del self.incoming_nodes._store[node]
+        del self.incoming_edges._store[node]
+        del self.outgoing_nodes._store[node]
+        del self.outgoing_edges._store[node]
 
     def add_edge(self, edge: Edge) -> None:
         """Add an edge and its nodes (if not already added)."""
@@ -123,18 +249,23 @@ class Graph:
         if not isinstance(edge, Edge):
             raise ValueError(f"Expected 'Edge', but got '{type(edge)}'")
 
-        if edge not in self.edges:
-            self.edges._store.append(edge)
-            self.add_node(edge.end)
+        if edge.key in self.edge_keys:
+            raise ValueError(
+                f"Graph '{self.name}' already contains an element with key '{edge.key}'."
+            )
+
+        self._edge_mappings._store[edge.key] = edge
+
+        if edge.start.key not in self.node_keys:
             self.add_node(edge.start)
 
-            # if edge.start not in self.nodes:
-            # if edge.end not in self.nodes:
+        if edge.end.key not in self.node_keys:
+            self.add_node(edge.end)
 
-            self.outgoing_edges[edge.start]._store.append(edge)
-            self.incoming_edges[edge.end]._store.append(edge)
-            self.outgoing_nodes[edge.start]._store.append(edge.end)
-            self.incoming_nodes[edge.end]._store.append(edge.start)
+        self.outgoing_edges[edge.start]._store.add(edge)
+        self.incoming_edges[edge.end]._store.add(edge)
+        self.outgoing_nodes[edge.start]._store.add(edge.end)
+        self.incoming_nodes[edge.end]._store.add(edge.start)
 
     def remove_edge(self, edge: Edge) -> None:
         """Remove an edge."""
@@ -142,13 +273,15 @@ class Graph:
         if not isinstance(edge, Edge):
             raise ValueError(f"Expected 'Edge', but got '{type(edge)}'")
 
-        if edge in self.edges:
-            self.edges._store.remove(edge)
+        if edge.key not in self.edge_keys:
+            raise ValueError(
+                f"Graph '{self.name}' does not contain an element with key '{edge.key}'."
+            )
 
-            self.outgoing_edges[edge.start]._store.remove(edge)
-            self.incoming_edges[edge.end]._store.remove(edge)
-            self.outgoing_nodes[edge.start]._store.remove(edge.end)
-            self.incoming_nodes[edge.end]._store.remove(edge.start)
+        self.outgoing_edges[edge.start]._store.remove(edge)
+        self.incoming_edges[edge.end]._store.remove(edge)
+        self.outgoing_nodes[edge.start]._store.remove(edge.end)
+        self.incoming_nodes[edge.end]._store.remove(edge.start)
 
     @staticmethod
     def from_ova(
@@ -179,12 +312,7 @@ class Graph:
             g.add_node(node)
 
         for edge in obj.get("edges"):
-            edge_key = g.keygen()
-
-            while edge_key in node_dict.keys():
-                edge_key = g.keygen()
-
-            g.add_edge(Edge.from_ova(edge, edge_key, node_dict, nlp))
+            g.add_edge(Edge.from_ova(edge, g.keygen(), node_dict, nlp))
 
         if analysis and analysis.get("txt"):
             txt = analysis["txt"]
@@ -215,8 +343,8 @@ class Graph:
 
             for node in self.nodes:
                 highlighted_text = highlighted_text.replace(
-                    node.original_text,
-                    f'<span class="highlighted" id="node{node.key}">{node.original_text}</span>',
+                    node.raw_text,
+                    f'<span class="highlighted" id="node{node.key}">{node.raw_text}</span>',
                 )
 
             highlighted_text = highlighted_text.replace("\n", "<br>")

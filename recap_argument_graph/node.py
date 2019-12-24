@@ -9,7 +9,8 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 
-from . import utils, dt
+from . import dt
+from .utils import MISSING, xstr, parse
 
 
 class NodeCategory(Enum):
@@ -182,43 +183,120 @@ def _int2list(value: Optional[int]) -> List[int]:
 # TODO: Automatically calculate values for width, height, x and y
 
 
-@dataclass(eq=False)
 class Node:
     """Node in the AIF format."""
 
-    key: int
-    text: Union[str, Any] = ""
-    raw_text: Optional[str] = None
-    category: NodeCategory = NodeCategory.I
-    x: Optional[int] = None
-    y: Optional[int] = None
-    text_begin: Optional[int] = None
-    text_end: Optional[int] = None
-    comment: Optional[str] = None
-    descriptors: Optional[Dict[str, int]] = None
-    cqdesc: Optional[Dict[str, Any]] = None
-    visible: Optional[bool] = None
-    imgurl: Optional[str] = None
-    annotator: Optional[str] = None
-    date: pendulum.DateTime = field(default_factory=pendulum.now)
-    participant_id: Optional[int] = None
-    w: Optional[int] = None
-    h: Optional[int] = None
-    major_claim: Optional[bool] = None
-    is_check_worthy: Optional[str] = None
-    source: Optional[str] = None
+    __slots__ = (
+        "_key",
+        "text",
+        "_raw_text",
+        "category",
+        "x",
+        "y",
+        "text_begin",
+        "text_end",
+        "comment",
+        "descriptors",
+        "cqdesc",
+        "visible",
+        "imgurl",
+        "annotator",
+        "date",
+        "participant_id",
+        "w",
+        "h",
+        "major_claim",
+        "is_check_worthy",
+        "source",
+    )
+
+    _key: int
+    text: Union[str, Any]
+    _raw_text: Optional[str]
+    category: NodeCategory
+    x: Optional[int]
+    y: Optional[int]
+    text_begin: Optional[int]
+    text_end: Optional[int]
+    comment: Optional[str]
+    descriptors: Optional[Dict[str, int]]
+    cqdesc: Optional[Dict[str, Any]]
+    visible: Optional[bool]
+    imgurl: Optional[str]
+    annotator: Optional[str]
+    date: pendulum.DateTime
+    participant_id: Optional[int]
+    w: Optional[int]
+    h: Optional[int]
+    major_claim: Optional[bool]
+    is_check_worthy: Optional[str]
+    source: Optional[str]
+
+    def __init__(
+        self,
+        key: int,
+        text: Union[str, Any],
+        category: NodeCategory,
+        raw_text: Optional[str] = None,
+        x: Optional[int] = None,
+        y: Optional[int] = None,
+        text_begin: Optional[int] = None,
+        text_end: Optional[int] = None,
+        comment: Optional[str] = None,
+        descriptors: Optional[Dict[str, int]] = None,
+        cqdesc: Optional[Dict[str, Any]] = None,
+        visible: Optional[bool] = None,
+        imgurl: Optional[str] = None,
+        annotator: Optional[str] = None,
+        date: Union[MISSING, None, pendulum.DateTime] = MISSING,
+        participant_id: Optional[int] = None,
+        w: Optional[int] = None,
+        h: Optional[int] = None,
+        major_claim: Optional[bool] = None,
+        is_check_worthy: Optional[str] = None,
+        source: Optional[str] = None,
+    ):
+        self._key = key
+        self.text = text
+        self._raw_text = raw_text
+        self.category = category
+        self.x = x
+        self.y = y
+        self.text_begin = text_begin
+        self.text_end = text_end
+        self.comment = comment
+        self.descriptors = descriptors
+        self.cqdesc = cqdesc
+        self.visible = visible
+        self.imgurl = imgurl
+        self.annotator = annotator
+        self.date = pendulum.now() if date is MISSING else date
+        self.participant_id = participant_id
+        self.w = w
+        self.h = h
+        self.major_claim = major_claim
+        self.is_check_worthy = is_check_worthy
+        self.source = source
 
     @property
-    def original_text(self) -> str:
+    def key(self):
+        return self._key
+
+    @property
+    def raw_text(self) -> str:
         """Get `raw_text` if available or the standard `text` as string."""
 
-        return self.raw_text or self.plain_text
+        return self._raw_text or self.plain_text
+
+    @raw_text.setter
+    def raw_text(self, value: str):
+        self._raw_text = value
 
     @property
     def plain_text(self) -> str:
         """Get the standard `text` as string."""
 
-        return utils.xstr(self.text)
+        return xstr(self.text)
 
     @property
     def scheme(self) -> int:
@@ -276,7 +354,7 @@ class Node:
     ) -> Node:
         return Node(
             key=obj["id"],
-            text=utils.parse(obj["text"], nlp),
+            text=parse(obj["text"], nlp),
             category=NodeCategory(obj["type"]),
             x=obj.get("x"),
             y=obj.get("y"),
@@ -329,7 +407,7 @@ class Node:
     def from_aif(obj: Any, nlp: Optional[Callable[[str], Any]] = None) -> Node:
         return Node(
             key=int(obj["nodeID"]),
-            text=utils.parse(obj["text"], nlp),
+            text=parse(obj["text"], nlp),
             category=NodeCategory(obj["type"]),
             date=dt.from_aif(obj.get("timestamp")),
         )

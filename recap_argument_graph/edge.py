@@ -1,7 +1,7 @@
 from __future__ import absolute_import, annotations
 
 from dataclasses import dataclass, field, InitVar
-from typing import Any, Optional, Dict, Callable
+from typing import Any, Optional, Dict, Callable, Union
 
 import graphviz as gv
 import networkx as nx
@@ -9,24 +9,47 @@ import pendulum
 
 from . import dt
 from .node import Node
+from .utils import MISSING
 
 
-@dataclass(eq=False)
 class Edge:
     """Edge in AIF format."""
 
-    key: int
-    start: InitVar[Node]
-    _start: Node = field(init=False)
-    end: InitVar[Node]
-    _end: Node = field(init=False)
-    visible: bool = None
-    annotator: str = None
-    date: pendulum.DateTime = field(default_factory=pendulum.now)
+    __slots__ = (
+        "_key",
+        "_start",
+        "_end",
+        "visible",
+        "annotator",
+        "date",
+    )
 
-    def __post_init__(self, start: Node, end: Node):
+    _key: int
+    _start: Node
+    _end: Node
+    visible: bool
+    annotator: str
+    date: pendulum.DateTime
+
+    def __init__(
+        self,
+        key: int,
+        start: Node,
+        end: Node,
+        visible: Optional[bool] = None,
+        annotator: Optional[str] = None,
+        date: Union[MISSING, None, pendulum.DateTime] = MISSING,
+    ):
+        self._key = key
         self._start = start
         self._end = end
+        self.visible = visible
+        self.annotator = annotator
+        self.date = pendulum.now() if date is MISSING else date
+
+    @property
+    def key(self):
+        return self._key
 
     @property
     def start(self):

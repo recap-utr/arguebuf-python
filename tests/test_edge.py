@@ -99,7 +99,13 @@ ova_data = [
 @pytest.mark.parametrize("data,key,start,end", aif_data)
 def test_aif_edge(data, key, start, end):
     data_json = json.loads(data)
-    edge = ag.Edge.from_aif(data_json, {start: ag.Node(start), end: ag.Node(end)})
+    edge = ag.Edge.from_aif(
+        data_json,
+        {
+            start: ag.Node(start, "", ag.NodeCategory.I),
+            end: ag.Node(end, "", ag.NodeCategory.I),
+        },
+    )
 
     assert edge.key == key
     assert edge.start.key == start
