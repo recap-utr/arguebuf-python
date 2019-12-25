@@ -1,9 +1,9 @@
 from __future__ import absolute_import, annotations
 
 import textwrap
-from dataclasses import dataclass, field
+import typing as t
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional, List, Dict, Union, Tuple, Callable
 
 import graphviz as gv
 import networkx as nx
@@ -176,7 +176,7 @@ color_mappings = {
 }
 
 
-def _int2list(value: Optional[int]) -> List[int]:
+def _int2list(value: t.Optional[int]) -> t.List[int]:
     return [value] if value != None else []
 
 
@@ -211,50 +211,50 @@ class Node:
     )
 
     _key: int
-    text: Union[str, Any]
-    _raw_text: Optional[str]
+    text: t.Union[str, t.Any]
+    _raw_text: t.Optional[str]
     category: NodeCategory
-    x: Optional[int]
-    y: Optional[int]
-    text_begin: Optional[int]
-    text_end: Optional[int]
-    comment: Optional[str]
-    descriptors: Optional[Dict[str, int]]
-    cqdesc: Optional[Dict[str, Any]]
-    visible: Optional[bool]
-    imgurl: Optional[str]
-    annotator: Optional[str]
+    x: t.Optional[int]
+    y: t.Optional[int]
+    text_begin: t.Optional[int]
+    text_end: t.Optional[int]
+    comment: t.Optional[str]
+    descriptors: t.Optional[t.Dict[str, int]]
+    cqdesc: t.Optional[t.Dict[str, t.Any]]
+    visible: t.Optional[bool]
+    imgurl: t.Optional[str]
+    annotator: t.Optional[str]
     date: pendulum.DateTime
-    participant_id: Optional[int]
-    w: Optional[int]
-    h: Optional[int]
-    major_claim: Optional[bool]
-    is_check_worthy: Optional[str]
-    source: Optional[str]
+    participant_id: t.Optional[int]
+    w: t.Optional[int]
+    h: t.Optional[int]
+    major_claim: t.Optional[bool]
+    is_check_worthy: t.Optional[str]
+    source: t.Optional[str]
 
     def __init__(
         self,
         key: int,
-        text: Union[str, Any],
+        text: t.Union[str, t.Any],
         category: NodeCategory,
-        raw_text: Optional[str] = None,
-        x: Optional[int] = None,
-        y: Optional[int] = None,
-        text_begin: Optional[int] = None,
-        text_end: Optional[int] = None,
-        comment: Optional[str] = None,
-        descriptors: Optional[Dict[str, int]] = None,
-        cqdesc: Optional[Dict[str, Any]] = None,
-        visible: Optional[bool] = None,
-        imgurl: Optional[str] = None,
-        annotator: Optional[str] = None,
-        date: Union[MISSING, None, pendulum.DateTime] = MISSING,
-        participant_id: Optional[int] = None,
-        w: Optional[int] = None,
-        h: Optional[int] = None,
-        major_claim: Optional[bool] = None,
-        is_check_worthy: Optional[str] = None,
-        source: Optional[str] = None,
+        raw_text: t.Optional[str] = None,
+        x: t.Optional[int] = None,
+        y: t.Optional[int] = None,
+        text_begin: t.Optional[int] = None,
+        text_end: t.Optional[int] = None,
+        comment: t.Optional[str] = None,
+        descriptors: t.Optional[t.Dict[str, int]] = None,
+        cqdesc: t.Optional[t.Dict[str, t.Any]] = None,
+        visible: t.Optional[bool] = None,
+        imgurl: t.Optional[str] = None,
+        annotator: t.Optional[str] = None,
+        date: t.Union[MISSING, None, pendulum.DateTime] = MISSING,
+        participant_id: t.Optional[int] = None,
+        w: t.Optional[int] = None,
+        h: t.Optional[int] = None,
+        major_claim: t.Optional[bool] = None,
+        is_check_worthy: t.Optional[str] = None,
+        source: t.Optional[str] = None,
     ):
         self._key = key
         self.text = text
@@ -305,7 +305,7 @@ class Node:
         return schemes.get(self.plain_text.lower(), 0)
 
     @property
-    def text_length(self) -> Optional[int]:
+    def text_length(self) -> t.Optional[int]:
         """Get text length for I-nodes."""
 
         if self.category == NodeCategory.I:
@@ -350,7 +350,7 @@ class Node:
 
     @staticmethod
     def from_ova(
-        obj: Dict[str, Any], nlp: Optional[Callable[[str], Any]] = None
+        obj: t.Dict[str, t.Any], nlp: t.Optional[t.Callable[[str], t.Any]] = None
     ) -> Node:
         return Node(
             key=obj["id"],
@@ -404,7 +404,7 @@ class Node:
         }
 
     @staticmethod
-    def from_aif(obj: Any, nlp: Optional[Callable[[str], Any]] = None) -> Node:
+    def from_aif(obj: t.Any, nlp: t.Optional[t.Callable[[str], t.Any]] = None) -> Node:
         return Node(
             key=int(obj["nodeID"]),
             text=parse(obj["text"], nlp),
@@ -432,13 +432,13 @@ class Node:
     def to_gv(
         self,
         g: gv.Digraph,
-        color: Optional[ColorMapping] = None,
+        color: t.Optional[ColorMapping] = None,
         label_prefix: str = "",
         label_suffix: str = "",
         key_prefix: str = "",
         key_suffix: str = "",
         wrap_col: int = 36,
-        margin: Tuple[float] = (0.15, 0.1),
+        margin: t.Tuple[float] = (0.15, 0.1),
     ) -> None:
         if not color:
             color = self.gv_color

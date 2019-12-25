@@ -2,30 +2,27 @@ from __future__ import absolute_import, annotations
 
 import itertools
 import json
-from dataclasses import dataclass, field, InitVar
+import logging
+import typing as t
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, List, Dict, Callable, Union, Generator, Iterator, Set
 
 import graphviz as gv
 import networkx as nx
 import pendulum
 from lxml import html
-import logging
 
 from . import utils, dt
 from .edge import Edge
 from .node import Node, NodeCategory
-from .utils import ImmutableList, ImmutableDict, ImmutableSet, MISSING
+from .utils import ImmutableDict, ImmutableSet, MISSING
 
 
 class GraphCategory(Enum):
     AIF = "aif"
     OVA = "ova"
     OTHER = "other"
-
-
-# TODO: Add __slots__
 
 
 @dataclass(eq=False)
@@ -55,6 +52,7 @@ class Graph:
         "document_source",
         "document_title",
         "document_date",
+        "_keys",
         "_key_iterator",
     )
 
@@ -67,97 +65,98 @@ class Graph:
     _incoming_edges: ImmutableDict[Node, ImmutableSet[Edge]]
     _outgoing_nodes: ImmutableDict[Node, ImmutableSet[Node]]
     _outgoing_edges: ImmutableDict[Node, ImmutableSet[Edge]]
-    participants: Optional[List[Any]]
+    participants: t.Optional[t.List[t.Any]]
     category: GraphCategory
     ova_version: str
-    text: Union[None, str, Any]
-    highlighted_text: Optional[str]
-    annotator_name: Optional[str]
-    document_source: Optional[str]
-    document_title: Optional[str]
-    document_date: Optional[pendulum.DateTime]
-    _key_iterator: Iterator[int]
+    text: t.Union[None, str, t.Any]
+    highlighted_text: t.Optional[str]
+    annotator_name: t.Optional[str]
+    document_source: t.Optional[str]
+    document_title: t.Optional[str]
+    document_date: t.Optional[pendulum.DateTime]
+    _keys: ImmutableSet[int]
+    _key_iterator: t.Iterator[int]
 
     @property
-    def nodes(self):
-        return self._node_mappings.values()
+    def nodes(self) -> t.Collection[Node]:
+        return t.cast(t.Collection[Node], self._node_mappings.values())
 
     @property
-    def inodes(self):
-        return self._inode_mappings.values()
+    def inodes(self) -> t.Collection[Node]:
+        return t.cast(t.Collection[Node], self._inode_mappings.values())
 
     @property
-    def snodes(self):
-        return self._snode_mappings.values()
+    def snodes(self) -> t.Collection[Node]:
+        return t.cast(t.Collection[Node], self._snode_mappings.values())
 
     @property
-    def edges(self):
-        return self._edge_mappings.values()
+    def edges(self) -> t.Collection[Edge]:
+        return t.cast(t.Collection[Edge], self._edge_mappings.values())
 
     @property
-    def node_keys(self):
-        return self._node_mappings.keys()
+    def node_keys(self) -> t.Collection[int]:
+        return t.cast(t.Collection[int], self._node_mappings.keys())
 
     @property
-    def inode_keys(self):
-        return self._inode_mappings.keys()
+    def inode_keys(self) -> t.Collection[int]:
+        return t.cast(t.Collection[int], self._inode_mappings.keys())
 
     @property
-    def snode_keys(self):
-        return self._snode_mappings.keys()
+    def snode_keys(self) -> t.Collection[int]:
+        return t.cast(t.Collection[int], self._snode_mappings.keys())
 
     @property
-    def edge_keys(self):
-        return self._edge_mappings.keys()
+    def edge_keys(self) -> t.Collection[int]:
+        return t.cast(t.Collection[int], self._edge_mappings.keys())
 
     @property
-    def node_mappings(self):
+    def node_mappings(self) -> t.Mapping[int, Node]:
         return self._node_mappings
 
     @property
-    def inode_mappings(self):
+    def inode_mappings(self) -> t.Mapping[int, Node]:
         return self._inode_mappings
 
     @property
-    def snode_mappings(self):
+    def snode_mappings(self) -> t.Mapping[int, Node]:
         return self._snode_mappings
 
     @property
-    def edge_mappings(self):
+    def edge_mappings(self) -> t.Mapping[int, Edge]:
         return self._edge_mappings
 
     @property
-    def incoming_nodes(self):
+    def incoming_nodes(self) -> t.Mapping[Node, t.AbstractSet[Node]]:
         return self._incoming_nodes
 
     @property
-    def incoming_edges(self):
+    def incoming_edges(self) -> t.Mapping[Node, t.AbstractSet[Edge]]:
         return self._incoming_edges
 
     @property
-    def outgoing_nodes(self):
+    def outgoing_nodes(self) -> t.Mapping[Node, t.AbstractSet[Node]]:
         return self._outgoing_nodes
 
     @property
-    def outgoing_edges(self):
+    def outgoing_edges(self) -> t.Mapping[Node, t.AbstractSet[Edge]]:
         return self._outgoing_edges
 
     @property
-    def keys(self) -> Set[int]:
-        return set().union(self.node_keys, self.edge_keys)
+    def keys(self) -> t.AbstractSet[int]:
+        return self._keys
 
     def __init__(
         self,
         name: str,
         category: GraphCategory = GraphCategory.OTHER,
         ova_version: str = None,
-        text: Union[None, str, Any] = None,
-        highlighted_text: Optional[str] = None,
-        annotator_name: Optional[str] = None,
-        document_source: Optional[str] = None,
-        document_title: Optional[str] = None,
-        document_date: Union[MISSING, None, pendulum.DateTime] = MISSING,
-        participants: Optional[List[Any]] = None,
+        text: t.Union[None, str, t.Any] = None,
+        highlighted_text: t.Optional[str] = None,
+        annotator_name: t.Optional[str] = None,
+        document_source: t.Optional[str] = None,
+        document_title: t.Optional[str] = None,
+        document_date: t.Union[MISSING, None, pendulum.DateTime] = MISSING,
+        participants: t.Optional[t.List[t.Any]] = None,
     ):
         self.name = name
         self.category = category
@@ -172,6 +171,7 @@ class Graph:
         )
         self.participants = participants
 
+        self._keys = ImmutableSet()
         self._key_iterator = itertools.count(start=1)
 
         self._node_mappings = ImmutableDict()
@@ -186,9 +186,8 @@ class Graph:
 
     def keygen(self):
         key = next(self._key_iterator)
-        keys = self.keys
 
-        while key in keys:
+        while key in self.keys:
             key = next(self._key_iterator)
 
         return key
@@ -197,64 +196,61 @@ class Graph:
         """Add a node."""
 
         if not isinstance(node, Node):
-            raise ValueError(f"Expected 'Node', but got '{type(node)}'")
+            raise ValueError(utils.type_error(type(node), Node))
 
-        if node.key in self.node_keys:
-            raise ValueError(
-                f"Graph '{self.name}' already contains an element with key '{node.key}'."
-            )
+        if node.key in self.keys:
+            raise ValueError(utils.duplicate_key_error(self.name, node.key))
 
         self._node_mappings._store[node.key] = node
+        self._keys._store.add(node.key)
 
         if node.category == NodeCategory.I:
             self._inode_mappings._store[node.key] = node
         else:
             self._snode_mappings._store[node.key] = node
 
-        self.incoming_nodes._store[node] = ImmutableSet()
-        self.incoming_edges._store[node] = ImmutableSet()
-        self.outgoing_nodes._store[node] = ImmutableSet()
-        self.outgoing_edges._store[node] = ImmutableSet()
+        self._incoming_nodes._store[node] = ImmutableSet()
+        self._incoming_edges._store[node] = ImmutableSet()
+        self._outgoing_nodes._store[node] = ImmutableSet()
+        self._outgoing_edges._store[node] = ImmutableSet()
 
     def remove_node(self, node: Node) -> None:
         """Remove a node and its corresponding edges."""
 
         if not isinstance(node, Node):
-            raise ValueError(f"Expected 'Node', but got '{type(node)}'")
+            raise ValueError(utils.type_error(type(node), Node))
 
-        if node.key not in self.node_keys:
-            raise ValueError(
-                f"Graph '{self.name}' does not contain an element with key '{node.key}'."
-            )
+        if node.key not in self.keys:
+            raise ValueError(utils.missing_key_error(self.name, node.key))
 
-        del self._node_mappings._store[node]
+        del self._node_mappings._store[node.key]
+        self._keys._store.remove(node.key)
 
         if node.category == NodeCategory.I:
-            del self._inode_mappings._store[node]
+            del self._inode_mappings._store[node.key]
         else:
-            del self._snode_mappings._store[node]
+            del self._snode_mappings._store[node.key]
 
         for edge in self.edges:
             if node == edge.start or node == edge.end:
                 self.remove_edge(edge)
 
-        del self.incoming_nodes._store[node]
-        del self.incoming_edges._store[node]
-        del self.outgoing_nodes._store[node]
-        del self.outgoing_edges._store[node]
+        del self._incoming_nodes._store[node]
+        del self._incoming_edges._store[node]
+        del self._outgoing_nodes._store[node]
+        del self._outgoing_edges._store[node]
 
     def add_edge(self, edge: Edge) -> None:
         """Add an edge and its nodes (if not already added)."""
 
         if not isinstance(edge, Edge):
-            raise ValueError(f"Expected 'Edge', but got '{type(edge)}'")
+            raise ValueError(utils.type_error(type(edge), Edge))
 
-        if edge.key in self.edge_keys:
-            raise ValueError(
-                f"Graph '{self.name}' already contains an element with key '{edge.key}'."
-            )
+        if edge.key in self.keys:
+            raise ValueError(utils.duplicate_key_error(self.name, edge.key))
 
         self._edge_mappings._store[edge.key] = edge
+        self._keys._store.add(edge.key)
 
         if edge.start.key not in self.node_keys:
             self.add_node(edge.start)
@@ -262,32 +258,33 @@ class Graph:
         if edge.end.key not in self.node_keys:
             self.add_node(edge.end)
 
-        self.outgoing_edges[edge.start]._store.add(edge)
-        self.incoming_edges[edge.end]._store.add(edge)
-        self.outgoing_nodes[edge.start]._store.add(edge.end)
-        self.incoming_nodes[edge.end]._store.add(edge.start)
+        self._outgoing_edges[edge.start]._store.add(edge)
+        self._incoming_edges[edge.end]._store.add(edge)
+        self._outgoing_nodes[edge.start]._store.add(edge.end)
+        self._incoming_nodes[edge.end]._store.add(edge.start)
 
     def remove_edge(self, edge: Edge) -> None:
         """Remove an edge."""
 
         if not isinstance(edge, Edge):
-            raise ValueError(f"Expected 'Edge', but got '{type(edge)}'")
+            raise ValueError(utils.type_error(type(edge), Edge))
 
-        if edge.key not in self.edge_keys:
-            raise ValueError(
-                f"Graph '{self.name}' does not contain an element with key '{edge.key}'."
-            )
+        if edge.key not in self.keys:
+            raise ValueError(utils.missing_key_error(self.name, edge.key))
 
-        self.outgoing_edges[edge.start]._store.remove(edge)
-        self.incoming_edges[edge.end]._store.remove(edge)
-        self.outgoing_nodes[edge.start]._store.remove(edge.end)
-        self.incoming_nodes[edge.end]._store.remove(edge.start)
+        del self._edge_mappings._store[edge.key]
+        self._keys._store.remove(edge.key)
+
+        self._outgoing_edges[edge.start]._store.remove(edge)
+        self._incoming_edges[edge.end]._store.remove(edge)
+        self._outgoing_nodes[edge.start]._store.remove(edge.end)
+        self._incoming_nodes[edge.end]._store.remove(edge.start)
 
     @staticmethod
     def from_ova(
-        obj: Dict[str, Any],
-        name: Optional[str] = None,
-        nlp: Optional[Callable[[str], Any]] = None,
+        obj: t.Dict[str, t.Any],
+        name: t.Optional[str] = None,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         analysis = obj.get("analysis")
 
@@ -366,9 +363,9 @@ class Graph:
 
     @staticmethod
     def from_aif(
-        obj: Dict[str, Any],
-        name: Optional[str] = None,
-        nlp: Optional[Callable[[str], Any]] = None,
+        obj: t.Dict[str, t.Any],
+        name: t.Optional[str] = None,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
 
         g = Graph(
@@ -398,9 +395,9 @@ class Graph:
 
     @staticmethod
     def from_dict(
-        obj: Dict[str, Any],
-        name: Optional[str] = None,
-        nlp: Optional[Callable[[str], Any]] = None,
+        obj: t.Dict[str, t.Any],
+        name: t.Optional[str] = None,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         if "analysis" in obj:
             return Graph.from_ova(obj, name, nlp)
@@ -436,7 +433,9 @@ class Graph:
         return g
 
     @staticmethod
-    def from_file(path: Path, nlp: Optional[Callable[[str], Any]] = None) -> Graph:
+    def from_file(
+        path: Path, nlp: t.Optional[t.Callable[[str], t.Any]] = None
+    ) -> Graph:
         with path.open("r") as file:
             return Graph.from_dict(json.load(file), path.stem, nlp)
 
@@ -449,8 +448,10 @@ class Graph:
 
     @staticmethod
     def from_folder(
-        path: Path, nlp: Optional[Callable[[str], Any]] = None, suffix: str = ".json"
-    ) -> List[Graph]:
+        path: Path,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        suffix: str = ".json",
+    ) -> t.List[Graph]:
         files = path.rglob(f"*{suffix}")
         return [Graph.from_file(file, nlp) for file in sorted(files)]
 

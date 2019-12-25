@@ -1,7 +1,6 @@
 from __future__ import absolute_import, annotations
 
-from dataclasses import dataclass, field, InitVar
-from typing import Any, Optional, Dict, Callable, Union
+import typing as t
 
 import graphviz as gv
 import networkx as nx
@@ -36,9 +35,9 @@ class Edge:
         key: int,
         start: Node,
         end: Node,
-        visible: Optional[bool] = None,
-        annotator: Optional[str] = None,
-        date: Union[MISSING, None, pendulum.DateTime] = MISSING,
+        visible: t.Optional[bool] = None,
+        annotator: t.Optional[str] = None,
+        date: t.Union[MISSING, None, pendulum.DateTime] = MISSING,
     ):
         self._key = key
         self._start = start
@@ -61,10 +60,10 @@ class Edge:
 
     @staticmethod
     def from_ova(
-        obj: Any,
+        obj: t.Any,
         key: int,
-        nodes: Dict[int, Node] = None,
-        nlp: Optional[Callable[[str], Any]] = None,
+        nodes: t.Dict[int, Node] = None,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Edge:
         if not nodes:
             nodes = {}
@@ -92,7 +91,9 @@ class Edge:
 
     @staticmethod
     def from_aif(
-        obj: Any, nodes: Dict[int, Node], nlp: Optional[Callable[[str], Any]] = None
+        obj: t.Any,
+        nodes: t.Dict[int, Node],
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Edge:
         start_key = int(obj.get("fromID"))
         end_key = int(obj.get("toID"))

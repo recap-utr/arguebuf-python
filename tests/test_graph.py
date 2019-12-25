@@ -38,6 +38,11 @@ def test_create_graph(shared_datadir):
     assert len(g.outgoing_nodes[n2]) == 0
     assert len(g.outgoing_edges[n2]) == 0
 
+    g.remove_node(n1)
+
+    assert len(g.nodes) == 1
+    assert len(g.edges) == 0
+
 
 def test_import_graph(shared_datadir):
     folder = shared_datadir / "in" / "graph"
