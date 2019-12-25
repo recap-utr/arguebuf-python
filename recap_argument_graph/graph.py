@@ -4,7 +4,6 @@ import itertools
 import json
 import logging
 import typing as t
-from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
@@ -25,7 +24,6 @@ class GraphCategory(Enum):
     OTHER = "other"
 
 
-@dataclass(eq=False)
 class Graph:
     """Graph in AIF format.
 
@@ -184,7 +182,7 @@ class Graph:
         self._outgoing_nodes = ImmutableDict()
         self._outgoing_edges = ImmutableDict()
 
-    def keygen(self):
+    def keygen(self) -> int:
         key = next(self._key_iterator)
 
         while key in self.keys:
@@ -282,7 +280,7 @@ class Graph:
 
     @staticmethod
     def from_ova(
-        obj: t.Dict[str, t.Any],
+        obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
@@ -301,15 +299,11 @@ class Graph:
             document_date=dt.from_analysis(analysis.get("documentDate")),
         )
 
-        node_dict = {}
-
-        for node_obj in obj.get("nodes"):
-            node = Node.from_ova(node_obj, nlp)
-            node_dict[node.key] = node
-            g.add_node(node)
+        for node in obj.get("nodes"):
+            g.add_node(Node.from_ova(node, nlp))
 
         for edge in obj.get("edges"):
-            g.add_edge(Edge.from_ova(edge, g.keygen(), node_dict, nlp))
+            g.add_edge(Edge.from_ova(edge, g.keygen(), g.node_mappings, nlp))
 
         if analysis and analysis.get("txt"):
             txt = analysis["txt"]
@@ -325,14 +319,14 @@ class Graph:
             for span in spans:
                 # The id is prefixed with 'node', e.g. 'node5'.
                 node_key = int(span.attrib["id"].replace("node", ""))
-                node = node_dict.get(node_key)
+                node = g.node_mappings.get(node_key)
 
                 if node:
                     node.raw_text = span.text_content()
 
         return g
 
-    def to_ova(self) -> dict:
+    def to_ova(self) -> t.Dict[str, t.Any]:
         highlighted_text = self.highlighted_text
 
         if not highlighted_text:
@@ -363,7 +357,7 @@ class Graph:
 
     @staticmethod
     def from_aif(
-        obj: t.Dict[str, t.Any],
+        obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
@@ -374,19 +368,15 @@ class Graph:
             document_date=None,
         )
 
-        node_dict = {}
-
-        for node_obj in obj.get("nodes"):
-            node = Node.from_aif(node_obj, nlp)
-            node_dict[node.key] = node
-            g.add_node(node)
+        for node in obj.get("nodes"):
+            g.add_node(Node.from_aif(node, nlp))
 
         for edge in obj.get("edges"):
-            g.add_edge(Edge.from_aif(edge, node_dict, nlp))
+            g.add_edge(Edge.from_aif(edge, g.node_mappings, nlp))
 
         return g
 
-    def to_aif(self) -> dict:
+    def to_aif(self) -> t.Dict[str, t.Any]:
         return {
             "nodes": [node.to_aif() for node in self.nodes],
             "edges": [edge.to_aif() for edge in self.edges],
@@ -395,7 +385,7 @@ class Graph:
 
     @staticmethod
     def from_dict(
-        obj: t.Dict[str, t.Any],
+        obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
@@ -404,11 +394,13 @@ class Graph:
         else:
             return Graph.from_aif(obj, name, nlp)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> t.Dict[str, t.Any]:
         if self.category == GraphCategory.OVA:
             return self.to_ova()
+
         elif self.category == GraphCategory.AIF:
             return self.to_aif()
+
         else:
             return self.to_ova()
 

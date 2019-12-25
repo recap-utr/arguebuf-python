@@ -47,22 +47,22 @@ class Edge:
         self.date = pendulum.now() if date is MISSING else date
 
     @property
-    def key(self):
+    def key(self) -> int:
         return self._key
 
     @property
-    def start(self):
+    def start(self) -> Node:
         return self._start
 
     @property
-    def end(self):
+    def end(self) -> Node:
         return self._end
 
     @staticmethod
     def from_ova(
         obj: t.Any,
         key: int,
-        nodes: t.Dict[int, Node] = None,
+        nodes: t.Mapping[int, Node] = None,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Edge:
         if not nodes:
@@ -80,7 +80,7 @@ class Edge:
             date=dt.from_ova(obj.get("date")),
         )
 
-    def to_ova(self) -> dict:
+    def to_ova(self) -> t.Dict[str, t.Any]:
         return {
             "from": self.start.to_ova(),
             "to": self.end.to_ova(),
@@ -92,7 +92,7 @@ class Edge:
     @staticmethod
     def from_aif(
         obj: t.Any,
-        nodes: t.Dict[int, Node],
+        nodes: t.Mapping[int, Node],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Edge:
         start_key = int(obj.get("fromID"))
@@ -104,7 +104,7 @@ class Edge:
             end=nodes.get(end_key),
         )
 
-    def to_aif(self) -> dict:
+    def to_aif(self) -> t.Dict[str, t.Any]:
         return {
             "edgeID": str(self.key),
             "fromID": str(self.start.key),

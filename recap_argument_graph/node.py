@@ -243,8 +243,8 @@ class Node:
         text_begin: t.Optional[int] = None,
         text_end: t.Optional[int] = None,
         comment: t.Optional[str] = None,
-        descriptors: t.Optional[t.Dict[str, int]] = None,
-        cqdesc: t.Optional[t.Dict[str, t.Any]] = None,
+        descriptors: t.Optional[t.Mapping[str, int]] = None,
+        cqdesc: t.Optional[t.Mapping[str, t.Any]] = None,
         visible: t.Optional[bool] = None,
         imgurl: t.Optional[str] = None,
         annotator: t.Optional[str] = None,
@@ -279,7 +279,7 @@ class Node:
         self.source = source
 
     @property
-    def key(self):
+    def key(self) -> int:
         return self._key
 
     @property
@@ -289,7 +289,7 @@ class Node:
         return self._raw_text or self.plain_text
 
     @raw_text.setter
-    def raw_text(self, value: str):
+    def raw_text(self, value: str) -> None:
         self._raw_text = value
 
     @property
@@ -350,7 +350,7 @@ class Node:
 
     @staticmethod
     def from_ova(
-        obj: t.Dict[str, t.Any], nlp: t.Optional[t.Callable[[str], t.Any]] = None
+        obj: t.Mapping[str, t.Any], nlp: t.Optional[t.Callable[[str], t.Any]] = None
     ) -> Node:
         return Node(
             key=obj["id"],
@@ -376,7 +376,7 @@ class Node:
         )
 
     # TODO: Check fallback value for date.
-    def to_ova(self) -> dict:
+    def to_ova(self) -> t.Dict[str, t.Any]:
         return {
             "id": self.key,
             "text": self.plain_text,
@@ -404,7 +404,9 @@ class Node:
         }
 
     @staticmethod
-    def from_aif(obj: t.Any, nlp: t.Optional[t.Callable[[str], t.Any]] = None) -> Node:
+    def from_aif(
+        obj: t.Mapping[str, t.Any], nlp: t.Optional[t.Callable[[str], t.Any]] = None
+    ) -> Node:
         return Node(
             key=int(obj["nodeID"]),
             text=parse(obj["text"], nlp),
@@ -412,7 +414,7 @@ class Node:
             date=dt.from_aif(obj.get("timestamp")),
         )
 
-    def to_aif(self) -> dict:
+    def to_aif(self) -> t.Dict[str, t.Any]:
         return {
             "nodeID": str(self.key),
             "text": self.plain_text,

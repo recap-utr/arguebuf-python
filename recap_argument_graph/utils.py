@@ -74,9 +74,9 @@ class ImmutableList(t.Sequence[T]):
 class ImmutableSet(t.AbstractSet[T]):
     """Read-only view."""
 
-    _store: t.AbstractSet[T]
+    _store: t.Set[T]
 
-    def __init__(self, items: t.Optional[t.AbstractSet[T]] = None):
+    def __init__(self, items: t.Optional[t.Set[T]] = None):
         self._store = items or set()
 
     def __len__(self) -> int:
