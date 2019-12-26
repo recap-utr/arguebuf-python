@@ -1,6 +1,7 @@
 from __future__ import absolute_import, annotations
 
 import typing as t
+from copy import deepcopy
 
 import graphviz as gv
 import networkx as nx
@@ -8,7 +9,7 @@ import pendulum
 
 from . import dt
 from .node import Node
-from .utils import MISSING
+from .utils import MISSING, MISSING_TYPE
 
 
 class Edge:
@@ -26,9 +27,9 @@ class Edge:
     _key: int
     _start: Node
     _end: Node
-    visible: bool
-    annotator: str
-    date: pendulum.DateTime
+    visible: t.Optional[bool]
+    annotator: t.Optional[str]
+    date: t.Optional[pendulum.DateTime]
 
     def __init__(
         self,
@@ -37,7 +38,7 @@ class Edge:
         end: Node,
         visible: t.Optional[bool] = None,
         annotator: t.Optional[str] = None,
-        date: t.Union[MISSING, None, pendulum.DateTime] = MISSING,
+        date: t.Union[MISSING_TYPE, None, pendulum.DateTime] = MISSING,
     ):
         self._key = key
         self._start = start
@@ -73,8 +74,8 @@ class Edge:
 
         return Edge(
             key=key,
-            start=nodes.get(start_key) or Node.from_ova(obj.get("from"), nlp),
-            end=nodes.get(end_key) or Node.from_ova(obj.get("to"), nlp),
+            start=nodes.get(start_key) or Node.from_ova(obj["from"], nlp),
+            end=nodes.get(end_key) or Node.from_ova(obj["to"], nlp),
             visible=obj.get("visible"),
             annotator=obj.get("annotator"),
             date=dt.from_ova(obj.get("date")),
@@ -98,11 +99,7 @@ class Edge:
         start_key = int(obj.get("fromID"))
         end_key = int(obj.get("toID"))
 
-        return Edge(
-            key=int(obj.get("edgeID")),
-            start=nodes.get(start_key),
-            end=nodes.get(end_key),
-        )
+        return Edge(key=int(obj["edgeID"]), start=nodes[start_key], end=nodes[end_key],)
 
     def to_aif(self) -> t.Dict[str, t.Any]:
         return {
@@ -123,3 +120,17 @@ class Edge:
             f"{prefix}{self.end.key}{suffix}",
             color=color,
         )
+
+    def copy(
+        self, key: int, start: t.Optional[Node] = None, end: t.Optional[Node] = None
+    ) -> Edge:
+        obj = deepcopy(self)
+        obj._key = key
+
+        if start:
+            obj._start = start
+
+        if end:
+            obj._end = end
+
+        return obj

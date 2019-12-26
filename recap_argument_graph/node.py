@@ -4,13 +4,14 @@ import textwrap
 import typing as t
 from dataclasses import dataclass
 from enum import Enum
+from copy import deepcopy
 
 import graphviz as gv
 import networkx as nx
 import pendulum
 
 from . import dt
-from .utils import MISSING, xstr, parse
+from .utils import MISSING, xstr, parse, MISSING_TYPE
 
 
 class NodeCategory(Enum):
@@ -177,7 +178,7 @@ color_mappings = {
 
 
 def _int2list(value: t.Optional[int]) -> t.List[int]:
-    return [value] if value != None else []
+    return [value] if value is not None else []
 
 
 # TODO: Automatically calculate values for width, height, x and y
@@ -219,12 +220,12 @@ class Node:
     text_begin: t.Optional[int]
     text_end: t.Optional[int]
     comment: t.Optional[str]
-    descriptors: t.Optional[t.Dict[str, int]]
-    cqdesc: t.Optional[t.Dict[str, t.Any]]
+    descriptors: t.Optional[t.Mapping[str, int]]
+    cqdesc: t.Optional[t.Mapping[str, t.Any]]
     visible: t.Optional[bool]
     imgurl: t.Optional[str]
     annotator: t.Optional[str]
-    date: pendulum.DateTime
+    date: t.Optional[pendulum.DateTime]
     participant_id: t.Optional[int]
     w: t.Optional[int]
     h: t.Optional[int]
@@ -248,7 +249,7 @@ class Node:
         visible: t.Optional[bool] = None,
         imgurl: t.Optional[str] = None,
         annotator: t.Optional[str] = None,
-        date: t.Union[MISSING, None, pendulum.DateTime] = MISSING,
+        date: t.Union[MISSING_TYPE, None, pendulum.DateTime] = MISSING,
         participant_id: t.Optional[int] = None,
         w: t.Optional[int] = None,
         h: t.Optional[int] = None,
@@ -352,14 +353,18 @@ class Node:
     def from_ova(
         obj: t.Mapping[str, t.Any], nlp: t.Optional[t.Callable[[str], t.Any]] = None
     ) -> Node:
+        text_begin = obj.get("text_begin") or []
+        text_end = obj.get("text_end") or []
+        participant_id = int(obj["participantID"]) if obj.get("participantID") else None
+
         return Node(
             key=obj["id"],
             text=parse(obj["text"], nlp),
             category=NodeCategory(obj["type"]),
             x=obj.get("x"),
             y=obj.get("y"),
-            text_begin=next(iter(obj.get("text_begin")), None),
-            text_end=next(iter(obj.get("text_end")), None),
+            text_begin=next(iter(text_begin), None),
+            text_end=next(iter(text_end), None),
             comment=obj.get("comment"),
             descriptors=obj.get("descriptors"),
             cqdesc=obj.get("cqdesc"),
@@ -367,7 +372,7 @@ class Node:
             imgurl=obj.get("imgurl"),
             annotator=obj.get("annotator"),
             date=dt.from_ova(obj.get("date")),
-            participant_id=int(obj.get("participantID")),
+            participant_id=participant_id,
             w=obj.get("w"),
             h=obj.get("h"),
             major_claim=obj.get("majorClaim"),
@@ -440,7 +445,7 @@ class Node:
         key_prefix: str = "",
         key_suffix: str = "",
         wrap_col: int = 36,
-        margin: t.Tuple[float] = (0.15, 0.1),
+        margin: t.Tuple[float, float] = (0.15, 0.1),
     ) -> None:
         if not color:
             color = self.gv_color
@@ -462,3 +467,9 @@ class Node:
             height="0",
             margin=f"{margin[0]},{margin[1]}",
         )
+
+    def copy(self, key: int) -> Node:
+        obj = deepcopy(self)
+        obj._key = key
+
+        return obj

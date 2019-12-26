@@ -4,6 +4,7 @@ import itertools
 import json
 import logging
 import typing as t
+from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 
@@ -15,7 +16,9 @@ from lxml import html
 from . import utils, dt
 from .edge import Edge
 from .node import Node, NodeCategory
-from .utils import ImmutableDict, ImmutableSet, MISSING
+from .utils import ImmutableDict, ImmutableSet, MISSING, MISSING_TYPE
+
+log = logging.getLogger(__name__)
 
 
 class GraphCategory(Enum):
@@ -65,7 +68,7 @@ class Graph:
     _outgoing_edges: ImmutableDict[Node, ImmutableSet[Edge]]
     participants: t.Optional[t.List[t.Any]]
     category: GraphCategory
-    ova_version: str
+    ova_version: t.Optional[str]
     text: t.Union[None, str, t.Any]
     highlighted_text: t.Optional[str]
     annotator_name: t.Optional[str]
@@ -147,13 +150,13 @@ class Graph:
         self,
         name: str,
         category: GraphCategory = GraphCategory.OTHER,
-        ova_version: str = None,
+        ova_version: t.Optional[str] = None,
         text: t.Union[None, str, t.Any] = None,
         highlighted_text: t.Optional[str] = None,
         annotator_name: t.Optional[str] = None,
         document_source: t.Optional[str] = None,
         document_title: t.Optional[str] = None,
-        document_date: t.Union[MISSING, None, pendulum.DateTime] = MISSING,
+        document_date: t.Union[MISSING_TYPE, None, pendulum.DateTime] = MISSING,
         participants: t.Optional[t.List[t.Any]] = None,
     ):
         self.name = name
@@ -194,7 +197,7 @@ class Graph:
         """Add a node."""
 
         if not isinstance(node, Node):
-            raise ValueError(utils.type_error(type(node), Node))
+            raise TypeError(utils.type_error(type(node), Node))
 
         if node.key in self.keys:
             raise ValueError(utils.duplicate_key_error(self.name, node.key))
@@ -216,7 +219,7 @@ class Graph:
         """Remove a node and its corresponding edges."""
 
         if not isinstance(node, Node):
-            raise ValueError(utils.type_error(type(node), Node))
+            raise TypeError(utils.type_error(type(node), Node))
 
         if node.key not in self.keys:
             raise ValueError(utils.missing_key_error(self.name, node.key))
@@ -230,7 +233,7 @@ class Graph:
             del self._snode_mappings._store[node.key]
 
         for edge in self.edges:
-            if node == edge.start or node == edge.end:
+            if node in (edge.start, edge.end):
                 self.remove_edge(edge)
 
         del self._incoming_nodes._store[node]
@@ -241,7 +244,7 @@ class Graph:
     def add_edge(self, edge: Edge) -> None:
         """Add an edge and its nodes (if not already added)."""
 
-        if not isinstance(edge, Edge):
+        if not TypeError(edge, Edge):
             raise ValueError(utils.type_error(type(edge), Edge))
 
         if edge.key in self.keys:
@@ -264,7 +267,7 @@ class Graph:
     def remove_edge(self, edge: Edge) -> None:
         """Remove an edge."""
 
-        if not isinstance(edge, Edge):
+        if not TypeError(edge, Edge):
             raise ValueError(utils.type_error(type(edge), Edge))
 
         if edge.key not in self.keys:
@@ -284,10 +287,10 @@ class Graph:
         name: t.Optional[str] = None,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
-        analysis = obj.get("analysis")
+        analysis = obj["analysis"]
 
         g = Graph(
-            name=name or utils.unique_id(),
+            name=name or str(utils.unique_id()),
             category=GraphCategory.OVA,
             participants=obj.get("participants"),
             ova_version=analysis.get("ovaVersion"),
@@ -299,10 +302,10 @@ class Graph:
             document_date=dt.from_analysis(analysis.get("documentDate")),
         )
 
-        for node in obj.get("nodes"):
+        for node in obj["nodes"]:
             g.add_node(Node.from_ova(node, nlp))
 
-        for edge in obj.get("edges"):
+        for edge in obj["edges"]:
             g.add_edge(Edge.from_ova(edge, g.keygen(), g.node_mappings, nlp))
 
         if analysis and analysis.get("txt"):
@@ -363,15 +366,15 @@ class Graph:
     ) -> Graph:
 
         g = Graph(
-            name=name or utils.unique_id(),
+            name=name or str(utils.unique_id()),
             category=GraphCategory.AIF,
             document_date=None,
         )
 
-        for node in obj.get("nodes"):
+        for node in obj["nodes"]:
             g.add_node(Node.from_aif(node, nlp))
 
-        for edge in obj.get("edges"):
+        for edge in obj["edges"]:
             g.add_edge(Edge.from_aif(edge, g.node_mappings, nlp))
 
         return g
@@ -391,18 +394,17 @@ class Graph:
     ) -> Graph:
         if "analysis" in obj:
             return Graph.from_ova(obj, name, nlp)
-        else:
-            return Graph.from_aif(obj, name, nlp)
+
+        return Graph.from_aif(obj, name, nlp)
 
     def to_dict(self) -> t.Dict[str, t.Any]:
         if self.category == GraphCategory.OVA:
             return self.to_ova()
 
-        elif self.category == GraphCategory.AIF:
+        if self.category == GraphCategory.AIF:
             return self.to_aif()
 
-        else:
-            return self.to_ova()
+        return self.to_ova()
 
     def to_nx(self) -> nx.DiGraph:
         g = nx.DiGraph()
@@ -466,10 +468,15 @@ class Graph:
                 cleanup=True,
                 view=view,
             )
-        except Exception:
-            logging.error("Rendering not possible. GraphViz might not be installed.")
+        except gv.ExecutableNotFound:
+            log.error("Rendering not possible. GraphViz might not be installed.")
 
     open = from_file
     open_folder = from_folder
     to_folder = to_file
     save = to_file
+
+    def copy(self) -> Graph:
+        obj = deepcopy(self)
+
+        return obj
