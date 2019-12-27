@@ -1,9 +1,8 @@
 from __future__ import absolute_import, annotations
 
-import itertools
-import uuid
 import collections
 import typing as t
+import uuid
 
 
 # key_iterator = itertools.count(start=1)
@@ -53,6 +52,8 @@ U = t.TypeVar("U")
 class ImmutableList(t.Sequence[T]):
     """Read-only view."""
 
+    __slots__ = "_store"
+
     _store: t.Sequence[T]
 
     def __init__(self, items: t.Optional[t.Sequence[T]] = None):
@@ -82,6 +83,8 @@ class ImmutableList(t.Sequence[T]):
 class ImmutableSet(t.AbstractSet[T]):
     """Read-only view."""
 
+    __slots__ = "_store"
+
     _store: t.Set[T]
 
     def __init__(self, items: t.Optional[t.Set[T]] = None):
@@ -105,6 +108,8 @@ class ImmutableSet(t.AbstractSet[T]):
 
 class ImmutableDict(t.Mapping[T, U]):
     """Read-only view."""
+
+    __slots__ = "_store"
 
     _store: t.Dict[T, U]
 
