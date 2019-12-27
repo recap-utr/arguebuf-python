@@ -194,7 +194,17 @@ class Graph:
         return key
 
     def add_node(self, node: Node) -> None:
-        """Add a node."""
+        """Add a node to the graph
+
+        Args:
+            node: Node object that is not already part of the graph.
+
+        Returns:
+            Nothing
+
+        Examples:
+            >>> Graph().add_node(Node(1))
+        """
 
         if not isinstance(node, Node):
             raise TypeError(utils.type_error(type(node), Node))
