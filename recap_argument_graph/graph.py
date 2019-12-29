@@ -474,17 +474,14 @@ class Graph:
         directory = path
 
         if path.suffix:
-            filename = path.name
+            filename = path.stem
             directory = path.parent
 
         g = self.to_gv(format, engine)
 
         try:
             g.render(
-                filename=str(filename),
-                directory=str(directory),
-                cleanup=True,
-                view=view,
+                filename=filename, directory=str(directory), cleanup=True, view=view,
             )
         except gv.ExecutableNotFound:
             log.error("Rendering not possible. GraphViz might not be installed.")
