@@ -11,7 +11,6 @@ from pathlib import Path
 import graphviz as gv
 import networkx as nx
 import pendulum
-import pytest
 from lxml import html
 
 from . import utils, dt
@@ -22,9 +21,9 @@ from .utils import ImmutableDict, ImmutableSet, MISSING, MISSING_TYPE
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(autouse=True)
-def g():
-    return Graph("Test")
+# @pytest.fixture(autouse=True)
+# def g():
+#     return Graph("Test")
 
 
 class GraphCategory(Enum):
