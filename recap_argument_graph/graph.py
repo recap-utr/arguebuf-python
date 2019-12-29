@@ -11,6 +11,7 @@ from pathlib import Path
 import graphviz as gv
 import networkx as nx
 import pendulum
+import pytest
 from lxml import html
 
 from . import utils, dt
@@ -19,6 +20,11 @@ from .node import Node, NodeCategory
 from .utils import ImmutableDict, ImmutableSet, MISSING, MISSING_TYPE
 
 log = logging.getLogger(__name__)
+
+
+@pytest.fixture(autouse=True)
+def g():
+    return Graph("Test")
 
 
 class GraphCategory(Enum):
@@ -203,7 +209,9 @@ class Graph:
             Nothing
 
         Examples:
-            >>> Graph().add_node(Node(1))
+            >>> g = getfixture('g')
+            >>> g.add_node(Node(1, "Node", NodeCategory.I))
+            >>> g.nodes
         """
 
         if not isinstance(node, Node):
@@ -465,7 +473,7 @@ class Graph:
         filename = self.name
         directory = path
 
-        if path.is_file():
+        if path.suffix:
             filename = path.name
             directory = path.parent
 
