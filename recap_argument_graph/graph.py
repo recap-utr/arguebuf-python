@@ -21,11 +21,6 @@ from .utils import ImmutableDict, ImmutableSet, MISSING, MISSING_TYPE
 log = logging.getLogger(__name__)
 
 
-# @pytest.fixture(autouse=True)
-# def g():
-#     return Graph("Test")
-
-
 class GraphCategory(Enum):
     AIF = "aif"
     OVA = "ova"
@@ -199,7 +194,7 @@ class Graph:
         return key
 
     def add_node(self, node: Node) -> None:
-        """Add a node to the graph
+        """Add a node to the graph.
 
         Args:
             node: Node object that is not already part of the graph.
@@ -208,9 +203,16 @@ class Graph:
             Nothing
 
         Examples:
-            >>> g = getfixture('g')
+            >>> g = Graph("Test")
+            >>> g.add_node(Node(g.keygen(), "Node", NodeCategory.I))
+            >>> len(g.nodes)
+            1
             >>> g.add_node(Node(1, "Node", NodeCategory.I))
-            >>> g.nodes
+            Traceback (most recent call last):
+            ValueError: ID already used in graph.
+            >>> g.add_node("Test")
+            Traceback (most recent call last):
+            TypeError: Only Node objects possible.
         """
 
         if not isinstance(node, Node):
@@ -233,7 +235,33 @@ class Graph:
         self._outgoing_edges._store[node] = ImmutableSet()
 
     def remove_node(self, node: Node) -> None:
-        """Remove a node and its corresponding edges."""
+        """Remove a node and its corresponding edges from the graph.
+
+        Args:
+            node: Node object that is part of the graph.
+
+        Returns:
+            Nothing
+
+        Examples:
+            >>> g = Graph("")
+            >>> n1 = Node(g.keygen(), "Node 1", NodeCategory.I)
+            >>> n2 = Node(g.keygen(), "Node 2", NodeCategory.I)
+            >>> e = Edge(g.keygen(), n1, n2)
+            >>> g.add_edge(e)
+            >>> len(g.nodes)
+            2
+            >>> len(g.edges)
+            1
+            >>> g.remove_node(n1)
+            >>> len(g.nodes)
+            1
+            >>> len(g.edges)
+            0
+            >>> g.remove_node(n1)
+            Traceback (most recent call last):
+            ValueError: Node not in graph.
+        """
 
         if not isinstance(node, Node):
             raise TypeError(utils.type_error(type(node), Node))
