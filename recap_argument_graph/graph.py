@@ -27,6 +27,7 @@ class GraphCategory(Enum):
     OTHER = "other"
 
 
+# noinspection PyProtectedMember
 class Graph:
     """Graph in AIF format.
 
@@ -199,9 +200,6 @@ class Graph:
         Args:
             node: Node object that is not already part of the graph.
 
-        Returns:
-            Nothing
-
         Examples:
             >>> g = Graph("Test")
             >>> g.add_node(Node(g.keygen(), "Node", NodeCategory.I))
@@ -239,9 +237,6 @@ class Graph:
 
         Args:
             node: Node object that is part of the graph.
-
-        Returns:
-            Nothing
 
         Examples:
             >>> g = Graph("")
