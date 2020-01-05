@@ -470,14 +470,14 @@ class Graph:
     def from_file(
         path: Path, nlp: t.Optional[t.Callable[[str], t.Any]] = None
     ) -> Graph:
-        with path.open("r") as file:
+        with path.open("r", encoding="utf-8") as file:
             return Graph.from_dict(json.load(file), path.stem, nlp)
 
     def to_file(self, path: Path) -> None:
         if path.is_dir():
             path = path / f"{self.name}.json"
 
-        with path.open("w") as file:
+        with path.open("w", encoding="utf-8") as file:
             json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
 
     @staticmethod
