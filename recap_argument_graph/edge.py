@@ -47,6 +47,11 @@ class Edge:
         self.annotator = annotator
         self.date = pendulum.now() if date is MISSING else date
 
+        self.__post_init__()
+
+    def __post_init__(self):
+        pass
+
     @property
     def key(self) -> int:
         return self._key

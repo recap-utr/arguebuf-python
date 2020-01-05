@@ -186,6 +186,11 @@ class Graph:
         self._outgoing_nodes = ImmutableDict()
         self._outgoing_edges = ImmutableDict()
 
+        self.__post_init__()
+
+    def __post_init__(self):
+        pass
+
     def keygen(self) -> int:
         key = next(self._key_iterator)
 

@@ -279,6 +279,11 @@ class Node:
         self.is_check_worthy = is_check_worthy
         self.source = source
 
+        self.__post_init__()
+
+    def __post_init__(self):
+        pass
+
     @property
     def key(self) -> int:
         return self._key
