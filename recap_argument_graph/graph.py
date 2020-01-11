@@ -70,7 +70,7 @@ class Graph:
     participants: t.Optional[t.List[t.Any]]
     category: GraphCategory
     ova_version: t.Optional[str]
-    text: t.Union[None, str, t.Any]
+    text: t.Any
     highlighted_text: t.Optional[str]
     annotator_name: t.Optional[str]
     document_source: t.Optional[str]
@@ -152,7 +152,7 @@ class Graph:
         name: str,
         category: GraphCategory = GraphCategory.OTHER,
         ova_version: t.Optional[str] = None,
-        text: t.Union[None, str, t.Any] = None,
+        text: t.Any = None,
         highlighted_text: t.Optional[str] = None,
         annotator_name: t.Optional[str] = None,
         document_source: t.Optional[str] = None,

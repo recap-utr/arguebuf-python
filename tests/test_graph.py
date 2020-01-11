@@ -6,7 +6,7 @@ import recap_argument_graph as ag
 
 
 # TODO: Text length different
-#  I-nodes sometimes have white instead of blue
+#  I-nodes sometimes have white instead of blue -> manually added ot the graph
 #  Descriptors in node different than in edge (20130201_VBE_IT2)
 _node_attrs = ("text_length", "color", "source", "descriptors", "is_check_worthy")
 _graph_attrs = ("documentDate", "documentSource", "ovaVersion")

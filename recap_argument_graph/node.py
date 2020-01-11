@@ -212,7 +212,7 @@ class Node:
     )
 
     _key: int
-    text: t.Union[str, t.Any]
+    text: t.Any
     _raw_text: t.Optional[str]
     category: NodeCategory
     x: t.Optional[int]
@@ -236,7 +236,7 @@ class Node:
     def __init__(
         self,
         key: int,
-        text: t.Union[str, t.Any],
+        text: t.Any,
         category: NodeCategory,
         raw_text: t.Optional[str] = None,
         x: t.Optional[int] = None,
