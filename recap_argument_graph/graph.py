@@ -457,6 +457,17 @@ class Graph:
 
         return self.to_ova()
 
+    @staticmethod
+    def from_io(
+        obj: t.IO,
+        name: t.Optional[str] = None,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        return Graph.from_dict(json.load(obj), name, nlp)
+
+    def to_io(self, obj: t.IO):
+        json.dump(self.to_dict(), obj, ensure_ascii=False, indent=4)
+
     def to_nx(self) -> nx.DiGraph:
         g = nx.DiGraph()
         for edge in self.edges:
@@ -482,14 +493,14 @@ class Graph:
         path: Path, nlp: t.Optional[t.Callable[[str], t.Any]] = None
     ) -> Graph:
         with path.open("r", encoding="utf-8") as file:
-            return Graph.from_dict(json.load(file), path.stem, nlp)
+            return Graph.from_io(file, path.stem, nlp)
 
     def to_file(self, path: Path) -> None:
         if path.is_dir() or not path.suffix:
             path = path / f"{self.name}.json"
 
         with path.open("w", encoding="utf-8") as file:
-            json.dump(self.to_dict(), file, ensure_ascii=False, indent=4)
+            self.to_io(file)
 
     @staticmethod
     def from_folder(
