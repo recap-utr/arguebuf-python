@@ -80,6 +80,12 @@ class Graph:
     _key_iterator: t.Iterator[int]
 
     @property
+    def plain_text(self) -> str:
+        """Get the standard `text` as string."""
+
+        return utils.xstr(self.text)
+
+    @property
     def nodes(self) -> t.Collection[Node]:
         return t.cast(t.Collection[Node], self._node_mappings.values())
 
@@ -479,7 +485,7 @@ class Graph:
             return Graph.from_dict(json.load(file), path.stem, nlp)
 
     def to_file(self, path: Path) -> None:
-        if path.is_dir():
+        if path.is_dir() or not path.suffix:
             path = path / f"{self.name}.json"
 
         with path.open("w", encoding="utf-8") as file:
