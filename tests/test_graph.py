@@ -1,4 +1,5 @@
 import json
+import multiprocessing
 from typing import Dict, Any, List, Optional
 
 from deepdiff import DeepDiff
@@ -44,31 +45,35 @@ def test_create_graph(shared_datadir):
     assert len(g.edges) == 0
 
 
-def test_import_graph(shared_datadir):
+def test_import_graphs(shared_datadir):
     folder = shared_datadir / "in" / "graph"
 
-    for file in sorted(folder.rglob("*.json")):
-        with file.open() as f:
-            raw = json.load(f)
+    with multiprocessing.Pool() as pool:
+        pool.map(_import_graph, sorted(folder.rglob("*.json")))
 
-        graph = ag.Graph.open(file)
-        export = graph.to_dict()
 
-        if raw.get("analysis"):
-            for attr in _graph_attrs:
-                if not raw["analysis"].get(attr):
-                    del export["analysis"][attr]
+def _import_graph(file):
+    with file.open() as f:
+        raw = json.load(f)
 
-        _clean_nodes(raw["nodes"])
-        _clean_nodes(export["nodes"])
-        _clean_edges(raw["edges"])
-        _clean_edges(export["edges"])
+    graph = ag.Graph.open(file)
+    export = graph.to_dict()
 
-        assert export == raw, file
-        # assert DeepDiff(raw, export, ignore_order=True) == {}, file
+    if raw.get("analysis"):
+        for attr in _graph_attrs:
+            if not raw["analysis"].get(attr):
+                del export["analysis"][attr]
 
-        graph.to_gv()
-        graph.to_nx()
+    _clean_nodes(raw["nodes"])
+    _clean_nodes(export["nodes"])
+    _clean_edges(raw["edges"])
+    _clean_edges(export["edges"])
+
+    assert export == raw, file
+    # assert DeepDiff(raw, export, ignore_order=True) == {}, file
+
+    graph.to_gv()
+    graph.to_nx()
 
 
 def _clean_analysis(analysis: Optional[Dict[str, str]]) -> None:
@@ -83,7 +88,7 @@ def _clean_nodes(nodes: List[Dict[str, Any]]) -> None:
 
 def _clean_node(node: Optional[Dict[str, Any]]) -> None:
     for attr in _node_attrs:
-        if node and node.get(attr) != None:
+        if node and node.get(attr) is not None:
             del node[attr]
 
 

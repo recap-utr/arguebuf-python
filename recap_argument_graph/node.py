@@ -32,6 +32,7 @@ class NodeCategory(Enum):
     TA = "TA"
     PA = "PA"
     YA = "YA"
+    L = "L"
 
 
 # Duplicate keys: 17, 251, 252, 61, 254, 253
@@ -58,7 +59,6 @@ ra_schemes = {
     "Correlation To Cause": 7,
     "Danger Appeal": 17,  # ova.uni-trier.de
     # "Danger Appeal": 238, # ova.arg-tech.org
-    "Default Inference": 72,
     "Definition To Verbal Classification": 239,
     "Dilemma": 9,
     "Direct Ad Hominem": 10,
@@ -126,7 +126,6 @@ ca_schemes = {
     "Conflict From Wisdom/Virtue": 404,
     "Conflict From Wisdom/Virtue/Goodwill": 407,
     "Conflicting Goals": 39,
-    "Default Conflict": 71,
     "Differences Undermine Similarity": 40,
     "ERAd Hominem": 164,
     "Exception Similarity Case": 41,
@@ -147,13 +146,20 @@ ca_schemes = {
     "Weakest Link": 58,
 }
 
-other_schemes = {
+default_schemes = {
+    "Default Inference": 72,
+    "RA": 72,
+    "Default Conflict": 71,
+    "CA": 71,
     "Default Rephrase": 144,
+    "MA": 144,
     "Default Transition": 82,
+    "TA": 82,
     "Default Preference": 161,
+    "PA": 161,
 }
 
-schemes = {**ra_schemes, **ca_schemes, **other_schemes}
+schemes = {**default_schemes, **ra_schemes, **ca_schemes}
 schemes = {key.lower(): value for key, value in schemes.items()}
 
 
@@ -308,7 +314,10 @@ class Node:
     def scheme(self) -> int:
         """Get argumentation scheme id based on `text`."""
 
-        return schemes.get(self.plain_text.lower(), 0)
+        if self.category == NodeCategory.I:
+            return 0
+
+        return schemes[self.plain_text.lower()]
 
     @property
     def text_length(self) -> t.Optional[int]:
