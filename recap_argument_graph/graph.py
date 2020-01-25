@@ -472,7 +472,7 @@ class Graph:
         g = nx.DiGraph()
 
         for node in self.nodes:
-            node.to_gv(g)
+            node.to_nx(g)
 
         for edge in self.edges:
             edge.to_nx(g)
