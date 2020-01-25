@@ -470,9 +470,11 @@ class Graph:
 
     def to_nx(self) -> nx.DiGraph:
         g = nx.DiGraph()
+
+        for node in self.nodes:
+            node.to_gv(g)
+
         for edge in self.edges:
-            edge.start.to_nx(g)
-            edge.end.to_nx(g)
             edge.to_nx(g)
 
         return g
@@ -481,9 +483,10 @@ class Graph:
         g = gv.Digraph(name=str(self.name), strict=True, format=format, engine=engine,)
         g.attr(rankdir="BT")
 
+        for node in self.nodes:
+            node.to_gv(g)
+
         for edge in self.edges:
-            edge.start.to_gv(g)
-            edge.end.to_gv(g)
             edge.to_gv(g)
 
         return g
