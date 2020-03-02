@@ -468,29 +468,6 @@ class Graph:
     def to_io(self, obj: t.IO):
         json.dump(self.to_dict(), obj, ensure_ascii=False, indent=4)
 
-    def to_nx(self) -> nx.DiGraph:
-        g = nx.DiGraph()
-
-        for node in self.nodes:
-            node.to_nx(g)
-
-        for edge in self.edges:
-            edge.to_nx(g)
-
-        return g
-
-    def to_gv(self, format: str = "pdf", engine: str = "dot") -> gv.Digraph:
-        g = gv.Digraph(name=str(self.name), strict=True, format=format, engine=engine,)
-        g.attr(rankdir="BT")
-
-        for node in self.nodes:
-            node.to_gv(g)
-
-        for edge in self.edges:
-            edge.to_gv(g)
-
-        return g
-
     @staticmethod
     def from_file(
         path: Path, nlp: t.Optional[t.Callable[[str], t.Any]] = None
@@ -514,6 +491,34 @@ class Graph:
         files = path.rglob(f"*{suffix}")
         return [Graph.from_file(file, nlp) for file in sorted(files)]
 
+    open = from_file
+    open_folder = from_folder
+    to_folder = to_file
+    save = to_file
+
+    def to_nx(self) -> nx.DiGraph:
+        g = nx.DiGraph()
+
+        for node in self.nodes:
+            node.to_nx(g)
+
+        for edge in self.edges:
+            edge.to_nx(g)
+
+        return g
+
+    def to_gv(self, format: str = "pdf", engine: str = "dot") -> gv.Digraph:
+        g = gv.Digraph(name=str(self.name), strict=True, format=format, engine=engine,)
+        g.attr(rankdir="BT")
+
+        for node in self.nodes:
+            node.to_gv(g)
+
+        for edge in self.edges:
+            edge.to_gv(g)
+
+        return g
+
     def render(
         self, path: Path, format: str = "pdf", engine: str = "dot", view: bool = False
     ) -> None:
@@ -532,11 +537,6 @@ class Graph:
             )
         except gv.ExecutableNotFound:
             log.error("Rendering not possible. GraphViz might not be installed.")
-
-    open = from_file
-    open_folder = from_folder
-    to_folder = to_file
-    save = to_file
 
     def copy(self) -> Graph:
         obj = deepcopy(self)
