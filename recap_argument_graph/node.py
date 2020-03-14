@@ -10,7 +10,7 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 
-from . import dt
+from . import dt, utils
 from .utils import MISSING, xstr, parse, MISSING_TYPE
 
 
@@ -289,6 +289,9 @@ class Node:
 
     def __post_init__(self):
         pass
+
+    def __repr__(self):
+        return utils.class_repr(self, [self.key, self.plain_text])
 
     @property
     def key(self) -> int:

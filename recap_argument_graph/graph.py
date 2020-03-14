@@ -197,6 +197,9 @@ class Graph:
     def __post_init__(self):
         pass
 
+    def __repr__(self):
+        return utils.class_repr(self, [self.name])
+
     def keygen(self) -> int:
         key = next(self._key_iterator)
 
@@ -283,7 +286,9 @@ class Graph:
         else:
             del self._snode_mappings._store[node.key]
 
-        for edge in self.edges:
+        edges_tmp = list(self.edges)
+
+        for edge in edges_tmp:
             if node in (edge.start, edge.end):
                 self.remove_edge(edge)
 

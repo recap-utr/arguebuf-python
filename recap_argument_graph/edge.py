@@ -7,7 +7,7 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 
-from . import dt
+from . import dt, utils
 from .node import Node
 from .utils import MISSING, MISSING_TYPE
 
@@ -51,6 +51,9 @@ class Edge:
 
     def __post_init__(self):
         pass
+
+    def __repr__(self):
+        return utils.class_repr(self, [self.key, f"{self.start.key}->{self.end.key}"])
 
     @property
     def key(self) -> int:

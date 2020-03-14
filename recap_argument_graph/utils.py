@@ -16,6 +16,14 @@ def unique_id() -> int:
     return uuid.uuid1().int >> 64
 
 
+def _class_name(obj) -> str:
+    return obj.__class__.__name__
+
+
+def class_repr(obj, attributes: t.Iterable[str]) -> str:
+    return f"{_class_name(obj)}({', '.join(attributes)})"
+
+
 def xstr(data: t.Any) -> str:
     return "" if data is None else str(data)
 
