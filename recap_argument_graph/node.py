@@ -291,7 +291,7 @@ class Node:
         pass
 
     def __repr__(self):
-        return utils.class_repr(self, [self.key, self.plain_text])
+        return utils.class_repr(self, [str(self.key), self.plain_text])
 
     @property
     def key(self) -> int:
