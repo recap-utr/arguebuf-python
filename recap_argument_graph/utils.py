@@ -29,7 +29,15 @@ def xstr(data: t.Any) -> str:
 
 
 def parse(text: str, nlp: t.Optional[t.Callable[[str], t.Any]]) -> t.Any:
-    return nlp(text) if nlp else text
+    if nlp:
+        try:
+            out = nlp(text)
+        except ValueError:
+            out = nlp("")
+
+        return out
+
+    return text
 
 
 def type_error(actual: t.Type, expected: t.Type) -> str:

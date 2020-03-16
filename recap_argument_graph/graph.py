@@ -4,7 +4,6 @@ import itertools
 import json
 import logging
 import typing as t
-from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 
@@ -286,11 +285,12 @@ class Graph:
         else:
             del self._snode_mappings._store[node.key]
 
-        edges_tmp = list(self.edges)
+        neighbor_edges = list(self.incoming_edges[node]) + list(
+            self.outgoing_edges[node]
+        )
 
-        for edge in edges_tmp:
-            if node in (edge.start, edge.end):
-                self.remove_edge(edge)
+        for edge in neighbor_edges:
+            self.remove_edge(edge)
 
         del self._incoming_nodes._store[node]
         del self._incoming_edges._store[node]
@@ -543,7 +543,17 @@ class Graph:
         except gv.ExecutableNotFound:
             log.error("Rendering not possible. GraphViz might not be installed.")
 
-    def copy(self) -> Graph:
-        obj = deepcopy(self)
+    def strip_snodes(self) -> None:
+        snodes = list(self.snodes)
+
+        for snode in snodes:
+            for incoming in self.incoming_nodes[snode]:
+                for outgoing in self.outgoing_nodes[snode]:
+                    self.add_edge(Edge(self.keygen(), incoming, outgoing))
+
+            self.remove_node(snode)
+
+    def copy(self, nlp: t.Optional[t.Callable[[str], t.Any]] = None) -> Graph:
+        obj = Graph.from_dict(self.to_dict(), self.name, nlp)
 
         return obj

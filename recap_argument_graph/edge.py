@@ -1,7 +1,6 @@
 from __future__ import absolute_import, annotations
 
 import typing as t
-from copy import deepcopy
 
 import graphviz as gv
 import networkx as nx
@@ -131,16 +130,16 @@ class Edge:
             color=color,
         )
 
-    def copy(
-        self, key: int, start: t.Optional[Node] = None, end: t.Optional[Node] = None
-    ) -> Edge:
-        obj = deepcopy(self)
-        obj._key = key
-
-        if start:
-            obj._start = start
-
-        if end:
-            obj._end = end
-
-        return obj
+    # def copy(
+    #     self, key: int, start: t.Optional[Node] = None, end: t.Optional[Node] = None
+    # ) -> Edge:
+    #     obj = copy(self)
+    #     obj._key = key
+    #
+    #     if start:
+    #         obj._start = start
+    #
+    #     if end:
+    #         obj._end = end
+    #
+    #     return obj

@@ -4,7 +4,6 @@ import textwrap
 import typing as t
 from dataclasses import dataclass
 from enum import Enum
-from copy import deepcopy
 
 import graphviz as gv
 import networkx as nx
@@ -485,8 +484,8 @@ class Node:
             margin=f"{margin[0]},{margin[1]}",
         )
 
-    def copy(self, key: int) -> Node:
-        obj = deepcopy(self)
-        obj._key = key
-
-        return obj
+    # def copy(self, key: int) -> Node:
+    #     obj = Node.from_dict(self.to_dict(), nlp)
+    #     obj._key = key
+    #
+    #     return obj
