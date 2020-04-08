@@ -512,12 +512,14 @@ class Graph:
 
         return g
 
-    def to_gv(self, format: str = "pdf", engine: str = "dot") -> gv.Digraph:
+    def to_gv(
+        self, format: str = "pdf", engine: str = "dot", node_label: str = "plain_text"
+    ) -> gv.Digraph:
         g = gv.Digraph(name=str(self.name), strict=True, format=format, engine=engine,)
         g.attr(rankdir="BT")
 
         for node in self.nodes:
-            node.to_gv(g)
+            node.to_gv(g, node_label)
 
         for edge in self.edges:
             edge.to_gv(g)
@@ -525,7 +527,12 @@ class Graph:
         return g
 
     def render(
-        self, path: Path, format: str = "pdf", engine: str = "dot", view: bool = False
+        self,
+        path: Path,
+        format: str = "pdf",
+        engine: str = "dot",
+        view: bool = False,
+        node_label: str = "plain_text",
     ) -> None:
         filename = self.name
         directory = path
@@ -534,7 +541,7 @@ class Graph:
             filename = path.stem
             directory = path.parent
 
-        g = self.to_gv(format, engine)
+        g = self.to_gv(format, engine, node_label)
 
         try:
             g.render(

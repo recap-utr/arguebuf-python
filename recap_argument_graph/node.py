@@ -455,6 +455,7 @@ class Node:
     def to_gv(
         self,
         g: gv.Digraph,
+        label: str = "plain_text",
         color: t.Optional[ColorMapping] = None,
         label_prefix: str = "",
         label_suffix: str = "",
@@ -466,11 +467,11 @@ class Node:
         if not color:
             color = self.gv_color
 
-        label = textwrap.fill(self.plain_text, wrap_col)
+        label_text = textwrap.fill(getattr(self, label), wrap_col)
 
         g.node(
             f"{key_prefix}{self.key}{key_suffix}",
-            label=f"{label_prefix}\n{label}\n{label_suffix}".strip(),
+            label=f"{label_prefix}\n{label_text}\n{label_suffix}".strip(),
             fontname="Arial",
             fontsize="11",
             fontcolor=color.fg,
