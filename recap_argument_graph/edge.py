@@ -53,7 +53,7 @@ class Edge:
 
     def __repr__(self):
         return utils.class_repr(
-            self, [str(self.key), f"{self.start.key}->{self.end.key}"]
+            self, [str(self.key), f"{self.start.plain_text}->{self.end.plain_text}"]
         )
 
     @property
