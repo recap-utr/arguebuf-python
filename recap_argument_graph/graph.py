@@ -152,6 +152,14 @@ class Graph:
     def keys(self) -> t.AbstractSet[int]:
         return self._keys
 
+    @property
+    def major_claim(self) -> t.Optional[Node]:
+        for node in self.inodes:
+            if node.major_claim:
+                return node
+
+        return None
+
     def __init__(
         self,
         name: str,
