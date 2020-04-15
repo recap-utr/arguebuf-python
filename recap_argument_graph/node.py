@@ -365,15 +365,17 @@ class Node:
         # return "aliceblue"
         return color_mappings[self.ova_color]
 
-    @staticmethod
+    @classmethod
     def from_ova(
-        obj: t.Mapping[str, t.Any], nlp: t.Optional[t.Callable[[str], t.Any]] = None
+        cls,
+        obj: t.Mapping[str, t.Any],
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         text_begin = obj.get("text_begin") or []
         text_end = obj.get("text_end") or []
         participant_id = int(obj["participantID"]) if obj.get("participantID") else None
 
-        return Node(
+        return cls(
             key=obj["id"],
             text=parse(obj["text"], nlp),
             category=NodeCategory(obj["type"]),
@@ -424,11 +426,13 @@ class Node:
             "source": self.source or "",
         }
 
-    @staticmethod
+    @classmethod
     def from_aif(
-        obj: t.Mapping[str, t.Any], nlp: t.Optional[t.Callable[[str], t.Any]] = None
+        cls,
+        obj: t.Mapping[str, t.Any],
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-        return Node(
+        return cls(
             key=int(obj["nodeID"]),
             text=parse(obj["text"], nlp),
             category=NodeCategory(obj["type"]),

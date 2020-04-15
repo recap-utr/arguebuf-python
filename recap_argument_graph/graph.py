@@ -345,15 +345,18 @@ class Graph:
         self._outgoing_nodes[edge.start]._store.remove(edge.end)
         self._incoming_nodes[edge.end]._store.remove(edge.start)
 
-    @staticmethod
+    @classmethod
     def from_ova(
+        cls,
         obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
+        node_class=Node,
+        edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         analysis = obj["analysis"]
 
-        g = Graph(
+        g = cls(
             name=name or str(utils.unique_id()),
             category=GraphCategory.OVA,
             participants=obj.get("participants"),
@@ -367,10 +370,12 @@ class Graph:
         )
 
         for node in obj["nodes"]:
-            g.add_node(Node.from_ova(node, nlp))
+            g.add_node(node_class.from_ova(node, nlp))
 
         for edge in obj["edges"]:
-            g.add_edge(Edge.from_ova(edge, g.keygen(), g.node_mappings, nlp))
+            g.add_edge(
+                edge_class.from_ova(edge, g.keygen(), g.node_mappings, node_class, nlp)
+            )
 
         if analysis and analysis.get("txt"):
             txt = analysis["txt"]
@@ -422,24 +427,27 @@ class Graph:
             },
         }
 
-    @staticmethod
+    @classmethod
     def from_aif(
+        cls,
         obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
+        node_class=Node,
+        edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
 
-        g = Graph(
+        g = cls(
             name=name or str(utils.unique_id()),
             category=GraphCategory.AIF,
             document_date=None,
         )
 
         for node in obj["nodes"]:
-            g.add_node(Node.from_aif(node, nlp))
+            g.add_node(node_class.from_aif(node, nlp))
 
         for edge in obj["edges"]:
-            g.add_edge(Edge.from_aif(edge, g.node_mappings, nlp))
+            g.add_edge(edge_class.from_aif(edge, g.node_mappings, nlp))
 
         return g
 
@@ -450,16 +458,19 @@ class Graph:
             "locutions": [],
         }
 
-    @staticmethod
+    @classmethod
     def from_dict(
+        cls,
         obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
+        node_class=Node,
+        edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         if "analysis" in obj:
-            return Graph.from_ova(obj, name, nlp)
+            return cls.from_ova(obj, name, node_class, edge_class, nlp)
 
-        return Graph.from_aif(obj, name, nlp)
+        return cls.from_aif(obj, name, node_class, edge_class, nlp)
 
     def to_dict(self) -> t.Dict[str, t.Any]:
         if self.category == GraphCategory.OVA:
@@ -470,23 +481,30 @@ class Graph:
 
         return self.to_ova()
 
-    @staticmethod
+    @classmethod
     def from_io(
+        cls,
         obj: t.IO,
         name: t.Optional[str] = None,
+        node_class=Node,
+        edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
-        return Graph.from_dict(json.load(obj), name, nlp)
+        return cls.from_dict(json.load(obj), name, node_class, edge_class, nlp)
 
     def to_io(self, obj: t.IO):
         json.dump(self.to_dict(), obj, ensure_ascii=False, indent=4)
 
-    @staticmethod
+    @classmethod
     def from_file(
-        path: Path, nlp: t.Optional[t.Callable[[str], t.Any]] = None
+        cls,
+        path: Path,
+        node_class=Node,
+        edge_class=Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         with path.open("r", encoding="utf-8") as file:
-            return Graph.from_io(file, path.stem, nlp)
+            return cls.from_io(file, path.stem, node_class, edge_class, nlp)
 
     def to_file(self, path: Path) -> None:
         if path.is_dir() or not path.suffix:
@@ -495,14 +513,19 @@ class Graph:
         with path.open("w", encoding="utf-8") as file:
             self.to_io(file)
 
-    @staticmethod
+    @classmethod
     def from_folder(
+        cls,
         path: Path,
+        node_class=Node,
+        edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
         suffix: str = ".json",
     ) -> t.List[Graph]:
         files = path.rglob(f"*{suffix}")
-        return [Graph.from_file(file, nlp) for file in sorted(files)]
+        return [
+            cls.from_file(file, node_class, edge_class, nlp) for file in sorted(files)
+        ]
 
     open = from_file
     open_folder = from_folder

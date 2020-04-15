@@ -68,11 +68,13 @@ class Edge:
     def end(self) -> Node:
         return self._end
 
-    @staticmethod
+    @classmethod
     def from_ova(
+        cls,
         obj: t.Any,
         key: int,
         nodes: t.Mapping[int, Node] = None,
+        node_class=Node,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Edge:
         if not nodes:
@@ -81,10 +83,10 @@ class Edge:
         start_key = int(obj.get("from").get("id"))
         end_key = int(obj.get("to").get("id"))
 
-        return Edge(
+        return cls(
             key=key,
-            start=nodes.get(start_key) or Node.from_ova(obj["from"], nlp),
-            end=nodes.get(end_key) or Node.from_ova(obj["to"], nlp),
+            start=nodes.get(start_key) or node_class.from_ova(obj["from"], nlp),
+            end=nodes.get(end_key) or node_class.from_ova(obj["to"], nlp),
             visible=obj.get("visible"),
             annotator=obj.get("annotator"),
             date=dt.from_ova(obj.get("date")),
@@ -99,8 +101,9 @@ class Edge:
             "date": dt.to_ova(self.date),
         }
 
-    @staticmethod
+    @classmethod
     def from_aif(
+        cls,
         obj: t.Any,
         nodes: t.Mapping[int, Node],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
@@ -108,7 +111,7 @@ class Edge:
         start_key = int(obj.get("fromID"))
         end_key = int(obj.get("toID"))
 
-        return Edge(key=int(obj["edgeID"]), start=nodes[start_key], end=nodes[end_key],)
+        return cls(key=int(obj["edgeID"]), start=nodes[start_key], end=nodes[end_key],)
 
     def to_aif(self) -> t.Dict[str, t.Any]:
         return {
