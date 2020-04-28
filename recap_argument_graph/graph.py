@@ -554,8 +554,8 @@ class Graph:
                 snode = node_class(g.keygen(), utils.parse(text, nlp), category)
                 g.add_node(snode)
 
-                g.add_edge(Edge(g.keygen(), source_inode, snode))
-                g.add_edge(Edge(g.keygen(), snode, target_inode))
+                g.add_edge(edge_class(g.keygen(), source_inode, snode))
+                g.add_edge(edge_class(g.keygen(), snode, target_inode))
 
         return g
 
@@ -678,7 +678,12 @@ class Graph:
 
             self.remove_node(snode)
 
-    def copy(self, nlp: t.Optional[t.Callable[[str], t.Any]] = None) -> Graph:
-        obj = Graph.from_dict(self.to_dict(), self.name, nlp)
+    def copy(
+        self,
+        node_class=Node,
+        edge_class=Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        obj = Graph.from_dict(self.to_dict(), self.name, node_class, edge_class, nlp)
 
         return obj
