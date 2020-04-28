@@ -49,10 +49,16 @@ def test_import_graphs(shared_datadir):
     folder = shared_datadir / "in" / "graph"
 
     with multiprocessing.Pool() as pool:
-        pool.map(_import_graph, sorted(folder.rglob("*.json")))
+        pool.map(_import_json_graph, sorted(folder.rglob("*.json")))
+        pool.map(_import_brat_graph, sorted(folder.rglob("*.ann")))
 
 
-def _import_graph(file):
+def _import_brat_graph(file):
+    graph = ag.Graph.open(file)
+    export = graph.to_dict()
+
+
+def _import_json_graph(file):
     with file.open() as f:
         raw = json.load(f)
 

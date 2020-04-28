@@ -1,8 +1,10 @@
 from __future__ import absolute_import, annotations
 
+import csv
 import itertools
 import json
 import logging
+import re
 import typing as t
 from enum import Enum
 from pathlib import Path
@@ -482,7 +484,7 @@ class Graph:
         return self.to_ova()
 
     @classmethod
-    def from_io(
+    def from_json(
         cls,
         obj: t.IO,
         name: t.Optional[str] = None,
@@ -492,8 +494,88 @@ class Graph:
     ) -> Graph:
         return cls.from_dict(json.load(obj), name, node_class, edge_class, nlp)
 
-    def to_io(self, obj: t.IO):
+    def to_json(self, obj: t.IO) -> None:
         json.dump(self.to_dict(), obj, ensure_ascii=False, indent=4)
+
+    @classmethod
+    def from_brat(
+        cls,
+        obj: t.IO,
+        name: t.Optional[str] = None,
+        node_class=Node,
+        edge_class=Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        reader = csv.reader(obj, delimiter="\t")
+        g = cls(
+            name=name or str(utils.unique_id()),
+            category=GraphCategory.OVA,
+            document_date=None,
+        )
+
+        inodes = {}
+        mc = node_class(
+            g.keygen(), utils.parse("", nlp), NodeCategory.I, major_claim=True,
+        )
+
+        for row in reader:
+            metadata = row[1].split()
+
+            if row[0].startswith("T"):
+                if metadata[0] == "MajorClaim":
+                    mc.text = utils.parse(mc.plain_text + ". " + row[2], nlp)
+                else:
+                    inode = node_class(
+                        g.keygen(), utils.parse(row[2], nlp), NodeCategory.I,
+                    )
+                    g.add_node(inode)
+                    inodes[row[0]] = inode
+
+            elif row[0].startswith("A") or row[0].startswith("R"):
+                if row[0].startswith("A"):
+                    category = (
+                        NodeCategory.CA if metadata[2] == "Against" else NodeCategory.RA
+                    )
+                    source_inode = inodes[metadata[1]]
+                    target_inode = mc
+                else:
+                    category = (
+                        NodeCategory.CA if metadata[0] == "attacks" else NodeCategory.RA
+                    )
+                    source_inode = inodes[metadata[1].split(":")[1]]
+                    target_inode = inodes[metadata[2].split(":")[1]]
+
+                text = (
+                    "Default Conflict"
+                    if category == NodeCategory.CA
+                    else "Default Inference"
+                )
+
+                snode = node_class(g.keygen(), utils.parse(text, nlp), category)
+                g.add_node(snode)
+
+                g.add_edge(Edge(g.keygen(), source_inode, snode))
+                g.add_edge(Edge(g.keygen(), snode, target_inode))
+
+        return g
+
+    @classmethod
+    def from_io(
+        cls,
+        obj: t.IO,
+        suffix: str,
+        name: t.Optional[str] = None,
+        node_class=Node,
+        edge_class=Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        if suffix == ".ann":
+            return cls.from_brat(obj, name, node_class, edge_class, nlp)
+
+        return cls.from_json(obj, name, node_class, edge_class, nlp)
+
+    def to_io(self, obj: t.IO) -> None:
+        self.to_json(obj)
 
     @classmethod
     def from_file(
@@ -504,7 +586,9 @@ class Graph:
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         with path.open("r", encoding="utf-8") as file:
-            return cls.from_io(file, path.stem, node_class, edge_class, nlp)
+            return cls.from_io(
+                file, path.suffix, path.stem, node_class, edge_class, nlp
+            )
 
     def to_file(self, path: Path) -> None:
         if path.is_dir() or not path.suffix:
@@ -520,12 +604,15 @@ class Graph:
         node_class=Node,
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-        suffix: str = ".json",
+        suffixes: t.Iterable[str] = (".json"),
     ) -> t.List[Graph]:
-        files = path.rglob(f"*{suffix}")
-        return [
-            cls.from_file(file, node_class, edge_class, nlp) for file in sorted(files)
-        ]
+        graphs = []
+
+        for suffix in suffixes:
+            for file in sorted(path.rglob(f"*{suffix}")):
+                graphs.append(cls.from_file(file, node_class, edge_class, nlp))
+
+        return graphs
 
     open = from_file
     open_folder = from_folder

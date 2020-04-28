@@ -1,5 +1,6 @@
 from __future__ import absolute_import, annotations
 
+import re
 import textwrap
 import typing as t
 from dataclasses import dataclass
