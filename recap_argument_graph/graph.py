@@ -634,7 +634,7 @@ class Graph:
         self, format: str = "pdf", engine: str = "dot", node_label: str = "plain_text"
     ) -> gv.Digraph:
         g = gv.Digraph(name=str(self.name), strict=True, format=format, engine=engine,)
-        g.attr(rankdir="BT")
+        g.attr(rankdir="BT", margin=0)
 
         for node in self.nodes:
             node.to_gv(g, node_label)
