@@ -308,8 +308,25 @@ class Graph:
         del self._outgoing_edges._store[node]
 
     def add_edge(self, edge: Edge) -> None:
-        """Add an edge and its nodes (if not already added)."""
+        """Add an edge and its nodes (if not already added).
 
+        Args:
+            edge: Edge object that is part of the graph.
+
+        Examples:
+            >>> g = Graph("")
+            >>> n1 = Node(g.keygen(), "Node 1", NodeCategory.I)
+            >>> n2 = Node(g.keygen(), "Node 2", NodeCategory.I)
+            >>> n3 = Node(g.keygen(), "Node 3", NodeCategory.I)
+            >>> e1 = Edge(g.keygen(), n1, n2)
+            >>> e2 = Edge(g.keygen(), n2, n3)
+            >>> g.add_edge(e1)
+            >>> print(len(g.edges))
+            1
+            >>> g.add_edge(e2)
+            >>> print(len(g.edges))
+            2
+        """
         if not TypeError(edge, Edge):
             raise ValueError(utils.type_error(type(edge), Edge))
 
@@ -331,8 +348,27 @@ class Graph:
         self._incoming_nodes[edge.end]._store.add(edge.start)
 
     def remove_edge(self, edge: Edge) -> None:
-        """Remove an edge."""
+        """Remove an edge.
 
+        Args:
+            edge: Edge object that is part of the graph.
+
+        Examples:
+            >>> g = Graph("")
+            >>> n1 = Node(g.keygen(), "Node 1", NodeCategory.I)
+            >>> n2 = Node(g.keygen(), "Node 2", NodeCategory.I)
+            >>> e = Edge(g.keygen(), n1, n2)
+            >>> g.add_edge(e)
+            >>> len(g.edges)
+            1
+            >>> len(g.nodes)
+            2
+            >>> g.remove_edge(e)
+            >>> len(g.edges)
+            0
+            >>> len(g.nodes)
+            2
+        """
         if not TypeError(edge, Edge):
             raise ValueError(utils.type_error(type(edge), Edge))
 
@@ -356,6 +392,8 @@ class Graph:
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+        """ Generate Graph structure from OVA argument graph file (reference: http://ova.uni-trier.de/).
+        """
         analysis = obj["analysis"]
 
         g = cls(
@@ -401,6 +439,8 @@ class Graph:
         return g
 
     def to_ova(self) -> t.Dict[str, t.Any]:
+        """ Export structure of Graph instance to OVA argument graph format.
+        """
         highlighted_text = self.highlighted_text
 
         if not highlighted_text:
@@ -438,7 +478,10 @@ class Graph:
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+        """ Generate Graph structure from AIF argument graph file 
+        (reference: http://www.wi2.uni-trier.de/shared/publications/2019_LenzOllingerSahitajBergmann_ICCBR.pdf)
 
+        """
         g = cls(
             name=name or str(utils.unique_id()),
             category=GraphCategory.AIF,
@@ -454,6 +497,8 @@ class Graph:
         return g
 
     def to_aif(self) -> t.Dict[str, t.Any]:
+        """ Export structure of Graph instance to AIF argument graph format.
+        """
         return {
             "nodes": [node.to_aif() for node in self.nodes],
             "edges": [edge.to_aif() for edge in self.edges],
@@ -506,6 +551,8 @@ class Graph:
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+        """ Generate Graph structure from brat argument graph file (reference: https://brat.nlplab.org/)
+        """
         reader = csv.reader(obj, delimiter="\t")
         g = cls(
             name=name or str(utils.unique_id()),
@@ -620,6 +667,19 @@ class Graph:
     save = to_file
 
     def to_nx(self) -> nx.DiGraph:
+        """ Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
+
+        Examples:
+            >>> g = Graph("")
+            >>> n1 = Node(g.keygen(), "Node 1", NodeCategory.I)
+            >>> n2 = Node(g.keygen(), "Node 2", NodeCategory.I)
+            >>> e = Edge(g.keygen(), n1, n2)
+            >>> g.add_edge(e)
+            >>> gnx = g.to_nx()
+            >>> gnx.number_of_nodes()
+            2
+        
+        """
         g = nx.DiGraph()
 
         for node in self.nodes:
@@ -633,6 +693,9 @@ class Graph:
     def to_gv(
         self, format: str = "pdf", engine: str = "dot", node_label: str = "plain_text"
     ) -> gv.Digraph:
+        """ Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information.
+
+        """
         g = gv.Digraph(name=str(self.name), strict=True, format=format, engine=engine,)
         g.attr(rankdir="BT", margin="0")
 
@@ -652,6 +715,8 @@ class Graph:
         view: bool = False,
         node_label: str = "plain_text",
     ) -> None:
+        """ Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization.
+        """
         filename = self.name
         directory = path
 
@@ -669,6 +734,8 @@ class Graph:
             log.error("Rendering not possible. GraphViz might not be installed.")
 
     def strip_snodes(self) -> None:
+        """ Remove scheme nodes from graph and merge respective edges into singular edge
+        """
         snodes = list(self.snodes)
 
         for snode in snodes:
@@ -684,6 +751,8 @@ class Graph:
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+        """ Contents of Graph instance are copied into new Graph object.
+        """
         obj = Graph.from_dict(self.to_dict(), self.name, node_class, edge_class, nlp)
 
         return obj

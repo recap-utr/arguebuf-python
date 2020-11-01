@@ -1,9 +1,6 @@
 recap\_argument\_graph package
 ==============================
 
-Submodules
-----------
-
 recap\_argument\_graph.dt module
 --------------------------------
 
