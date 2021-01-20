@@ -1,10 +1,9 @@
 import json
 import multiprocessing
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from deepdiff import DeepDiff
 import recap_argument_graph as ag
-
+from deepdiff import DeepDiff
 
 # TODO: Text length different
 #  I-nodes sometimes have white instead of blue -> manually added ot the graph
@@ -18,31 +17,46 @@ def test_create_graph(shared_datadir):
 
     n1 = ag.Node(g.keygen(), "Node 1", ag.NodeCategory.I)
     n2 = ag.Node(g.keygen(), "Node 2", ag.NodeCategory.I)
-    e = ag.Edge(g.keygen(), n1, n2)
+    n3 = ag.Node(g.keygen(), "Node 3", ag.NodeCategory.I)
+    e21 = ag.Edge(g.keygen(), n2, n1)
+    e31 = ag.Edge(g.keygen(), n3, n2)
 
-    g.add_edge(e)
+    g.add_edge(e21)
+    g.add_edge(e31)
 
     assert n1.key == 1
     assert n2.key == 2
-    assert e.key == 3
+    assert n3.key == 3
+    assert e21.key == 4
+    assert e31.key == 5
 
-    assert e.start == n1
-    assert e.end == n2
+    assert e21.start == n2
+    assert e21.end == n1
 
-    assert len(g.incoming_nodes[n1]) == 0
-    assert len(g.incoming_edges[n1]) == 0
+    assert len(g.incoming_nodes[n1]) == 1
+    assert len(g.incoming_edges[n1]) == 1
     assert len(g.incoming_nodes[n2]) == 1
     assert len(g.incoming_edges[n2]) == 1
+    assert len(g.incoming_edges[n3]) == 0
+    assert len(g.incoming_edges[n3]) == 0
 
-    assert len(g.outgoing_nodes[n1]) == 1
-    assert len(g.outgoing_edges[n1]) == 1
-    assert len(g.outgoing_nodes[n2]) == 0
-    assert len(g.outgoing_edges[n2]) == 0
+    assert len(g.outgoing_nodes[n1]) == 0
+    assert len(g.outgoing_edges[n1]) == 0
+    assert len(g.outgoing_nodes[n2]) == 1
+    assert len(g.outgoing_edges[n2]) == 1
+    assert len(g.outgoing_nodes[n3]) == 1
+    assert len(g.outgoing_edges[n3]) == 1
+
+    assert g.major_claim == n1
+    assert g.major_claim_distance(n1) == 0
+    assert g.major_claim_distance(n2) == 1
+    assert g.major_claim_distance(n3) == 2
 
     g.remove_node(n1)
 
-    assert len(g.nodes) == 1
-    assert len(g.edges) == 0
+    assert len(g.nodes) == 2
+    assert len(g.edges) == 1
+    assert g.major_claim == n2
 
 
 def test_import_graphs(shared_datadir):
