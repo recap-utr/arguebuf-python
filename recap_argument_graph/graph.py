@@ -14,10 +14,10 @@ import networkx as nx
 import pendulum
 from lxml import html
 
-from . import utils, dt
+from . import dt, utils
 from .edge import Edge
 from .node import Node, NodeCategory
-from .utils import ImmutableDict, ImmutableSet, MISSING, MISSING_TYPE
+from .utils import MISSING, MISSING_TYPE, ImmutableDict, ImmutableSet
 
 log = logging.getLogger(__name__)
 
@@ -159,6 +159,18 @@ class Graph:
         for node in self.inodes:
             if node.major_claim:
                 return node
+
+        # If no major claim explicitly set, try to find one node with no outgoing edges.
+        # It is only returned if there exists exactly one node without connections.
+        # Otherwise, nothing is returned.
+        mc_candidates = [
+            node
+            for node, connections in self.outgoing_nodes.items()
+            if len(connections) == 0
+        ]
+
+        if len(mc_candidates) == 1:
+            return mc_candidates[0]
 
         return None
 
@@ -392,8 +404,7 @@ class Graph:
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
-        """ Generate Graph structure from OVA argument graph file (reference: http://ova.uni-trier.de/).
-        """
+        """Generate Graph structure from OVA argument graph file (reference: http://ova.uni-trier.de/)."""
         analysis = obj["analysis"]
 
         g = cls(
@@ -439,8 +450,7 @@ class Graph:
         return g
 
     def to_ova(self) -> t.Dict[str, t.Any]:
-        """ Export structure of Graph instance to OVA argument graph format.
-        """
+        """Export structure of Graph instance to OVA argument graph format."""
         highlighted_text = self.highlighted_text
 
         if not highlighted_text:
@@ -478,7 +488,7 @@ class Graph:
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
-        """ Generate Graph structure from AIF argument graph file 
+        """Generate Graph structure from AIF argument graph file
         (reference: http://www.wi2.uni-trier.de/shared/publications/2019_LenzOllingerSahitajBergmann_ICCBR.pdf)
 
         """
@@ -497,8 +507,7 @@ class Graph:
         return g
 
     def to_aif(self) -> t.Dict[str, t.Any]:
-        """ Export structure of Graph instance to AIF argument graph format.
-        """
+        """Export structure of Graph instance to AIF argument graph format."""
         return {
             "nodes": [node.to_aif() for node in self.nodes],
             "edges": [edge.to_aif() for edge in self.edges],
@@ -551,8 +560,7 @@ class Graph:
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
-        """ Generate Graph structure from brat argument graph file (reference: https://brat.nlplab.org/)
-        """
+        """Generate Graph structure from brat argument graph file (reference: https://brat.nlplab.org/)"""
         reader = csv.reader(obj, delimiter="\t")
         g = cls(
             name=name or str(utils.unique_id()),
@@ -562,7 +570,10 @@ class Graph:
 
         inodes = {}
         mc = node_class(
-            g.keygen(), utils.parse("", nlp), NodeCategory.I, major_claim=True,
+            g.keygen(),
+            utils.parse("", nlp),
+            NodeCategory.I,
+            major_claim=True,
         )
 
         for row in reader:
@@ -573,7 +584,9 @@ class Graph:
                     mc.text = utils.parse(mc.plain_text + ". " + row[2], nlp)
                 else:
                     inode = node_class(
-                        g.keygen(), utils.parse(row[2], nlp), NodeCategory.I,
+                        g.keygen(),
+                        utils.parse(row[2], nlp),
+                        NodeCategory.I,
                     )
                     g.add_node(inode)
                     inodes[row[0]] = inode
@@ -667,7 +680,7 @@ class Graph:
     save = to_file
 
     def to_nx(self) -> nx.DiGraph:
-        """ Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
+        """Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
 
         Examples:
             >>> g = Graph("")
@@ -678,7 +691,7 @@ class Graph:
             >>> gnx = g.to_nx()
             >>> gnx.number_of_nodes()
             2
-        
+
         """
         g = nx.DiGraph()
 
@@ -693,10 +706,13 @@ class Graph:
     def to_gv(
         self, format: str = "pdf", engine: str = "dot", node_label: str = "plain_text"
     ) -> gv.Digraph:
-        """ Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information.
-
-        """
-        g = gv.Digraph(name=str(self.name), strict=True, format=format, engine=engine,)
+        """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
+        g = gv.Digraph(
+            name=str(self.name),
+            strict=True,
+            format=format,
+            engine=engine,
+        )
         g.attr(rankdir="BT", margin="0")
 
         for node in self.nodes:
@@ -715,8 +731,7 @@ class Graph:
         view: bool = False,
         node_label: str = "plain_text",
     ) -> None:
-        """ Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization.
-        """
+        """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
         filename = self.name
         directory = path
 
@@ -728,14 +743,16 @@ class Graph:
 
         try:
             g.render(
-                filename=filename, directory=str(directory), cleanup=True, view=view,
+                filename=filename,
+                directory=str(directory),
+                cleanup=True,
+                view=view,
             )
         except gv.ExecutableNotFound:
             log.error("Rendering not possible. GraphViz might not be installed.")
 
     def strip_snodes(self) -> None:
-        """ Remove scheme nodes from graph and merge respective edges into singular edge
-        """
+        """Remove scheme nodes from graph and merge respective edges into singular edge"""
         snodes = list(self.snodes)
 
         for snode in snodes:
@@ -751,8 +768,7 @@ class Graph:
         edge_class=Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
-        """ Contents of Graph instance are copied into new Graph object.
-        """
+        """Contents of Graph instance are copied into new Graph object."""
         obj = Graph.from_dict(self.to_dict(), self.name, node_class, edge_class, nlp)
 
         return obj
