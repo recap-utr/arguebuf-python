@@ -800,6 +800,6 @@ def _node_distance(
         if candidate == node2:
             return distance
         else:
-            expansion.extend((n, distance + 1) for n in connections)
+            expansion.extend((n, distance + 1) for n in connections[candidate])
 
     return None
