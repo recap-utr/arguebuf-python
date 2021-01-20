@@ -48,9 +48,9 @@ def test_create_graph(shared_datadir):
     assert len(g.outgoing_edges[n3]) == 1
 
     assert g.major_claim == n1
-    assert g.major_claim_distance(n1) == 0
-    assert g.major_claim_distance(n2) == 1
-    assert g.major_claim_distance(n3) == 2
+    assert g.node_distance(n1, n1) == 0
+    assert g.node_distance(n1, n2) == 1
+    assert g.node_distance(n1, n3) == 2
 
     g.remove_node(n1)
 

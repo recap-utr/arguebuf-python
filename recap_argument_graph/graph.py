@@ -395,18 +395,18 @@ class Graph:
         self._outgoing_nodes[edge.start]._store.remove(edge.end)
         self._incoming_nodes[edge.end]._store.remove(edge.start)
 
-    def major_claim_distance(self, node: Node) -> t.Optional[int]:
+    def node_distance(self, node1: Node, node2) -> t.Optional[int]:
         """If node is in the graph, return the distance to the major claim (if set)."""
 
         # TODO: Currently, there is no differentiation between I-nodes and S-nodes.
 
-        if (mc := self.major_claim) and node in self.nodes:
-            if mc == node:
+        if node1 in self.nodes and node2 in self.nodes:
+            if node1 == node2:
                 return 0
 
-            return _major_claim_distance(
-                node, mc, self.incoming_nodes
-            ) or _major_claim_distance(node, mc, self.outgoing_nodes)
+            return _node_distance(node1, node2, self.incoming_nodes) or _node_distance(
+                node1, node2, self.outgoing_nodes
+            )
 
         return None
 
@@ -789,15 +789,15 @@ class Graph:
         return obj
 
 
-def _major_claim_distance(
-    node: Node, mc: Node, connections: t.Mapping[Node, t.Iterable[Node]]
+def _node_distance(
+    node1: Node, node2: Node, connections: t.Mapping[Node, t.Iterable[Node]]
 ) -> t.Optional[int]:
-    expansion: t.List[t.Tuple[Node, int]] = [(n, 1) for n in connections[mc]]
+    expansion: t.List[t.Tuple[Node, int]] = [(n, 1) for n in connections[node1]]
 
     while len(expansion) > 0:
         candidate, distance = expansion.pop()
 
-        if candidate == node:
+        if candidate == node2:
             return distance
         else:
             expansion.extend((n, distance + 1) for n in connections)
