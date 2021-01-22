@@ -475,7 +475,7 @@ class Node:
         if not labels:
             labels = ["plain_text"]
 
-        label = "\n".join(getattr(self, attr) for attr in labels)
+        label = "\n".join(str(getattr(self, attr)) for attr in labels)
         label_wrapped = textwrap.fill(label, wrap_col)
 
         g.node(
