@@ -11,7 +11,7 @@ import networkx as nx
 import pendulum
 
 from . import dt, utils
-from .utils import MISSING, xstr, parse, MISSING_TYPE
+from .utils import MISSING, MISSING_TYPE, parse, xstr
 
 
 class NodeCategory(Enum):
@@ -460,7 +460,7 @@ class Node:
     def to_gv(
         self,
         g: gv.Digraph,
-        label: str = "plain_text",
+        labels: t.Optional[t.Iterable[str]] = None,
         color: t.Optional[ColorMapping] = None,
         label_prefix: str = "",
         label_suffix: str = "",
@@ -472,11 +472,15 @@ class Node:
         if not color:
             color = self.gv_color
 
-        label_text = textwrap.fill(getattr(self, label), wrap_col)
+        if not labels:
+            labels = ["plain_text"]
+
+        label = "\n".join(getattr(self, attr) for attr in labels)
+        label_wrapped = textwrap.fill(label, wrap_col)
 
         g.node(
             f"{key_prefix}{self.key}{key_suffix}",
-            label=f"{label_prefix}\n{label_text}\n{label_suffix}".strip(),
+            label=f"{label_prefix}\n{label_wrapped}\n{label_suffix}".strip(),
             fontname="Arial",
             fontsize="11",
             fontcolor=color.fg,

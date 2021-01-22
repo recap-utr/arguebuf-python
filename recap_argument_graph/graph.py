@@ -719,7 +719,10 @@ class Graph:
         return g
 
     def to_gv(
-        self, format: str = "pdf", engine: str = "dot", node_label: str = "plain_text"
+        self,
+        format: str = "pdf",
+        engine: str = "dot",
+        node_labels: t.Optional[t.Iterable[str]] = None,
     ) -> gv.Digraph:
         """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
         g = gv.Digraph(
@@ -731,7 +734,7 @@ class Graph:
         g.attr(rankdir="BT", margin="0")
 
         for node in self.nodes:
-            node.to_gv(g, node_label)
+            node.to_gv(g, node_labels)
 
         for edge in self.edges:
             edge.to_gv(g)
@@ -744,7 +747,7 @@ class Graph:
         format: str = "pdf",
         engine: str = "dot",
         view: bool = False,
-        node_label: str = "plain_text",
+        node_labels: t.Optional[t.Iterable[str]] = None,
     ) -> None:
         """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
         filename = self.name
@@ -754,7 +757,7 @@ class Graph:
             filename = path.stem
             directory = path.parent
 
-        g = self.to_gv(format, engine, node_label)
+        g = self.to_gv(format, engine, node_labels)
 
         try:
             g.render(
