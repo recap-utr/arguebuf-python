@@ -476,6 +476,9 @@ class Node:
             labels = ["plain_text"]
 
         label = "\n".join(str(getattr(self, attr)) for attr in labels)
+
+        # TODO: Improve wrapping
+        # https://stackoverflow.com/a/26538082/7626878
         label_wrapped = textwrap.fill(label, wrap_col)
 
         g.node(
