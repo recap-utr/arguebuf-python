@@ -723,8 +723,8 @@ class Graph:
         format: str = "pdf",
         engine: str = "dot",
         node_labels: t.Optional[t.Iterable[str]] = None,
-        nodesep: str = "0.25",
-        ranksep: str = "0.5",
+        nodesep: t.Optional[str] = None,
+        ranksep: t.Optional[str] = None,
     ) -> gv.Digraph:
         """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
         g = gv.Digraph(
@@ -733,7 +733,15 @@ class Graph:
             format=format,
             engine=engine,
         )
-        g.attr(rankdir="BT", margin="0", nodesep=str(nodesep), ranksep=str(ranksep))
+        g_attr = {"rankdir": "BT", "margin": "0"}
+
+        if nodesep:
+            g_attr["nodesep"] = str(nodesep)
+
+        if ranksep:
+            g_attr["ranksep"] = str(ranksep)
+
+        g.attr(**g_attr)
 
         for node in self.nodes:
             node.to_gv(g, node_labels)
@@ -750,8 +758,8 @@ class Graph:
         engine: str = "dot",
         view: bool = False,
         node_labels: t.Optional[t.Iterable[str]] = None,
-        nodesep: str = "0.25",
-        ranksep: str = "0.5",
+        nodesep: t.Optional[str] = None,
+        ranksep: t.Optional[str] = None,
     ) -> None:
         """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
         filename = self.name
