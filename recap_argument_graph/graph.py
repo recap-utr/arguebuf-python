@@ -723,6 +723,8 @@ class Graph:
         format: str = "pdf",
         engine: str = "dot",
         node_labels: t.Optional[t.Iterable[str]] = None,
+        nodesep: str = "0.25",
+        ranksep: str = "0.5",
     ) -> gv.Digraph:
         """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
         g = gv.Digraph(
@@ -731,7 +733,7 @@ class Graph:
             format=format,
             engine=engine,
         )
-        g.attr(rankdir="BT", margin="0")
+        g.attr(rankdir="BT", margin="0", nodesep=str(nodesep), ranksep=str(ranksep))
 
         for node in self.nodes:
             node.to_gv(g, node_labels)
@@ -748,6 +750,8 @@ class Graph:
         engine: str = "dot",
         view: bool = False,
         node_labels: t.Optional[t.Iterable[str]] = None,
+        nodesep: str = "0.25",
+        ranksep: str = "0.5",
     ) -> None:
         """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
         filename = self.name
@@ -757,7 +761,7 @@ class Graph:
             filename = path.stem
             directory = path.parent
 
-        g = self.to_gv(format, engine, node_labels)
+        g = self.to_gv(format, engine, node_labels, nodesep, ranksep=ranksep)
 
         try:
             g.render(
