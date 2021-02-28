@@ -466,14 +466,28 @@ class Node:
         label_suffix: str = "",
         key_prefix: str = "",
         key_suffix: str = "",
-        wrap_col: int = 36,
-        margin: t.Tuple[float, float] = (0.15, 0.1),
+        wrap_col: t.Optional[int] = None,
+        margin: t.Optional[t.Tuple[float, float]] = None,
+        font_name: t.Optional[str] = None,
+        font_size: t.Optional[float] = None,
     ) -> None:
         if not color:
             color = self.gv_color
 
         if not labels:
             labels = ["plain_text"]
+
+        if not wrap_col:
+            wrap_col = 36
+
+        if not margin:
+            margin = (0.15, 0.1)
+
+        if not font_name:
+            font_name = "Arial"
+
+        if not font_size:
+            font_size = 11
 
         label = "\n".join(str(getattr(self, attr)) for attr in labels)
 
@@ -484,8 +498,8 @@ class Node:
         g.node(
             f"{key_prefix}{self.key}{key_suffix}",
             label=f"{label_prefix}\n{label_wrapped}\n{label_suffix}".strip(),
-            fontname="Arial",
-            fontsize="11",
+            fontname=font_name,
+            fontsize=str(font_size),
             fontcolor=color.fg,
             fillcolor=color.bg,
             color=color.border,

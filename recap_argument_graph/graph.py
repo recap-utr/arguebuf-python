@@ -723,8 +723,12 @@ class Graph:
         format: str = "pdf",
         engine: str = "dot",
         node_labels: t.Optional[t.Iterable[str]] = None,
-        nodesep: t.Optional[str] = None,
-        ranksep: t.Optional[str] = None,
+        nodesep: t.Optional[int] = None,
+        ranksep: t.Optional[int] = None,
+        wrap_col: t.Optional[int] = None,
+        margin: t.Optional[t.Tuple[float, float]] = None,
+        font_name: t.Optional[str] = None,
+        font_size: t.Optional[float] = None,
     ) -> gv.Digraph:
         """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
         g = gv.Digraph(
@@ -744,7 +748,14 @@ class Graph:
         g.attr(**g_attr)
 
         for node in self.nodes:
-            node.to_gv(g, node_labels)
+            node.to_gv(
+                g,
+                node_labels,
+                wrap_col=wrap_col,
+                margin=margin,
+                font_name=font_name,
+                font_size=font_size,
+            )
 
         for edge in self.edges:
             edge.to_gv(g)
@@ -758,8 +769,12 @@ class Graph:
         engine: str = "dot",
         view: bool = False,
         node_labels: t.Optional[t.Iterable[str]] = None,
-        nodesep: t.Optional[str] = None,
-        ranksep: t.Optional[str] = None,
+        nodesep: t.Optional[int] = None,
+        ranksep: t.Optional[int] = None,
+        node_wrap_col: t.Optional[int] = None,
+        node_margin: t.Optional[t.Tuple[float, float]] = None,
+        font_name: t.Optional[str] = None,
+        font_size: t.Optional[float] = None,
     ) -> None:
         """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
         filename = self.name
@@ -769,7 +784,17 @@ class Graph:
             filename = path.stem
             directory = path.parent
 
-        g = self.to_gv(format, engine, node_labels, nodesep, ranksep=ranksep)
+        g = self.to_gv(
+            format,
+            engine,
+            node_labels,
+            nodesep,
+            ranksep,
+            node_wrap_col,
+            node_margin,
+            font_name,
+            font_size,
+        )
 
         try:
             g.render(
