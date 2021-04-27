@@ -34,7 +34,6 @@ author = "Mirko Lenz"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    # "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx.ext.autosummary",
@@ -45,7 +44,6 @@ extensions = [
 autodoc_typehints = "description"
 # autoclass_content = "both"
 autodoc_member_order = "groupwise"
-# always_document_param_types = True
 
 autosummary_generate = True
 
