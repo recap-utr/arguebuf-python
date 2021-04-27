@@ -18,6 +18,8 @@ deepdiff = { extras = ["murmur"], version = "^4.0.9" }
 sphinx = "^3.5"
 sphinx-autodoc-typehints = "^1.11"
 sphinx-rtd-theme = "^0.5.2"
+myst-parser = "^0.13.7"
+rst-to-myst = "^0.1.2"
 
 [build-system]
 requires = ["poetry>=0.12"]
