@@ -1,0 +1,11 @@
+# https://github.com/readthedocs/readthedocs.org/issues/4912
+
+version: 2
+
+sphinx:
+  configuration: docs/conf.py
+
+python:
+  version: 3.8
+  install:
+    - method: pip
