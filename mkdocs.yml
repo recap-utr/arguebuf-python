@@ -1,0 +1,27 @@
+site_name: ReCAP Argument Graph
+
+theme:
+  name: "material"
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          selection:
+            filters:
+              - "!^_" # exlude all members starting with _
+              - "^__init__$" # but always include __init__ modules and methods
+          rendering:
+            show_category_heading: true
+            show_if_no_docstring: true
+            show_root_toc_entry: false
