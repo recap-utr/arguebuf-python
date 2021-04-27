@@ -1,5 +1,5 @@
+---
 # https://github.com/readthedocs/readthedocs.org/issues/4912
-
 version: 2
 
 sphinx:
@@ -10,3 +10,5 @@ python:
   install:
     - method: pip
       path: .
+      extra_requirements:
+        - docs
