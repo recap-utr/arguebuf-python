@@ -18,12 +18,12 @@ sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
-project = "ReCAP-Argument-Graph"
-copyright = "2019, Mirko Lenz"
+project = "ReCAP Argument Graph"
+copyright = "Mirko Lenz"
 author = "Mirko Lenz"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.10"
+# release = "0.1.10"
 
 
 # -- General configuration ---------------------------------------------------
