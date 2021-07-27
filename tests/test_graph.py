@@ -16,19 +16,19 @@ def test_create_graph(shared_datadir):
     g = ag.Graph("Test")
 
     n1 = ag.Node(g.keygen(), "Node 1", ag.NodeCategory.I)
-    n2 = ag.Node(g.keygen(), "Node 2", ag.NodeCategory.I)
+    n2 = ag.Node(g.keygen(), "RA", ag.NodeCategory.RA)
     n3 = ag.Node(g.keygen(), "Node 3", ag.NodeCategory.I)
     e21 = ag.Edge(g.keygen(), n2, n1)
-    e31 = ag.Edge(g.keygen(), n3, n2)
+    e23 = ag.Edge(g.keygen(), n2, n3)
 
     g.add_edge(e21)
-    g.add_edge(e31)
+    g.add_edge(e23)
 
     assert n1.key == 1
     assert n2.key == 2
     assert n3.key == 3
     assert e21.key == 4
-    assert e31.key == 5
+    assert e23.key == 5
 
     assert e21.start == n2
     assert e21.end == n1
@@ -52,11 +52,10 @@ def test_create_graph(shared_datadir):
     assert g.node_distance(n1, n2) == 1
     assert g.node_distance(n1, n3) == 2
 
-    g.remove_node(n1)
+    g.strip_snodes()
 
     assert len(g.nodes) == 2
     assert len(g.edges) == 1
-    assert g.major_claim == n2
 
 
 def test_import_graphs(shared_datadir):

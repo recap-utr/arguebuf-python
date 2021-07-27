@@ -833,11 +833,14 @@ class Graph:
         snodes = list(self.snodes)
 
         for snode in snodes:
-            for incoming in self.incoming_edges[snode]:
+            incoming_edges = self.incoming_edges[snode]
+            outgoing_edges = self.outgoing_edges[snode]
+
+            for incoming in incoming_edges:
                 if incoming.start.category == NodeCategory.I:
                     self.remove_edge(incoming)
 
-                    for outgoing in self.outgoing_edges[snode]:
+                    for outgoing in outgoing_edges:
                         if outgoing.end.category == NodeCategory.I:
                             self.remove_edge(outgoing)
 
