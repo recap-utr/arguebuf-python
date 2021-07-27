@@ -18,44 +18,50 @@ def test_create_graph(shared_datadir):
     n1 = ag.Node(g.keygen(), "Node 1", ag.NodeCategory.I)
     n2 = ag.Node(g.keygen(), "RA", ag.NodeCategory.RA)
     n3 = ag.Node(g.keygen(), "Node 3", ag.NodeCategory.I)
-    e21 = ag.Edge(g.keygen(), n2, n1)
+    n4 = ag.Node(g.keygen(), "RA", ag.NodeCategory.RA)
+    n5 = ag.Node(g.keygen(), "Node 5", ag.NodeCategory.I)
+    e12 = ag.Edge(g.keygen(), n1, n2)
     e23 = ag.Edge(g.keygen(), n2, n3)
+    e34 = ag.Edge(g.keygen(), n3, n4)
+    e45 = ag.Edge(g.keygen(), n4, n5)
 
-    g.add_edge(e21)
+    g.add_edge(e12)
     g.add_edge(e23)
+    g.add_edge(e34)
+    g.add_edge(e45)
 
     assert n1.key == 1
     assert n2.key == 2
     assert n3.key == 3
-    assert e21.key == 4
-    assert e23.key == 5
+    assert e12.key == 6
+    assert e23.key == 7
 
-    assert e21.start == n2
-    assert e21.end == n1
+    assert e12.start == n1
+    assert e12.end == n2
 
-    assert len(g.incoming_nodes[n1]) == 1
-    assert len(g.incoming_edges[n1]) == 1
-    assert len(g.incoming_nodes[n2]) == 1
-    assert len(g.incoming_edges[n2]) == 1
-    assert len(g.incoming_edges[n3]) == 0
-    assert len(g.incoming_edges[n3]) == 0
+    assert len(g.incoming_nodes[n1]) == 0
+    assert len(g.incoming_edges[n1]) == 0
+    assert len(g.incoming_nodes[n3]) == 1
+    assert len(g.incoming_edges[n3]) == 1
+    assert len(g.incoming_edges[n5]) == 1
+    assert len(g.incoming_edges[n5]) == 1
 
-    assert len(g.outgoing_nodes[n1]) == 0
-    assert len(g.outgoing_edges[n1]) == 0
-    assert len(g.outgoing_nodes[n2]) == 1
-    assert len(g.outgoing_edges[n2]) == 1
+    assert len(g.outgoing_nodes[n1]) == 1
+    assert len(g.outgoing_edges[n1]) == 1
     assert len(g.outgoing_nodes[n3]) == 1
     assert len(g.outgoing_edges[n3]) == 1
+    assert len(g.outgoing_nodes[n5]) == 0
+    assert len(g.outgoing_edges[n5]) == 0
 
-    assert g.major_claim == n1
+    assert g.major_claim == n5
     assert g.node_distance(n1, n1) == 0
     assert g.node_distance(n1, n2) == 1
     assert g.node_distance(n1, n3) == 2
 
     g.strip_snodes()
 
-    assert len(g.nodes) == 2
-    assert len(g.edges) == 1
+    assert len(g.nodes) == 3
+    assert len(g.edges) == 2
 
 
 def test_import_graphs(shared_datadir):

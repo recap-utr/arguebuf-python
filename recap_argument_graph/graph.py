@@ -833,8 +833,8 @@ class Graph:
         snodes = list(self.snodes)
 
         for snode in snodes:
-            incoming_edges = self.incoming_edges[snode]
-            outgoing_edges = self.outgoing_edges[snode]
+            outgoing_edges = set(self.outgoing_edges[snode])
+            incoming_edges = set(self.incoming_edges[snode])
 
             for incoming in incoming_edges:
                 if incoming.start.category == NodeCategory.I:
