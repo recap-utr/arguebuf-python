@@ -4,7 +4,6 @@ import collections
 import typing as t
 import uuid
 
-
 # key_iterator = itertools.count(start=1)
 #
 #
@@ -52,9 +51,9 @@ def missing_key_error(name: str, key: int) -> str:
     return f"Graph '{name}' does not contain an element with key '{key}'. It cannot be removed."
 
 
-# A sentinel object to detect if a parameter is supplied or not.  Use
-# a class to give it a better repr.
 class MISSING_TYPE:
+    """A sentinel object to detect if a parameter is supplied or not."""
+
     pass
 
 

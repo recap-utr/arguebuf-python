@@ -5,12 +5,21 @@ theme:
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
 
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
+
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search
@@ -21,7 +30,8 @@ plugins:
             filters:
               - "!^_" # exlude all members starting with _
               - "^__init__$" # but always include __init__ modules and methods
+              - "!^log" # exclude logging
           rendering:
-            show_category_heading: true
+            # show_category_heading: true
             show_if_no_docstring: true
-            show_root_toc_entry: false
+            # show_root_toc_entry: false

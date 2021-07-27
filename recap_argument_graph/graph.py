@@ -23,9 +23,16 @@ log = logging.getLogger(__name__)
 
 
 class GraphCategory(Enum):
+    """Differentiate between different types of graphs."""
+
     AIF = "aif"
+    """Graph in AIF format."""
+
     OVA = "ova"
+    """Graph in the proprietary OVA format. See ova.arg-tech.org."""
+
     OTHER = "other"
+    """Default format for graphs generated programmatically."""
 
 
 # noinspection PyProtectedMember
@@ -187,6 +194,21 @@ class Graph:
         document_date: t.Union[MISSING_TYPE, None, pendulum.DateTime] = MISSING,
         participants: t.Optional[t.List[t.Any]] = None,
     ):
+        """Create a graph from scratch.
+
+        Args:
+            name: [description]
+            category: [description]. Defaults to GraphCategory.OTHER.
+            ova_version: [description]. Defaults to None.
+            text: [description]. Defaults to None.
+            highlighted_text: [description]. Defaults to None.
+            annotator_name: [description]. Defaults to None.
+            document_source: [description]. Defaults to None.
+            document_title: [description]. Defaults to None.
+            document_date: [description]. Defaults to MISSING.
+            participants: [description]. Defaults to None.
+        """
+
         self.name = name
         self.category = category
         self.ova_version = ova_version
@@ -811,9 +833,21 @@ class Graph:
         snodes = list(self.snodes)
 
         for snode in snodes:
-            for incoming in self.incoming_nodes[snode]:
-                for outgoing in self.outgoing_nodes[snode]:
-                    self.add_edge(Edge(self.keygen(), incoming, outgoing))
+            for incoming in self.incoming_edges[snode]:
+                if incoming.start.category == NodeCategory.I:
+                    self.remove_edge(incoming)
+
+                    for outgoing in self.outgoing_edges[snode]:
+                        if outgoing.end.category == NodeCategory.I:
+                            self.remove_edge(outgoing)
+
+                            self.add_edge(
+                                Edge(
+                                    int(str(incoming.key) + str(outgoing.key)),
+                                    incoming.start,
+                                    outgoing.end,
+                                )
+                            )
 
             self.remove_node(snode)
 
