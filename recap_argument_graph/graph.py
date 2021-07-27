@@ -312,14 +312,14 @@ class Graph:
             0
             >>> g.remove_node(n1)
             Traceback (most recent call last):
-            ValueError: Node not in graph.
+            KeyError: Node not in graph.
         """
 
         if not isinstance(node, Node):
             raise TypeError(utils.type_error(type(node), Node))
 
         if node.key not in self.keys:
-            raise ValueError(utils.missing_key_error(self.name, node.key))
+            raise KeyError(utils.missing_key_error(self.name, node.key))
 
         del self._node_mappings._store[node.key]
         self._keys._store.remove(node.key)
@@ -361,8 +361,8 @@ class Graph:
             >>> print(len(g.edges))
             2
         """
-        if not TypeError(edge, Edge):
-            raise ValueError(utils.type_error(type(edge), Edge))
+        if not isinstance(edge, Edge):
+            raise TypeError(utils.type_error(type(edge), Edge))
 
         if edge.key in self.keys:
             raise ValueError(utils.duplicate_key_error(self.name, edge.key))
@@ -403,11 +403,11 @@ class Graph:
             >>> len(g.nodes)
             2
         """
-        if not TypeError(edge, Edge):
-            raise ValueError(utils.type_error(type(edge), Edge))
+        if not isinstance(edge, Edge):
+            raise TypeError(utils.type_error(type(edge), Edge))
 
         if edge.key not in self.keys:
-            raise ValueError(utils.missing_key_error(self.name, edge.key))
+            raise KeyError(utils.missing_key_error(self.name, edge.key))
 
         del self._edge_mappings._store[edge.key]
         self._keys._store.remove(edge.key)
@@ -833,24 +833,20 @@ class Graph:
         snodes = list(self.snodes)
 
         for snode in snodes:
-            outgoing_edges = set(self.outgoing_edges[snode])
-            incoming_edges = set(self.incoming_edges[snode])
-
-            for incoming in incoming_edges:
-                if incoming.start.category == NodeCategory.I:
-                    self.remove_edge(incoming)
-
-                    for outgoing in outgoing_edges:
-                        if outgoing.end.category == NodeCategory.I:
-                            self.remove_edge(outgoing)
-
-                            self.add_edge(
-                                Edge(
-                                    int(str(incoming.key) + str(outgoing.key)),
-                                    incoming.start,
-                                    outgoing.end,
-                                )
-                            )
+            for incoming, outgoing in itertools.product(
+                self.incoming_edges[snode], self.outgoing_edges[snode]
+            ):
+                if (
+                    incoming.start.category == NodeCategory.I
+                    and outgoing.end.category == NodeCategory.I
+                ):
+                    self.add_edge(
+                        Edge(
+                            int(str(incoming.key) + str(outgoing.key)),
+                            incoming.start,
+                            outgoing.end,
+                        )
+                    )
 
             self.remove_node(snode)
 
