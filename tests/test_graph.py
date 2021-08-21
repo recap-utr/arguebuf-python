@@ -2,7 +2,7 @@ import json
 import multiprocessing
 from typing import Any, Dict, List, Optional
 
-import recap_argument_graph as ag
+import arguebuf as ag
 from deepdiff import DeepDiff
 
 # TODO: Text length different

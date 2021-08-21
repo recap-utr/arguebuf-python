@@ -1,6 +1,6 @@
 import pytest
 import json
-import recap_argument_graph as ag
+import arguebuf as ag
 import pendulum
 
 

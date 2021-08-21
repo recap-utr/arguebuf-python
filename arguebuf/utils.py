@@ -4,15 +4,9 @@ import collections
 import typing as t
 import uuid
 
-# key_iterator = itertools.count(start=1)
-#
-#
-# def keygen() -> int:
-#     return next(key_iterator)
 
-
-def unique_id() -> int:
-    return uuid.uuid1().int >> 64
+def unique_id() -> str:
+    return str(uuid.uuid1())
 
 
 def _class_name(obj) -> str:
@@ -27,8 +21,11 @@ def xstr(data: t.Any) -> str:
     return "" if data is None else str(data)
 
 
-def parse(text: str, nlp: t.Optional[t.Callable[[str], t.Any]]) -> t.Any:
+def parse(text: t.Optional[str], nlp: t.Optional[t.Callable[[str], t.Any]]) -> t.Any:
     if nlp:
+        if text is None:
+            return nlp("")
+
         try:
             out = nlp(text)
         except ValueError:
@@ -43,21 +40,12 @@ def type_error(actual: t.Type, expected: t.Type) -> str:
     return f"Expected type '{expected}', but got '{actual}'. Make sure that you are passing the correct method arguments."
 
 
-def duplicate_key_error(name: str, key: int) -> str:
+def duplicate_key_error(name: str, key: str) -> str:
     return f"Graph '{name}' already contains an element with key '{key}'. The keys have to be unique within each graph."
 
 
-def missing_key_error(name: str, key: int) -> str:
+def missing_key_error(name: str, key: str) -> str:
     return f"Graph '{name}' does not contain an element with key '{key}'. It cannot be removed."
-
-
-class MISSING_TYPE:
-    """A sentinel object to detect if a parameter is supplied or not."""
-
-    pass
-
-
-MISSING = MISSING_TYPE()
 
 
 T = t.TypeVar("T")

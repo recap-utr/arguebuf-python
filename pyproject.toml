@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ReCAP-Argument-Graph"
+name = "Arguebuf"
 version = "0.1.45"
 description = "A library for loading argument graphs in various formats (e.g., AIF)."
 authors = ["Mirko Lenz <info@mirko-lenz.de>"]
@@ -7,7 +7,7 @@ license = "Apache-2.0"
 readme = "README.md"
 homepage = "http://recap.uni-trier.de"
 repository = "https://github.com/ReCAP-UTR/Argument-Graph"
-documentation = "https://recap-argument-graph.readthedocs.io/en/latest"
+documentation = "https://arguebuf.readthedocs.io/en/latest"
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -19,6 +19,7 @@ sphinx = { version = "^3.5", optional = true }
 sphinx-rtd-theme = { version = "^0.5.2", optional = true }
 furo = { version = "^2021.4.11b34", optional = true }
 myst-parser = { version = "^0.13.7", optional = true }
+arg-services = "^0.1.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"

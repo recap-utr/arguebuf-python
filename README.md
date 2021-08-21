@@ -1,4 +1,4 @@
-# ReCAP Argument Graph
+# Argument Buffers (Arguebuf)
 
-- [Documentation](https://recap-argument-graph.readthedocs.io/en/latest/)
-- [PyPI](https://pypi.org/project/recap-argument-graph/)
+- [Documentation](https://arguebuf.readthedocs.io/en/latest/)
+- [PyPI](https://pypi.org/project/arguebuf/)
