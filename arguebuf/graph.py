@@ -25,7 +25,7 @@ from .utils import ImmutableDict, ImmutableSet
 log = logging.getLogger(__name__)
 
 
-class GraphFormat(Enum):
+class GraphFormat(str, Enum):
     ARGUEBUF = "arguebuf"
     AIF = "aif"
 
@@ -164,7 +164,7 @@ class Graph:
         self._outgoing_edges = ImmutableDict()
 
         try:
-            self.version = importlib.metadata.version("arguebuf")
+            self.version = importlib.metadata.version("arg_services")
         except importlib.metadata.PackageNotFoundError:
             self.version = "1.0"
 
@@ -435,18 +435,20 @@ class Graph:
                             resource, len(text), utils.parse(elem.text, nlp)
                         )
 
-                    text += elem.text
+                    if elem.text:
+                        text += elem.text
 
                 # A line break does not contain text, thus we only insert a newline
                 elif elem.tag == "br":
                     text += "\n"
 
                 # All other elements (e.g., the body tag) are just added to the text
-                else:
+                elif elem.text:
                     text += elem.text
 
                 # Text after a tag should always be added to the overall text
-                text += elem.tail
+                if elem.tail:
+                    text += elem.tail
 
         return g
 
@@ -502,7 +504,7 @@ class Graph:
             g.analysts.extend(analyst.to_protobuf() for analyst in self.analysts)
 
         for resource_id, resource in self._resources.items():
-            g.resources[resource_id] = resource.to_protobuf()
+            g.resources[resource_id].CopyFrom(resource.to_protobuf())
 
         g.userdata.update(self.userdata)
         g.metadata.CopyFrom(self._metadata.to_protobuf())
@@ -569,8 +571,8 @@ class Graph:
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
-        # if "analysis" in obj:
-        #     return cls.from_ova(obj, name, atom_class, scheme_class, edge_class, nlp)
+        if "analysis" in obj:
+            return cls.from_ova(obj, name, atom_class, scheme_class, edge_class, nlp)
 
         if "locutions" in obj:
             return cls.from_aif(obj, name, atom_class, scheme_class, edge_class, nlp)

@@ -75,8 +75,8 @@ class Edge:
         if not nodes:
             nodes = {}
 
-        source_id = obj["from"]["id"]
-        target_id = obj["to"]["id"]
+        source_id = str(obj["from"]["id"])
+        target_id = str(obj["to"]["id"])
         timestamp = dt.from_ova(obj.get("data"))
 
         return cls(

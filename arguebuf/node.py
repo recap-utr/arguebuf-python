@@ -363,11 +363,22 @@ class SchemeNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
+        ova_desc = obj["descriptors"]
+        descriptors = {}
+
+        ova_key: str
+        ova_value: int
+        for ova_key, ova_value in ova_desc.items():
+            value = utils.xstr(ova_value)
+            key = ova_key.lstrip("s_").split("։")[0]
+
+            descriptors[key] = value
+
         return cls(
             **_from_ova(obj),
             argumentation_scheme=obj["text"],
             type=SchemeType(obj["type"]),
-            descriptors=obj["descriptors"],
+            descriptors=descriptors,
         )
 
     @classmethod
@@ -454,4 +465,4 @@ def _from_ova(obj: t.Mapping[str, t.Any]) -> t.Dict[str, t.Any]:
     timestamp = dt.from_ova(obj.get("date"))
     metadata = Metadata(timestamp, timestamp) if timestamp else Metadata()
 
-    return {"id": obj["id"], "metadata": metadata}
+    return {"id": str(obj["id"]), "metadata": metadata}

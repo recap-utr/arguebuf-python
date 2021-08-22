@@ -13,8 +13,18 @@ Userdata = t.Dict[str, t.Any]
 
 @dataclass()
 class Metadata:
-    created: pendulum.DateTime = field(default_factory=pendulum.now)
-    updated: pendulum.DateTime = field(default_factory=pendulum.now)
+    created: pendulum.DateTime
+    updated: pendulum.DateTime
+
+    def __init__(
+        self,
+        created: t.Optional[pendulum.DateTime] = None,
+        updated: t.Optional[pendulum.DateTime] = None,
+    ) -> None:
+        current = pendulum.now()
+
+        self.created = created or current
+        self.updated = updated or current
 
     def to_protobuf(self) -> graph_pb2.Metadata:
         obj = graph_pb2.Metadata()
