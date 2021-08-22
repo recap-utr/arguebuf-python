@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "arg-services"
-version = "0.1.14"
+version = "0.1.15"
 description = "GraphQL and gRPC schemas for Microservice-based Argumentation Machines."
 category = "main"
 optional = false
@@ -645,7 +645,7 @@ docs = ["sphinx", "furo", "sphinx-rtd-theme", "myst-parser"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e9b815e7cd7c179e7791cedd95a87ab9e957fef96e6d35cfd898800ef52691a4"
+content-hash = "0dbcf543e9a04d7d12f2b83f2ddb49110e50318493e15f681245937821404f6c"
 
 [metadata.files]
 alabaster = [
@@ -653,8 +653,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 arg-services = [
-    {file = "arg-services-0.1.14.tar.gz", hash = "sha256:e67f74b5eaf43e94775cd7ac8e5511f811fb3d486ce5c1f1ec5512fb8574a3aa"},
-    {file = "arg_services-0.1.14-py3-none-any.whl", hash = "sha256:f0ac9e25765cd8a104640d3f84aace5561995a8e67d95bd2492613b1129271fd"},
+    {file = "arg-services-0.1.15.tar.gz", hash = "sha256:f9a483982b19157749f383ac3c7144d6eaf84efefd73529a6cd725f47651a05a"},
+    {file = "arg_services-0.1.15-py3-none-any.whl", hash = "sha256:7f76404fb811508d70f9ee14ae4eac8b68865eba666d5c2c08a4d4d98fda4dfc"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},

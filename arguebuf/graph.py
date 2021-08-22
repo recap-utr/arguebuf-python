@@ -1,6 +1,7 @@
 from __future__ import absolute_import, annotations
 
 import csv
+import importlib.metadata
 import itertools
 import json
 import logging
@@ -72,6 +73,10 @@ class Graph:
     version: str
 
     @property
+    def edges(self) -> t.Mapping[str, Edge]:
+        return self._edges
+
+    @property
     def nodes(self) -> t.Mapping[str, Node]:
         return self._nodes
 
@@ -130,6 +135,11 @@ class Graph:
 
         return None
 
+    @major_claim.setter
+    def major_claim(self, value: t.Optional[Node]) -> None:
+        self._major_claim = value
+        # self._metadata.update()
+
     @property
     def metadata(self) -> Metadata:
         return self._metadata
@@ -153,7 +163,10 @@ class Graph:
         self._outgoing_nodes = ImmutableDict()
         self._outgoing_edges = ImmutableDict()
 
-        self.version = "TODO"
+        try:
+            self.version = importlib.metadata.version("arguebuf")
+        except importlib.metadata.PackageNotFoundError:
+            self.version = "1.0"
 
         self.__post_init__()
 
@@ -365,9 +378,9 @@ class Graph:
         cls,
         obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Generate Graph structure from OVA argument graph file (reference: http://ova.uni-trier.de/)."""
@@ -442,9 +455,9 @@ class Graph:
         cls,
         obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Generate Graph structure from AIF argument graph file
@@ -502,22 +515,25 @@ class Graph:
         cls,
         obj: graph_pb2.Graph,
         name: t.Optional[str] = None,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
-        analyst_class=Analyst,
-        resource_class=Resource,
-        anchor_class=Anchor,
-        metadata_class=Metadata,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
+        analyst_class: t.Type[Analyst] = Analyst,
+        resource_class: t.Type[Resource] = Resource,
+        anchor_class: t.Type[Anchor] = Anchor,
+        metadata_class: t.Type[Metadata] = Metadata,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         g = cls(name)
+
+        for resource_id, resource in obj.resources.items():
+            g.add_resource(resource_class.from_protobuf(resource_id, resource, nlp))
 
         for node_id, node in obj.nodes.items():
             if node.WhichOneof("node") == "atom":
                 g.add_node(
                     atom_class.from_protobuf(
-                        node_id, node, metadata_class, anchor_class, nlp
+                        node_id, node, g._resources, metadata_class, anchor_class, nlp
                     )
                 )
             elif node.WhichOneof("node") == "scheme":
@@ -537,9 +553,6 @@ class Graph:
 
         g.analysts = [analyst_class.from_protobuf(analyst) for analyst in obj.analysts]
 
-        for resource_id, resource in obj.resources.items():
-            g.add_resource(resource_class.from_protobuf(resource_id, resource, nlp))
-
         g.userdata.update(obj.userdata)
         g._metadata = metadata_class.from_protobuf(obj.metadata)
         g.version = obj.version
@@ -551,9 +564,9 @@ class Graph:
         cls,
         obj: t.Mapping[str, t.Any],
         name: t.Optional[str] = None,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         # if "analysis" in obj:
@@ -568,7 +581,7 @@ class Graph:
             atom_class,
             scheme_class,
             edge_class,
-            nlp,
+            nlp=nlp,
         )
 
     def to_dict(self, format: GraphFormat) -> t.Dict[str, t.Any]:
@@ -582,9 +595,9 @@ class Graph:
         cls,
         obj: t.IO,
         name: t.Optional[str] = None,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         return cls.from_dict(
@@ -599,9 +612,9 @@ class Graph:
         cls,
         obj: t.IO,
         name: t.Optional[str] = None,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Generate Graph structure from brat argument graph file (reference: https://brat.nlplab.org/)"""
@@ -609,7 +622,7 @@ class Graph:
         g = cls(name)
 
         inodes = {}
-        mc: AtomNode = atom_class(utils.unique_id(), utils.parse("", nlp))
+        mc = atom_class(utils.unique_id(), utils.parse("", nlp))
         g.add_node(mc)
         g._major_claim = mc
 
@@ -642,7 +655,7 @@ class Graph:
                     source_inode = inodes[metadata[1].split(":")[1]]
                     target_inode = inodes[metadata[2].split(":")[1]]
 
-                snode: SchemeNode = scheme_class(utils.unique_id(), scheme_type)
+                snode = scheme_class(utils.unique_id(), scheme_type)
                 g.add_node(snode)
 
                 g.add_edge(edge_class(utils.unique_id(), source_inode, snode))
@@ -656,9 +669,9 @@ class Graph:
         obj: t.IO,
         suffix: str,
         name: t.Optional[str] = None,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         if suffix == ".ann":
@@ -673,9 +686,9 @@ class Graph:
     def from_file(
         cls,
         path: Path,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         with path.open("r", encoding="utf-8") as file:
@@ -696,9 +709,9 @@ class Graph:
     def from_folder(
         cls,
         path: Path,
-        atom_class=AtomNode,
-        scheme_class=SchemeNode,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
         suffixes: t.Iterable[str] = (".json"),
     ) -> t.List[Graph]:
@@ -808,12 +821,20 @@ class Graph:
 
     def copy(
         self,
-        node_class=Node,
-        edge_class=Edge,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Contents of Graph instance are copied into new Graph object."""
-        return Graph.from_dict(self.to_dict(), self.name, node_class, edge_class, nlp)
+        return Graph.from_dict(
+            self.to_dict(format=GraphFormat.ARGUEBUF),
+            self.name,
+            atom_class,
+            scheme_class,
+            edge_class,
+            nlp,
+        )
 
 
 def _node_distance(

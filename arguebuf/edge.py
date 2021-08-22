@@ -70,7 +70,7 @@ class Edge:
     def from_ova(
         cls,
         obj: t.Mapping[str, t.Any],
-        nodes: t.Mapping[int, Node] = None,
+        nodes: t.Mapping[str, Node] = None,
     ) -> Edge:
         if not nodes:
             nodes = {}
@@ -90,7 +90,7 @@ class Edge:
     def from_aif(
         cls,
         obj: t.Any,
-        nodes: t.Mapping[int, Node],
+        nodes: t.Mapping[str, Node],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Edge:
         start_id = obj.get("fromID")
@@ -112,7 +112,11 @@ class Edge:
 
     @classmethod
     def from_protobuf(
-        cls, id: str, obj: graph_pb2.Edge, nodes: t.Mapping[str, Node], metadata_class
+        cls,
+        id: str,
+        obj: graph_pb2.Edge,
+        nodes: t.Mapping[str, Node],
+        metadata_class: t.Type[Metadata],
     ) -> Edge:
         return cls(
             id,

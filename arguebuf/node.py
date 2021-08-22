@@ -11,7 +11,7 @@ import networkx as nx
 from arg_services.graph.v1 import graph_pb2
 
 from arguebuf import dt, utils
-from arguebuf.data import Anchor, Metadata, Userdata
+from arguebuf.data import Anchor, Metadata, Resource, Userdata
 
 
 class SchemeType(Enum):
@@ -165,7 +165,6 @@ class Node(ABC):
 
     #     label = "\n".join(str(getattr(self, attr)) for attr in labels)
 
-    #     # TODO: Improve wrapping
     #     # https://stackoverflow.com/a/26538082/7626878
     #     label_wrapped = textwrap.fill(label, wrap_col)
 
@@ -250,14 +249,15 @@ class AtomNode(Node):
         cls,
         id: str,
         obj: graph_pb2.Node,
-        metadata_class,
-        anchor_class,
+        resources: t.Mapping[str, Resource],
+        metadata_class: t.Type[Metadata],
+        anchor_class: t.Type[Anchor],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         return cls(
             id,
             utils.parse(obj.atom.text, nlp),
-            anchor_class.from_protobuf(obj.atom.anchor),
+            anchor_class.from_protobuf(obj.atom.anchor, resources, nlp),
             metadata_class.from_protobuf(obj.metadata),
             dict(obj.userdata.items()),
         )
@@ -318,7 +318,7 @@ class SchemeNode(Node):
         self,
         id: str,
         type: SchemeType,
-        argumentation_scheme: str,
+        argumentation_scheme: t.Optional[str] = None,
         descriptors: t.Optional[t.Mapping[str, str]] = None,
         metadata: t.Optional[Metadata] = None,
         userdata: t.Optional[Userdata] = None,
@@ -339,11 +339,16 @@ class SchemeNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-        return cls(
+        node = cls(
             **_from_aif(obj),
-            argumentation_scheme=obj["text"],
             type=SchemeType(obj["type"]),
         )
+        text: str = obj["text"]
+
+        if not text.startswith("Default "):
+            node.argumentation_scheme = text
+
+        return node
 
     def to_aif(self) -> t.Dict[str, t.Any]:
         return {
@@ -370,8 +375,8 @@ class SchemeNode(Node):
         cls,
         id: str,
         obj: graph_pb2.Node,
-        metadata_class,
-        anchor_class,
+        metadata_class: t.Type[Metadata],
+        anchor_class: t.Type[Anchor],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
         return cls(
