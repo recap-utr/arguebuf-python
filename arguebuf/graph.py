@@ -5,6 +5,7 @@ import itertools
 import json
 import logging
 import typing as t
+from enum import Enum
 from pathlib import Path
 
 import graphviz as gv
@@ -21,6 +22,12 @@ from .node import AtomNode, Node, SchemeNode, SchemeType
 from .utils import ImmutableDict, ImmutableSet
 
 log = logging.getLogger(__name__)
+
+
+class GraphFormat(Enum):
+    ARGUEBUF = "arguebuf"
+    AIF = "aif"
+
 
 # noinspection PyProtectedMember
 class Graph:
@@ -41,7 +48,7 @@ class Graph:
         "_outgoing_nodes",
         "_outgoing_edges",
         "_major_claim",
-        "_analysts",
+        "analysts",
         "_resources",
         "userdata",
         "_metadata",
@@ -58,7 +65,7 @@ class Graph:
     _outgoing_nodes: ImmutableDict[Node, ImmutableSet[Node]]
     _outgoing_edges: ImmutableDict[Node, ImmutableSet[Edge]]
     _major_claim: t.Optional[Node]
-    _analysts: t.List[Analyst]
+    analysts: t.List[Analyst]
     _resources: ImmutableDict[str, Resource]
     userdata: Userdata
     _metadata: Metadata
@@ -66,13 +73,43 @@ class Graph:
 
     @property
     def nodes(self) -> t.Mapping[str, Node]:
-        return t.cast(t.Mapping[str, Node], self._nodes)
+        return self._nodes
+
+    @property
+    def atom_nodes(self) -> t.Mapping[str, AtomNode]:
+        return self._atom_nodes
+
+    @property
+    def scheme_nodes(self) -> t.Mapping[str, SchemeNode]:
+        return self._scheme_nodes
 
     def incoming_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[Node]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._incoming_nodes[node]
+
+    def outgoing_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[Node]:
+        if isinstance(node, str):
+            node = self._nodes[node]
+
+        return self._outgoing_nodes[node]
+
+    def incoming_edges(self, node: t.Union[str, Node]) -> t.AbstractSet[Edge]:
+        if isinstance(node, str):
+            node = self._nodes[node]
+
+        return self._incoming_edges[node]
+
+    def outgoing_edges(self, node: t.Union[str, Node]) -> t.AbstractSet[Edge]:
+        if isinstance(node, str):
+            node = self._nodes[node]
+
+        return self._outgoing_edges[node]
+
+    @property
+    def resources(self) -> t.Mapping[str, Resource]:
+        return self._resources
 
     @property
     def major_claim(self) -> t.Optional[Node]:
@@ -105,7 +142,7 @@ class Graph:
         self._atom_nodes = ImmutableDict()
         self._scheme_nodes = ImmutableDict()
         self._edges = ImmutableDict()
-        self._analysts = []
+        self.analysts = []
         self._metadata = Metadata()
         self.userdata = {}
         self._resources = ImmutableDict()
@@ -350,7 +387,7 @@ class Graph:
         g.add_resource(resource)
 
         if analyst_name := analysis.get("annotatorName"):
-            g._analysts.append(Analyst(analyst_name, ""))
+            g.analysts.append(Analyst(analyst_name, ""))
 
         for ova_node in obj["nodes"]:
             node = (
@@ -448,8 +485,8 @@ class Graph:
         if self._major_claim:
             g.major_claim = self._major_claim.id
 
-        if self._analysts:
-            g.analysts.extend(analyst.to_protobuf() for analyst in self._analysts)
+        if self.analysts:
+            g.analysts.extend(analyst.to_protobuf() for analyst in self.analysts)
 
         for resource_id, resource in self._resources.items():
             g.resources[resource_id] = resource.to_protobuf()
@@ -498,7 +535,7 @@ class Graph:
         if major_claim := obj.major_claim:
             g._major_claim = g._nodes[major_claim]
 
-        g._analysts = [analyst_class.from_protobuf(analyst) for analyst in obj.analysts]
+        g.analysts = [analyst_class.from_protobuf(analyst) for analyst in obj.analysts]
 
         for resource_id, resource in obj.resources.items():
             g.add_resource(resource_class.from_protobuf(resource_id, resource, nlp))
@@ -534,7 +571,10 @@ class Graph:
             nlp,
         )
 
-    def to_dict(self) -> t.Dict[str, t.Any]:
+    def to_dict(self, format: GraphFormat) -> t.Dict[str, t.Any]:
+        if format == GraphFormat.AIF:
+            return self.to_aif()
+
         return MessageToDict(self.to_protobuf(), including_default_value_fields=True)
 
     @classmethod
@@ -551,8 +591,8 @@ class Graph:
             json.load(obj), name, atom_class, scheme_class, edge_class, nlp
         )
 
-    def to_json(self, obj: t.IO) -> None:
-        json.dump(self.to_dict(), obj, ensure_ascii=False, indent=4)
+    def to_json(self, obj: t.IO, format: GraphFormat) -> None:
+        json.dump(self.to_dict(format), obj, ensure_ascii=False, indent=4)
 
     @classmethod
     def from_brat(
@@ -626,8 +666,8 @@ class Graph:
 
         return cls.from_json(obj, name, atom_class, scheme_class, edge_class, nlp)
 
-    def to_io(self, obj: t.IO) -> None:
-        self.to_json(obj)
+    def to_io(self, obj: t.IO, format: GraphFormat) -> None:
+        self.to_json(obj, format)
 
     @classmethod
     def from_file(
@@ -643,12 +683,14 @@ class Graph:
                 file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp
             )
 
-    def to_file(self, path: Path) -> None:
+    def to_file(self, path: Path, format: GraphFormat) -> None:
         if path.is_dir() or not path.suffix:
             path = path / f"{self.name}.json"
 
         with path.open("w", encoding="utf-8") as file:
-            self.to_io(file)
+            self.to_io(file, format)
+
+    to_folder = to_file
 
     @classmethod
     def from_folder(
@@ -669,11 +711,6 @@ class Graph:
                 )
 
         return graphs
-
-    open = from_file
-    open_folder = from_folder
-    to_folder = to_file
-    save = to_file
 
     def to_nx(self) -> nx.DiGraph:
         """Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
@@ -701,14 +738,14 @@ class Graph:
 
     def to_gv(
         self,
-        format: str = "pdf",
-        engine: str = "dot",
-        nodesep: float = 0.25,
-        ranksep: float = 0.5,
-        wrap_col: int = 36,
-        margin: t.Tuple[float, float] = (0.15, 0.1),
-        font_name: str = "Arial",
-        font_size: float = 11,
+        format: t.Optional[str] = None,
+        engine: t.Optional[str] = None,
+        nodesep: t.Optional[float] = None,
+        ranksep: t.Optional[float] = None,
+        wrap_col: t.Optional[int] = None,
+        margin: t.Optional[t.Tuple[float, float]] = None,
+        font_name: t.Optional[str] = None,
+        font_size: t.Optional[float] = None,
     ) -> gv.Digraph:
         """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
         gv_margin = lambda x: f"{x[0]},{x[1]}"
@@ -716,11 +753,11 @@ class Graph:
         g = gv.Digraph(
             name=str(self.name),
             strict=True,
-            format=format,
-            engine=engine,
+            format=format or "pdf",
+            engine=engine or "dot",
             node_attr={
-                "fontname": font_name,
-                "fontsize": str(font_size),
+                "fontname": font_name or "Arial",
+                "fontsize": str(font_size or 11),
                 "margin": gv_margin(margin or (0.15, 0.1)),
                 "style": "filled",
                 "shape": "box",
@@ -731,8 +768,8 @@ class Graph:
             graph_attr={
                 "rankdir": "BT",
                 "margin": "0",
-                "nodesep": str(nodesep),
-                "ranksep": str(ranksep),
+                "nodesep": str(nodesep or 0.25),
+                "ranksep": str(ranksep or 0.5),
             },
         )
 
@@ -740,7 +777,7 @@ class Graph:
             node.to_gv(
                 g,
                 self.major_claim == node,
-                wrap_col=wrap_col,
+                wrap_col=wrap_col or 36,
             )
 
         for edge in self._edges.values():
@@ -796,7 +833,7 @@ def _node_distance(
 
 
 def render(
-    g: gv.Graph,
+    g: gv.dot.Dot,
     path: Path,
     view: bool = False,
 ) -> None:

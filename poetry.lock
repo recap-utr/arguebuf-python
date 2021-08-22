@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "arg-services"
-version = "0.1.13"
+version = "0.1.14"
 description = "GraphQL and gRPC schemas for Microservice-based Argumentation Machines."
 category = "main"
 optional = false
@@ -16,6 +16,7 @@ python-versions = ">=3.6,<4.0"
 
 [package.dependencies]
 grpcio = ">=1.32,<2.0"
+grpcio-reflection = ">=1.39.0,<2.0.0"
 protobuf = ">=3.15.8,<4.0.0"
 
 [package.extras]
@@ -161,6 +162,18 @@ six = ">=1.5.2"
 
 [package.extras]
 protobuf = ["grpcio-tools (>=1.39.0)"]
+
+[[package]]
+name = "grpcio-reflection"
+version = "1.39.0"
+description = "Standard Protobuf Reflection Service for gRPC"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+grpcio = ">=1.39.0"
+protobuf = ">=3.6.0"
 
 [[package]]
 name = "idna"
@@ -632,7 +645,7 @@ docs = ["sphinx", "furo", "sphinx-rtd-theme", "myst-parser"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "10e9782edd7faa2b1606c2b95a9ebe113fbeb9566878cb00b8fe73f46877e8f2"
+content-hash = "e9b815e7cd7c179e7791cedd95a87ab9e957fef96e6d35cfd898800ef52691a4"
 
 [metadata.files]
 alabaster = [
@@ -640,8 +653,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 arg-services = [
-    {file = "arg-services-0.1.13.tar.gz", hash = "sha256:66ed92f23503eadd523f06eb59093b8132cb0d61e71e01358228a2039e154a04"},
-    {file = "arg_services-0.1.13-py3-none-any.whl", hash = "sha256:2bb4107431eab9ccf882c76841b435803280400c3aa307e001bed745ce30d71b"},
+    {file = "arg-services-0.1.14.tar.gz", hash = "sha256:e67f74b5eaf43e94775cd7ac8e5511f811fb3d486ce5c1f1ec5512fb8574a3aa"},
+    {file = "arg_services-0.1.14-py3-none-any.whl", hash = "sha256:f0ac9e25765cd8a104640d3f84aace5561995a8e67d95bd2492613b1129271fd"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
@@ -740,6 +753,11 @@ grpcio = [
     {file = "grpcio-1.39.0-cp39-cp39-win32.whl", hash = "sha256:c44958a24559f875d902d5c1acb0ae43faa5a84f6120d1d0d800acb52f96516e"},
     {file = "grpcio-1.39.0-cp39-cp39-win_amd64.whl", hash = "sha256:2068a2b896ac67103c4a5453d5435fafcbb1a2f41eaf25148d08780096935cee"},
     {file = "grpcio-1.39.0.tar.gz", hash = "sha256:57974361a459d6fe04c9ae0af1845974606612249f467bbd2062d963cb90f407"},
+]
+grpcio-reflection = [
+    {file = "grpcio-reflection-1.39.0.tar.gz", hash = "sha256:7cef0c0f2c44062f67965bab2ed38a74ad0956334117b0f658206ee8fca7d9d0"},
+    {file = "grpcio_reflection-1.39.0-py2-none-any.whl", hash = "sha256:c96ebe243171c25149e20d05138415169656a98275951a3fa6a26518a4470953"},
+    {file = "grpcio_reflection-1.39.0-py3-none-any.whl", hash = "sha256:5937441450e34703e1dedacb2c55888ce5fa1d42a2b00fcb1ef8702f09016b93"},
 ]
 idna = [
     {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},

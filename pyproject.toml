@@ -14,7 +14,7 @@ python = "^3.8"
 networkx = "^2.4"
 pendulum = "^2.0"
 graphviz = "^0.13.2"
-lxml = "^4.4.2"
+lxml = "^4.6"
 sphinx = { version = "^3.5", optional = true }
 sphinx-rtd-theme = { version = "^0.5.2", optional = true }
 furo = { version = "^2021.4.11b34", optional = true }
