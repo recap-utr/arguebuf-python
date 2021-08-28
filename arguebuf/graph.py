@@ -761,9 +761,21 @@ class Graph:
         margin: t.Optional[t.Tuple[float, float]] = None,
         font_name: t.Optional[str] = None,
         font_size: t.Optional[float] = None,
+        graph_attr: t.Optional[t.Mapping[str, str]] = None,
+        node_attr: t.Optional[t.Mapping[str, str]] = None,
+        edge_attr: t.Optional[t.Mapping[str, str]] = None,
     ) -> gv.Digraph:
         """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
         gv_margin = lambda x: f"{x[0]},{x[1]}"
+
+        if not graph_attr:
+            graph_attr = {}
+
+        if not node_attr:
+            node_attr = {}
+
+        if not edge_attr:
+            edge_attr = {}
 
         g = gv.Digraph(
             name=str(self.name),
@@ -778,13 +790,15 @@ class Graph:
                 "shape": "box",
                 "width": "0",
                 "height": "0",
+                **node_attr,
             },
-            edge_attr={"color": "#666666"},
+            edge_attr={"color": "#666666", **edge_attr},
             graph_attr={
                 "rankdir": "BT",
                 "margin": "0",
                 "nodesep": str(nodesep or 0.25),
                 "ranksep": str(ranksep or 0.5),
+                **graph_attr,
             },
         )
 

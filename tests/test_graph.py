@@ -65,11 +65,9 @@ def test_create_graph(shared_datadir):
 
 
 def test_import_graphs(shared_datadir):
-    folder = shared_datadir / "in" / "graph"
-
     with multiprocessing.Pool() as pool:
-        pool.map(_import_json_graph, sorted(folder.rglob("*.json")))
-        pool.map(_import_brat_graph, sorted(folder.rglob("*.ann")))
+        pool.map(_import_json_graph, sorted(shared_datadir.rglob("*.json")))
+        pool.map(_import_brat_graph, sorted(shared_datadir.rglob("*.ann")))
 
 
 def _import_brat_graph(file):
