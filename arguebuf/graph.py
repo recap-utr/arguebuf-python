@@ -11,11 +11,12 @@ from pathlib import Path
 
 import graphviz as gv
 import networkx as nx
+import pendulum
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from lxml import html
 
-from arguebuf.data import Analyst, Anchor, Metadata, Resource, Userdata
+from arguebuf.data import Metadata, Participant, Reference, Resource
 
 from . import dt, utils
 from .edge import Edge
@@ -49,10 +50,11 @@ class Graph:
         "_outgoing_nodes",
         "_outgoing_edges",
         "_major_claim",
-        "analysts",
         "_resources",
-        "userdata",
-        "_metadata",
+        "_participants",
+        "analysts",
+        "timestamp",
+        "metadata",
         "version",
     )
 
@@ -65,12 +67,13 @@ class Graph:
     _incoming_edges: ImmutableDict[Node, ImmutableSet[Edge]]
     _outgoing_nodes: ImmutableDict[Node, ImmutableSet[Node]]
     _outgoing_edges: ImmutableDict[Node, ImmutableSet[Edge]]
-    _major_claim: t.Optional[Node]
-    analysts: t.List[Analyst]
     _resources: ImmutableDict[str, Resource]
-    userdata: Userdata
-    _metadata: Metadata
+    _participants: ImmutableDict[str, Participant]
+    _major_claim: t.Optional[Node]
+    analysts: t.List[Participant]
     version: str
+    timestamp: pendulum.DateTime
+    metadata: Metadata
 
     @property
     def edges(self) -> t.Mapping[str, Edge]:
@@ -141,8 +144,8 @@ class Graph:
         # self._metadata.update()
 
     @property
-    def metadata(self) -> Metadata:
-        return self._metadata
+    def participants(self) -> t.Mapping[str, Participant]:
+        return self._participants
 
     def __init__(self, name: t.Optional[str] = None):
         """Create a graph from scratch."""
@@ -153,9 +156,10 @@ class Graph:
         self._scheme_nodes = ImmutableDict()
         self._edges = ImmutableDict()
         self.analysts = []
-        self._metadata = Metadata()
-        self.userdata = {}
+        self.metadata = {}
+        self.timestamp = pendulum.now()
         self._resources = ImmutableDict()
+        self._participants = ImmutableDict()
         self._major_claim = None
 
         self._incoming_nodes = ImmutableDict()
@@ -354,9 +358,31 @@ class Graph:
         del self._resources._store[resource.id]
 
         for node in self._atom_nodes.values():
-            if node.anchor and node.anchor.resource == resource:
-                node.anchor.resource = None
-                node.anchor.offset = None
+            if node.reference and node.reference.resource == resource:
+                node.reference.resource = None
+                node.reference.offset = None
+
+    def add_participant(self, participant: Participant) -> None:
+        if not isinstance(participant, Participant):
+            raise TypeError(utils.type_error(type(participant), Participant))
+
+        if participant.id in self._participants:
+            raise ValueError(utils.duplicate_key_error(self.name, participant.id))
+
+        self._participants._store[participant.id] = participant
+
+    def remove_participant(self, participant: Participant) -> None:
+        if not isinstance(participant, Participant):
+            raise TypeError(utils.type_error(type(participant), Participant))
+
+        if participant.id not in self._participants:
+            raise ValueError(utils.missing_key_error(self.name, participant.id))
+
+        del self._participants._store[participant.id]
+
+        for node in self._atom_nodes.values():
+            if node.participant == participant:
+                node.participant = None
 
     def node_distance(self, node1: Node, node2) -> t.Optional[int]:
         """If node is in the graph, return the distance to the major claim (if set)."""
@@ -388,19 +414,19 @@ class Graph:
 
         g = cls(name)
 
-        # g.userdata = utils.parse_userdata(obj, include=["participants", "ovaVersion"])
+        # g.metadata = utils.parse_metadata(obj, include=["participants", "ovaVersion"])
 
         resource = Resource(
             utils.unique_id(),
             utils.parse(analysis.get("plain_txt"), nlp),
             analysis.get("documentTitle"),
             analysis.get("documentSource"),
-            dt.from_analysis(analysis.get("documentDate")),
+            dt.from_analysis(analysis.get("documentDate")) or pendulum.now(),
         )
         g.add_resource(resource)
 
         if analyst_name := analysis.get("annotatorName"):
-            g.analysts.append(Analyst(analyst_name, ""))
+            g.analysts.append(Participant(utils.unique_id(), name=analyst_name))
 
         for ova_node in obj["nodes"]:
             node = (
@@ -431,7 +457,7 @@ class Graph:
                     node = g._atom_nodes.get(node_key)
 
                     if node:
-                        node.anchor = Anchor(
+                        node.reference = Reference(
                             resource, len(text), utils.parse(elem.text, nlp)
                         )
 
@@ -506,8 +532,11 @@ class Graph:
         for resource_id, resource in self._resources.items():
             g.resources[resource_id].CopyFrom(resource.to_protobuf())
 
-        g.userdata.update(self.userdata)
-        g.metadata.CopyFrom(self._metadata.to_protobuf())
+        for participant_id, participant in self._participants.items():
+            g.participants[participant_id].CopyFrom(participant.to_protobuf())
+
+        g.metadata.update(self.metadata)
+        dt.to_protobuf(self.timestamp, g.timestamp)
         g.version = self.version
 
         return g
@@ -520,10 +549,9 @@ class Graph:
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
         edge_class: t.Type[Edge] = Edge,
-        analyst_class: t.Type[Analyst] = Analyst,
+        participant_class: t.Type[Participant] = Participant,
         resource_class: t.Type[Resource] = Resource,
-        anchor_class: t.Type[Anchor] = Anchor,
-        metadata_class: t.Type[Metadata] = Metadata,
+        reference_class: t.Type[Reference] = Reference,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         g = cls(name)
@@ -531,32 +559,48 @@ class Graph:
         for resource_id, resource in obj.resources.items():
             g.add_resource(resource_class.from_protobuf(resource_id, resource, nlp))
 
+        for participant_id, participant in obj.participants.items():
+            g.add_participant(
+                participant_class.from_protobuf(participant_id, participant)
+            )
+
         for node_id, node in obj.nodes.items():
             if node.WhichOneof("node") == "atom":
                 g.add_node(
                     atom_class.from_protobuf(
-                        node_id, node, g._resources, metadata_class, anchor_class, nlp
+                        node_id,
+                        node,
+                        g._resources,
+                        g._participants,
+                        reference_class,
+                        nlp,
                     )
                 )
             elif node.WhichOneof("node") == "scheme":
                 g.add_node(
                     scheme_class.from_protobuf(
-                        node_id, node, metadata_class, anchor_class, nlp
+                        node_id,
+                        node,
+                        g._resources,
+                        g._participants,
+                        reference_class,
+                        nlp,
                     )
                 )
 
         for edge_id, edge in obj.edges.items():
-            g.add_edge(
-                edge_class.from_protobuf(edge_id, edge, g._nodes, metadata_class)
-            )
+            g.add_edge(edge_class.from_protobuf(edge_id, edge, g._nodes))
 
         if major_claim := obj.major_claim:
             g._major_claim = g._nodes[major_claim]
 
-        g.analysts = [analyst_class.from_protobuf(analyst) for analyst in obj.analysts]
+        g.analysts = [
+            participant_class.from_protobuf(utils.unique_id(), analyst)
+            for analyst in obj.analysts
+        ]
 
-        g.userdata.update(obj.userdata)
-        g._metadata = metadata_class.from_protobuf(obj.metadata)
+        g.metadata.update(obj.metadata)
+        g.timestamp = dt.from_protobuf(obj.timestamp)
         g.version = obj.version
 
         return g
@@ -606,8 +650,15 @@ class Graph:
             json.load(obj), name, atom_class, scheme_class, edge_class, nlp
         )
 
-    def to_json(self, obj: t.IO, format: GraphFormat) -> None:
-        json.dump(self.to_dict(format), obj, ensure_ascii=False, indent=4)
+    def to_json(
+        self,
+        obj: t.IO,
+        format: GraphFormat = GraphFormat.ARGUEBUF,
+        pretty: bool = False,
+    ) -> None:
+        json.dump(
+            self.to_dict(format), obj, ensure_ascii=False, indent=4 if pretty else None
+        )
 
     @classmethod
     def from_brat(
@@ -681,8 +732,13 @@ class Graph:
 
         return cls.from_json(obj, name, atom_class, scheme_class, edge_class, nlp)
 
-    def to_io(self, obj: t.IO, format: GraphFormat) -> None:
-        self.to_json(obj, format)
+    def to_io(
+        self,
+        obj: t.IO,
+        format: GraphFormat = GraphFormat.ARGUEBUF,
+        pretty: bool = False,
+    ) -> None:
+        self.to_json(obj, format, pretty)
 
     @classmethod
     def from_file(
@@ -698,12 +754,17 @@ class Graph:
                 file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp
             )
 
-    def to_file(self, path: Path, format: GraphFormat) -> None:
+    def to_file(
+        self,
+        path: Path,
+        format: GraphFormat = GraphFormat.ARGUEBUF,
+        pretty: bool = False,
+    ) -> None:
         if path.is_dir() or not path.suffix:
             path = path / f"{self.name}.json"
 
         with path.open("w", encoding="utf-8") as file:
-            self.to_io(file, format)
+            self.to_io(file, format, pretty)
 
     to_folder = to_file
 

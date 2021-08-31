@@ -8,34 +8,34 @@ from enum import Enum
 
 import graphviz as gv
 import networkx as nx
+import pendulum
 from arg_services.graph.v1 import graph_pb2
 
 from arguebuf import dt, utils
-from arguebuf.data import Anchor, Metadata, Resource, Userdata
+from arguebuf.data import Metadata, Participant, Reference, Resource
 
 
 class SchemeType(Enum):
-    SUPPORT = "RA"
-    ATTACK = "CA"
-    REPHRASE = "MA"
-    TRANSITION = "TA"
-    PREFERENCE = "PA"
-    ASSERTION = "YA"
+    SUPPORT = graph_pb2.SCHEME_TYPE_SUPPORT
+    ATTACK = graph_pb2.SCHEME_TYPE_ATTACK
+    REPHRASE = graph_pb2.SCHEME_TYPE_REPHRASE
+    TRANSITION = graph_pb2.SCHEME_TYPE_TRANSITION
+    PREFERENCE = graph_pb2.SCHEME_TYPE_PREFERENCE
+    ASSERTION = graph_pb2.SCHEME_TYPE_ASSERTION
 
 
-protobuf2scheme = {
-    graph_pb2.SchemeType.SCHEME_TYPE_SUPPORT: SchemeType.SUPPORT,
-    graph_pb2.SchemeType.SCHEME_TYPE_ATTACK: SchemeType.ATTACK,
-    graph_pb2.SchemeType.SCHEME_TYPE_REPHRASE: SchemeType.REPHRASE,
-    graph_pb2.SchemeType.SCHEME_TYPE_TRANSITION: SchemeType.TRANSITION,
-    graph_pb2.SchemeType.SCHEME_TYPE_PREFERENCE: SchemeType.PREFERENCE,
-    graph_pb2.SchemeType.SCHEME_TYPE_ASSERTION: SchemeType.ASSERTION,
+scheme_type2aif = {
+    SchemeType.SUPPORT: "RA",
+    SchemeType.ATTACK: "CA",
+    SchemeType.REPHRASE: "MA",
+    SchemeType.TRANSITION: "TA",
+    SchemeType.PREFERENCE: "PA",
+    SchemeType.ASSERTION: "YA",
 }
 
-scheme2protobuf = {v: k for k, v in protobuf2scheme.items()}
+aif2scheme_type = {value: key for key, value in scheme_type2aif.items()}
 
-
-scheme2text = {
+scheme_type2text = {
     SchemeType.SUPPORT: "Support",
     SchemeType.ATTACK: "Attack",
     SchemeType.REPHRASE: "Rephrase",
@@ -43,6 +43,109 @@ scheme2text = {
     SchemeType.PREFERENCE: "Preference",
     SchemeType.ASSERTION: "Assertion",
 }
+
+
+class Scheme(Enum):
+    AD_HOMINEM = graph_pb2.SCHEME_AD_HOMINEM
+    ALTERNATIVE_MEANS = graph_pb2.SCHEME_ALTERNATIVE_MEANS
+    ALTERNATIVES = graph_pb2.SCHEME_ALTERNATIVES
+    ANALOGY = graph_pb2.SCHEME_ANALOGY
+    ARBITRARY_VERBAL_CLASSIFICATION = graph_pb2.SCHEME_ARBITRARY_VERBAL_CLASSIFICATION
+    AUTHORITY = graph_pb2.SCHEME_AUTHORITY
+    BIAS = graph_pb2.SCHEME_BIAS
+    BIASED_CLASSIFICATION = graph_pb2.SCHEME_BIASED_CLASSIFICATION
+    CALLING_OUT = graph_pb2.SCHEME_CALLING_OUT
+    CAUSAL_SLIPPERY_SLOPE = graph_pb2.SCHEME_CAUSAL_SLIPPERY_SLOPE
+    CAUSE_TO_EFFECT = graph_pb2.SCHEME_CAUSE_TO_EFFECT
+    CIRCUMSTANTIAL_AD_HOMINEM = graph_pb2.SCHEME_CIRCUMSTANTIAL_AD_HOMINEM
+    COMMITMENT_EXCEPTION = graph_pb2.SCHEME_COMMITMENT_EXCEPTION
+    COMMITMENT = graph_pb2.SCHEME_COMMITMENT
+    COMPOSITION = graph_pb2.SCHEME_COMPOSITION
+    CONFLICTING_GOALS = graph_pb2.SCHEME_CONFLICTING_GOALS
+    CONSEQUENCES = graph_pb2.SCHEME_CONSEQUENCES
+    CORRELATION_TO_CAUSE = graph_pb2.SCHEME_CORRELATION_TO_CAUSE
+    DANGER_APPEAL = graph_pb2.SCHEME_DANGER_APPEAL
+    DEFINITION_TO_VERBAL_CLASSIFICATION = (
+        graph_pb2.SCHEME_DEFINITION_TO_VERBAL_CLASSIFICATION
+    )
+    DIFFERENCES_UNDERMINE_SIMILARITY = graph_pb2.SCHEME_DIFFERENCES_UNDERMINE_SIMILARITY
+    DILEMMA = graph_pb2.SCHEME_DILEMMA
+    DIRECT_AD_HOMINEM = graph_pb2.SCHEME_DIRECT_AD_HOMINEM
+    DIVISION = graph_pb2.SCHEME_DIVISION
+    ESTABLISHED_RULE = graph_pb2.SCHEME_ESTABLISHED_RULE
+    ETHOTIC = graph_pb2.SCHEME_ETHOTIC
+    EVIDENCE_TO_HYPOTHESIS = graph_pb2.SCHEME_EVIDENCE_TO_HYPOTHESIS
+    EXAMPLE = graph_pb2.SCHEME_EXAMPLE
+    EXCEPTION_SIMILARITY_CASE = graph_pb2.SCHEME_EXCEPTION_SIMILARITY_CASE
+    EXCEPTIONAL_CASE = graph_pb2.SCHEME_EXCEPTIONAL_CASE
+    EXPERT_OPINION = graph_pb2.SCHEME_EXPERT_OPINION
+    EXPERTISE_INCONSISTENCY = graph_pb2.SCHEME_EXPERTISE_INCONSISTENCY
+    FAIRNESS = graph_pb2.SCHEME_FAIRNESS
+    FALSIFICATION_OF_HYPOTHESIS = graph_pb2.SCHEME_FALSIFICATION_OF_HYPOTHESIS
+    FEAR_APPEAL = graph_pb2.SCHEME_FEAR_APPEAL
+    FULL_SLIPPERY_SLOPE = graph_pb2.SCHEME_FULL_SLIPPERY_SLOPE
+    GENERAL_ACCEPTANCE_DOUBT = graph_pb2.SCHEME_GENERAL_ACCEPTANCE_DOUBT
+    GENERIC_AD_HOMINEM = graph_pb2.SCHEME_GENERIC_AD_HOMINEM
+    GOODWILL = graph_pb2.SCHEME_GOODWILL
+    GRADUALISM = graph_pb2.SCHEME_GRADUALISM
+    IGNORANCE = graph_pb2.SCHEME_IGNORANCE
+    INCONSISTENT_COMMITMENT = graph_pb2.SCHEME_INCONSISTENT_COMMITMENT
+    INFORMANT_REPORT = graph_pb2.SCHEME_INFORMANT_REPORT
+    INTERACTION_OF_ACT_AND_PERSON = graph_pb2.SCHEME_INTERACTION_OF_ACT_AND_PERSON
+    IRRATIONAL_FEAR_APPEAL = graph_pb2.SCHEME_IRRATIONAL_FEAR_APPEAL
+    LACK_OF_COMPLETE_KNOWLEDGE = graph_pb2.SCHEME_LACK_OF_COMPLETE_KNOWLEDGE
+    LACK_OF_EXPERT_RELIABILITY = graph_pb2.SCHEME_LACK_OF_EXPERT_RELIABILITY
+    LOGICAL = graph_pb2.SCHEME_LOGICAL
+    MISPLACED_PRIORITIES = graph_pb2.SCHEME_MISPLACED_PRIORITIES
+    MODUS_PONENS = graph_pb2.SCHEME_MODUS_PONENS
+    MORAL_VIRTUE = graph_pb2.SCHEME_MORAL_VIRTUE
+    NEED_FOR_HELP = graph_pb2.SCHEME_NEED_FOR_HELP
+    NEGATIVE_CONSEQUENCES = graph_pb2.SCHEME_NEGATIVE_CONSEQUENCES
+    OPPOSED_COMMITMENT = graph_pb2.SCHEME_OPPOSED_COMMITMENT
+    OPPOSITIONS = graph_pb2.SCHEME_OPPOSITIONS
+    CAUSAL_FACTORS_INVOLVED = graph_pb2.SCHEME_CAUSAL_FACTORS_INVOLVED
+    PARAPHRASE = graph_pb2.SCHEME_PARAPHRASE
+    PERCEPTION = graph_pb2.SCHEME_PERCEPTION
+    POPULAR_OPINION = graph_pb2.SCHEME_POPULAR_OPINION
+    POPULAR_PRACTICE = graph_pb2.SCHEME_POPULAR_PRACTICE
+    POSITION_TO_KNOW = graph_pb2.SCHEME_POSITION_TO_KNOW
+    POSITIVE_CONSEQUENCES = graph_pb2.SCHEME_POSITIVE_CONSEQUENCES
+    PRACTICAL_REASONING_FROM_ANALOGY = graph_pb2.SCHEME_PRACTICAL_REASONING_FROM_ANALOGY
+    PRACTICAL_REASONING = graph_pb2.SCHEME_PRACTICAL_REASONING
+    PRACTICAL_WISDOM = graph_pb2.SCHEME_PRACTICAL_WISDOM
+    PRAGMATIC_ALTERNATIVES = graph_pb2.SCHEME_PRAGMATIC_ALTERNATIVES
+    PRAGMATIC_INCONSISTENCY = graph_pb2.SCHEME_PRAGMATIC_INCONSISTENCY
+    PRECEDENT_SLIPPERY_SLOPE = graph_pb2.SCHEME_PRECEDENT_SLIPPERY_SLOPE
+    PROPERTY_NOT_EXISTANT = graph_pb2.SCHEME_PROPERTY_NOT_EXISTANT
+    REFRAMING = graph_pb2.SCHEME_REFRAMING
+    REQUIRED_STEPS = graph_pb2.SCHEME_REQUIRED_STEPS
+    RESOLVING_INCONSISTENCY = graph_pb2.SCHEME_RESOLVING_INCONSISTENCY
+    RULE = graph_pb2.SCHEME_RULE
+    RULES = graph_pb2.SCHEME_RULES
+    SIGN_FROM_OTHER_EVENTS = graph_pb2.SCHEME_SIGN_FROM_OTHER_EVENTS
+    SIGN = graph_pb2.SCHEME_SIGN
+    TWO_PERSON_PRACTICAL_REASONING = graph_pb2.SCHEME_TWO_PERSON_PRACTICAL_REASONING
+    UNFAIRNESS = graph_pb2.SCHEME_UNFAIRNESS
+    VAGUE_VERBAL_CLASSIFICATION = graph_pb2.SCHEME_VAGUE_VERBAL_CLASSIFICATION
+    VAGUENESS_OF_VERBAL_CLASSIFICATION = (
+        graph_pb2.SCHEME_VAGUENESS_OF_VERBAL_CLASSIFICATION
+    )
+    VALUE_BASED_PRACTICAL_REASONING = graph_pb2.SCHEME_VALUE_BASED_PRACTICAL_REASONING
+    VALUES = graph_pb2.SCHEME_VALUES
+    VERBAL_CLASSIFICATION = graph_pb2.SCHEME_VERBAL_CLASSIFICATION
+    VERBAL_SLIPPERY_SLOPE = graph_pb2.SCHEME_VERBAL_SLIPPERY_SLOPE
+    VESTED_INTEREST = graph_pb2.SCHEME_VESTED_INTEREST
+    VIRTUE_GOODWILL = graph_pb2.SCHEME_VIRTUE_GOODWILL
+    WASTE = graph_pb2.SCHEME_WASTE
+    WEAKEST_LINK = graph_pb2.SCHEME_WEAKEST_LINK
+    WISDOM_GOODWILL = graph_pb2.SCHEME_WISDOM_GOODWILL
+    WISDOM_VIRTUE = graph_pb2.SCHEME_WISDOM_VIRTUE
+    WISDOM_VIRTUE_GOODWILL = graph_pb2.SCHEME_WISDOM_VIRTUE_GOODWILL
+    WITNESS_TESTIMONY = graph_pb2.SCHEME_WITNESS_TESTIMONY
+
+
+scheme2text = {}
+text2scheme = {}
 
 
 @dataclass
@@ -56,18 +159,18 @@ class Node(ABC):
     """Node in the AIF format."""
 
     _id: str
-    userdata: Userdata
-    _metadata: Metadata
+    timestamp: pendulum.DateTime
+    metadata: Metadata
 
     def __init__(
         self,
         id: str,
+        timestamp: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
     ):
         self._id = id
-        self._metadata = metadata or Metadata()
-        self.userdata = userdata or {}
+        self.timestamp = timestamp or pendulum.now()
+        self.metadata = metadata or {}
 
         self.__post_init__()
 
@@ -113,6 +216,9 @@ class Node(ABC):
         cls,
         id: str,
         obj: graph_pb2.Node,
+        resources: t.Mapping[str, Resource],
+        participants: t.Mapping[str, Participant],
+        reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         pass
@@ -186,28 +292,25 @@ class Node(ABC):
 
 
 class AtomNode(Node):
-    __slots__ = (
-        "_id",
-        "userdata",
-        "_metadata",
-        "text",
-        "anchor",
-    )
+    __slots__ = ("_id", "timestamp", "metadata", "text", "reference", "participant")
 
     text: t.Any
-    anchor: t.Optional[Anchor]
+    reference: t.Optional[Reference]
+    participant: t.Optional[Participant]
 
     def __init__(
         self,
         id: str,
         text: t.Any,
-        resource: t.Optional[Anchor] = None,
+        resource: t.Optional[Reference] = None,
+        participant: t.Optional[Participant] = None,
+        timestamp: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
     ):
-        super().__init__(id, metadata, userdata)
+        super().__init__(id, timestamp, metadata)
         self.text = text
-        self.anchor = resource
+        self.reference = resource
+        self.participant = participant
 
     @property
     def plain_text(self) -> str:
@@ -250,26 +353,30 @@ class AtomNode(Node):
         id: str,
         obj: graph_pb2.Node,
         resources: t.Mapping[str, Resource],
-        metadata_class: t.Type[Metadata],
-        anchor_class: t.Type[Anchor],
+        participants: t.Mapping[str, Participant],
+        reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         return cls(
             id,
             utils.parse(obj.atom.text, nlp),
-            anchor_class.from_protobuf(obj.atom.anchor, resources, nlp),
-            metadata_class.from_protobuf(obj.metadata),
-            dict(obj.userdata.items()),
+            reference_class.from_protobuf(obj.atom.reference, resources, nlp),
+            participants[obj.atom.participant],
+            dt.from_protobuf(obj.timestamp),
+            dict(obj.metadata.items()),
         )
 
     def to_protobuf(self) -> graph_pb2.Node:
-        obj = graph_pb2.Node(metadata=self._metadata.to_protobuf())
-        obj.userdata.update(self.userdata)
+        obj = graph_pb2.Node()
+        obj.metadata.update(self.metadata)
 
         obj.atom.text = self.plain_text
 
-        if anchor := self.anchor:
-            obj.atom.anchor.CopyFrom(anchor.to_protobuf())
+        if reference := self.reference:
+            obj.atom.reference.CopyFrom(reference.to_protobuf())
+
+        if timestamp := self.timestamp:
+            obj.timestamp.FromDatetime(timestamp)
 
         return obj
 
@@ -303,34 +410,39 @@ class AtomNode(Node):
 class SchemeNode(Node):
     __slots__ = (
         "_id",
-        "userdata",
-        "_metadata",
+        "timestamp",
+        "metadata",
         "type",
         "argumentation_scheme",
         "descriptors",
     )
 
     type: SchemeType
-    argumentation_scheme: t.Optional[str]
+    argumentation_scheme: t.Optional[Scheme]
     descriptors: t.Dict[str, str]
 
     def __init__(
         self,
         id: str,
         type: SchemeType,
-        argumentation_scheme: t.Optional[str] = None,
+        argumentation_scheme: t.Optional[Scheme] = None,
         descriptors: t.Optional[t.Mapping[str, str]] = None,
+        timestamp: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
     ):
-        super().__init__(id, metadata, userdata)
+        super().__init__(id, timestamp, metadata)
         self.type = type
         self.argumentation_scheme = argumentation_scheme
         self.descriptors = dict(descriptors) if descriptors else {}
 
     def __repr__(self):
         return utils.class_repr(
-            self, [self._id, self.type.value, utils.xstr(self.argumentation_scheme)]
+            self,
+            [
+                self._id,
+                scheme_type2text[self.type],
+                utils.xstr(self.argumentation_scheme),
+            ],
         )
 
     @classmethod
@@ -341,20 +453,20 @@ class SchemeNode(Node):
     ) -> Node:
         node = cls(
             **_from_aif(obj),
-            type=SchemeType(obj["type"]),
+            type=aif2scheme_type[obj["type"]],
         )
         text: str = obj["text"]
 
         if not text.startswith("Default "):
-            node.argumentation_scheme = text
+            node.argumentation_scheme = text2scheme[text]
 
         return node
 
     def to_aif(self) -> t.Dict[str, t.Any]:
         return {
             **_to_aif(self),
-            "text": scheme2text[self.type],
-            "type": self.type.value,
+            "text": scheme_type2text[self.type],
+            "type": scheme_type2aif[self.type],
         }
 
     @classmethod
@@ -377,7 +489,7 @@ class SchemeNode(Node):
         return cls(
             **_from_ova(obj),
             argumentation_scheme=obj["text"],
-            type=SchemeType(obj["type"]),
+            type=aif2scheme_type[obj["type"]],
             descriptors=descriptors,
         )
 
@@ -386,35 +498,41 @@ class SchemeNode(Node):
         cls,
         id: str,
         obj: graph_pb2.Node,
-        metadata_class: t.Type[Metadata],
-        anchor_class: t.Type[Anchor],
+        resources: t.Mapping[str, Resource],
+        participants: t.Mapping[str, Participant],
+        reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
         return cls(
             id,
-            protobuf2scheme[obj.scheme.type],
-            obj.scheme.argumentation_scheme,
+            SchemeType(obj.scheme.type)
+            if obj.scheme.type != graph_pb2.SCHEME_TYPE_UNSPECIFIED
+            else SchemeType.SUPPORT,
+            Scheme(obj.scheme.argumentation_scheme),
             dict(obj.scheme.descriptors.items()),
-            metadata_class.from_protobuf(obj.metadata),
-            dict(obj.userdata.items()),
+            dt.from_protobuf(obj.timestamp),
+            dict(obj.metadata.items()),
         )
 
     def to_protobuf(self) -> graph_pb2.Node:
-        obj = graph_pb2.Node(metadata=self._metadata.to_protobuf())
-        obj.userdata.update(self.userdata)
+        obj = graph_pb2.Node()
+        obj.metadata.update(self.metadata)
 
-        obj.scheme.type = scheme2protobuf[self.type]
+        obj.scheme.type = self.type.value
         obj.scheme.descriptors.update(self.descriptors)
 
         if arg_scheme := self.argumentation_scheme:
-            obj.scheme.argumentation_scheme = arg_scheme
+            obj.scheme.argumentation_scheme = arg_scheme.value
+
+        if timestamp := self.timestamp:
+            obj.timestamp.FromDatetime(timestamp)
 
         return obj
 
     def to_nx(self, g: nx.DiGraph) -> None:
         g.add_node(
             self._id,
-            label=self.argumentation_scheme or self.type.value,
+            label=self.argumentation_scheme or scheme_type2text[self.type],
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
@@ -436,7 +554,11 @@ class SchemeNode(Node):
 
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
         color = self.color(major_claim)
-        label = self.argumentation_scheme or scheme2text[self.type]
+        label = (
+            scheme2text[self.argumentation_scheme]
+            if self.argumentation_scheme
+            else scheme_type2text[self.type]
+        )
 
         g.node(
             self._id,
@@ -449,20 +571,18 @@ class SchemeNode(Node):
 
 def _from_aif(obj: t.Mapping[str, t.Any]) -> t.Dict[str, t.Any]:
     timestamp = dt.from_aif(obj.get("timestamp"))
-    metadata = Metadata(timestamp, timestamp) if timestamp else Metadata()
 
-    return {"id": obj["nodeID"], "metadata": metadata}
+    return {"id": obj["nodeID"], "timestamp": timestamp}
 
 
 def _to_aif(n: Node) -> t.Dict[str, t.Any]:
     return {
         "nodeID": n._id,
-        "timestamp": dt.to_aif(n._metadata.updated),
+        "timestamp": dt.to_aif(n.timestamp),
     }
 
 
 def _from_ova(obj: t.Mapping[str, t.Any]) -> t.Dict[str, t.Any]:
     timestamp = dt.from_ova(obj.get("date"))
-    metadata = Metadata(timestamp, timestamp) if timestamp else Metadata()
 
-    return {"id": str(obj["id"]), "metadata": metadata}
+    return {"id": str(obj["id"]), "timestamp": timestamp}

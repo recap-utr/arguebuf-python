@@ -19,7 +19,7 @@ sphinx = { version = "^3.5", optional = true }
 sphinx-rtd-theme = { version = "^0.5.2", optional = true }
 furo = { version = "^2021.4.11b34", optional = true }
 myst-parser = { version = "^0.13.7", optional = true }
-arg-services = "^0.1.15"
+arg-services = "^0.1.16"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"

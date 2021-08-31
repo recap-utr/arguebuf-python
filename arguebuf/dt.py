@@ -1,6 +1,8 @@
 import typing as t
 
 import pendulum
+from arg_services.graph.v1 import graph_pb2
+from google.protobuf import timestamp_pb2
 
 ova_format = "DD/MM/YYYY - HH:mm:ss"
 aif_format = "YYYY-MM-DD HH:mm:ss"
@@ -31,3 +33,14 @@ def from_analysis(text: t.Optional[str]) -> t.Optional[pendulum.DateTime]:
 
 def to_analysis(dt: t.Optional[pendulum.DateTime]) -> str:
     return dt.format(analysis_format) if dt else ""
+
+
+def from_protobuf(dt: timestamp_pb2.Timestamp) -> pendulum.DateTime:
+    return pendulum.instance(dt.ToDatetime()) if dt else pendulum.now()
+
+
+def to_protobuf(
+    dt: t.Optional[pendulum.DateTime], obj: timestamp_pb2.Timestamp
+) -> None:
+    if dt:
+        obj.FromDatetime(dt)

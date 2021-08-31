@@ -4,6 +4,24 @@ import collections
 import typing as t
 import uuid
 
+from arg_services.graph.v1 import graph_pb2
+
+
+def text2argumentation_scheme(text: t.Optional[str]) -> graph_pb2.Scheme.V:
+    if text:
+        return graph_pb2.Scheme.Value(f"SCHEME_{text.replace(' ', '_').upper()}")
+
+    return graph_pb2.Scheme.SCHEME_UNSPECIFIED
+
+
+def argumentation_scheme2text(
+    scheme: t.Optional[graph_pb2.Scheme.V],
+) -> t.Optional[str]:
+    if scheme:
+        return graph_pb2.Scheme.Name(scheme).replace("_", " ").title()
+
+    return None
+
 
 def unique_id() -> str:
     return str(uuid.uuid1())

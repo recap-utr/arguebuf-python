@@ -4,9 +4,10 @@ import typing as t
 
 import graphviz as gv
 import networkx as nx
+import pendulum
 from arg_services.graph.v1 import graph_pb2
 
-from arguebuf.data import Metadata, Userdata
+from arguebuf.data import Metadata
 
 from . import dt, utils
 from .node import Node
@@ -19,29 +20,29 @@ class Edge:
         "_id",
         "_source",
         "_target",
-        "_metadata",
-        "userdata",
+        "timestamp",
+        "metadata",
     )
 
     _id: str
     _source: Node
     _target: Node
-    _metadata: Metadata
-    userdata: Userdata
+    timestamp: pendulum.DateTime
+    metadata: Metadata
 
     def __init__(
         self,
         id: str,
         source: Node,
         target: Node,
+        timestamp: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
     ):
         self._id = id
         self._source = source
         self._target = target
-        self._metadata = metadata or Metadata()
-        self.userdata = userdata or {}
+        self.timestamp = timestamp or pendulum.now()
+        self.metadata = metadata or {}
 
         self.__post_init__()
 
@@ -77,13 +78,12 @@ class Edge:
 
         source_id = str(obj["from"]["id"])
         target_id = str(obj["to"]["id"])
-        timestamp = dt.from_ova(obj.get("data"))
 
         return cls(
             id=utils.unique_id(),
             source=nodes[source_id],
             target=nodes[target_id],
-            metadata=Metadata(timestamp, timestamp) if timestamp else Metadata(),
+            timestamp=dt.from_ova(obj.get("date")),
         )
 
     @classmethod
@@ -91,7 +91,6 @@ class Edge:
         cls,
         obj: t.Any,
         nodes: t.Mapping[str, Node],
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Edge:
         start_id = obj.get("fromID")
         end_id = obj.get("toID")
@@ -116,23 +115,24 @@ class Edge:
         id: str,
         obj: graph_pb2.Edge,
         nodes: t.Mapping[str, Node],
-        metadata_class: t.Type[Metadata],
     ) -> Edge:
         return cls(
             id,
             nodes[obj.source],
             nodes[obj.target],
-            metadata_class.from_protobuf(obj.metadata),
-            dict(obj.userdata.items()),
+            dt.from_protobuf(obj.timestamp),
+            dict(obj.metadata.items()),
         )
 
     def to_protobuf(self) -> graph_pb2.Edge:
         obj = graph_pb2.Edge(
             source=self._source.id,
             target=self._target.id,
-            metadata=self._metadata.to_protobuf(),
         )
-        obj.userdata.update(self.userdata)
+        obj.metadata.update(self.metadata)
+
+        if timestamp := self.timestamp:
+            obj.timestamp.FromDatetime(timestamp)
 
         return obj
 
