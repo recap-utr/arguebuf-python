@@ -144,7 +144,10 @@ class Scheme(Enum):
     WITNESS_TESTIMONY = graph_pb2.SCHEME_WITNESS_TESTIMONY
 
 
+# TODO
 scheme2text = {}
+
+# TODO
 text2scheme = {}
 
 
@@ -159,17 +162,20 @@ class Node(ABC):
     """Node in the AIF format."""
 
     _id: str
-    timestamp: pendulum.DateTime
+    created: pendulum.DateTime
+    updated: pendulum.DateTime
     metadata: Metadata
 
     def __init__(
         self,
         id: str,
-        timestamp: t.Optional[pendulum.DateTime] = None,
+        created: t.Optional[pendulum.DateTime] = None,
+        updated: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
     ):
         self._id = id
-        self.timestamp = timestamp or pendulum.now()
+        self.created = created or pendulum.now()
+        self.updated = updated or pendulum.now()
         self.metadata = metadata or {}
 
         self.__post_init__()
@@ -292,7 +298,15 @@ class Node(ABC):
 
 
 class AtomNode(Node):
-    __slots__ = ("_id", "timestamp", "metadata", "text", "reference", "participant")
+    __slots__ = (
+        "_id",
+        "created",
+        "updated",
+        "metadata",
+        "text",
+        "reference",
+        "participant",
+    )
 
     text: t.Any
     reference: t.Optional[Reference]
@@ -304,10 +318,11 @@ class AtomNode(Node):
         text: t.Any,
         resource: t.Optional[Reference] = None,
         participant: t.Optional[Participant] = None,
-        timestamp: t.Optional[pendulum.DateTime] = None,
+        created: t.Optional[pendulum.DateTime] = None,
+        updated: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
     ):
-        super().__init__(id, timestamp, metadata)
+        super().__init__(id, created, updated, metadata)
         self.text = text
         self.reference = resource
         self.participant = participant
@@ -362,7 +377,8 @@ class AtomNode(Node):
             utils.parse(obj.atom.text, nlp),
             reference_class.from_protobuf(obj.atom.reference, resources, nlp),
             participants[obj.atom.participant],
-            dt.from_protobuf(obj.timestamp),
+            dt.from_protobuf(obj.created),
+            dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
         )
 
@@ -375,8 +391,14 @@ class AtomNode(Node):
         if reference := self.reference:
             obj.atom.reference.CopyFrom(reference.to_protobuf())
 
-        if timestamp := self.timestamp:
-            obj.timestamp.FromDatetime(timestamp)
+        if participant := self.participant:
+            obj.atom.participant = participant.id
+
+        if created := self.created:
+            obj.created.FromDatetime(created)
+
+        if updated := self.updated:
+            obj.updated.FromDatetime(updated)
 
         return obj
 
@@ -410,7 +432,8 @@ class AtomNode(Node):
 class SchemeNode(Node):
     __slots__ = (
         "_id",
-        "timestamp",
+        "created",
+        "updated",
         "metadata",
         "type",
         "argumentation_scheme",
@@ -427,10 +450,11 @@ class SchemeNode(Node):
         type: SchemeType,
         argumentation_scheme: t.Optional[Scheme] = None,
         descriptors: t.Optional[t.Mapping[str, str]] = None,
-        timestamp: t.Optional[pendulum.DateTime] = None,
+        created: t.Optional[pendulum.DateTime] = None,
+        updated: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
     ):
-        super().__init__(id, timestamp, metadata)
+        super().__init__(id, created, updated, metadata)
         self.type = type
         self.argumentation_scheme = argumentation_scheme
         self.descriptors = dict(descriptors) if descriptors else {}
@@ -441,7 +465,7 @@ class SchemeNode(Node):
             [
                 self._id,
                 scheme_type2text[self.type],
-                utils.xstr(self.argumentation_scheme),
+                utils.xstr(scheme2text.get(self.argumentation_scheme)),
             ],
         )
 
@@ -488,7 +512,7 @@ class SchemeNode(Node):
 
         return cls(
             **_from_ova(obj),
-            argumentation_scheme=obj["text"],
+            argumentation_scheme=text2scheme.get(obj["text"]),
             type=aif2scheme_type[obj["type"]],
             descriptors=descriptors,
         )
@@ -510,7 +534,8 @@ class SchemeNode(Node):
             else SchemeType.SUPPORT,
             Scheme(obj.scheme.argumentation_scheme),
             dict(obj.scheme.descriptors.items()),
-            dt.from_protobuf(obj.timestamp),
+            dt.from_protobuf(obj.created),
+            dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
         )
 
@@ -524,15 +549,20 @@ class SchemeNode(Node):
         if arg_scheme := self.argumentation_scheme:
             obj.scheme.argumentation_scheme = arg_scheme.value
 
-        if timestamp := self.timestamp:
-            obj.timestamp.FromDatetime(timestamp)
+        if created := self.created:
+            obj.created.FromDatetime(created)
+
+        if updated := self.updated:
+            obj.updated.FromDatetime(updated)
 
         return obj
 
     def to_nx(self, g: nx.DiGraph) -> None:
         g.add_node(
             self._id,
-            label=self.argumentation_scheme or scheme_type2text[self.type],
+            label=scheme2text.get(
+                self.argumentation_scheme, scheme_type2text[self.type]
+            ),
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
@@ -554,11 +584,7 @@ class SchemeNode(Node):
 
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
         color = self.color(major_claim)
-        label = (
-            scheme2text[self.argumentation_scheme]
-            if self.argumentation_scheme
-            else scheme_type2text[self.type]
-        )
+        label = scheme2text.get(self.argumentation_scheme, scheme_type2text[self.type])
 
         g.node(
             self._id,
@@ -572,17 +598,17 @@ class SchemeNode(Node):
 def _from_aif(obj: t.Mapping[str, t.Any]) -> t.Dict[str, t.Any]:
     timestamp = dt.from_aif(obj.get("timestamp"))
 
-    return {"id": obj["nodeID"], "timestamp": timestamp}
+    return {"id": obj["nodeID"], "created": timestamp, "updated": timestamp}
 
 
 def _to_aif(n: Node) -> t.Dict[str, t.Any]:
     return {
         "nodeID": n._id,
-        "timestamp": dt.to_aif(n.timestamp),
+        "timestamp": dt.to_aif(n.created),
     }
 
 
 def _from_ova(obj: t.Mapping[str, t.Any]) -> t.Dict[str, t.Any]:
     timestamp = dt.from_ova(obj.get("date"))
 
-    return {"id": str(obj["id"]), "timestamp": timestamp}
+    return {"id": str(obj["id"]), "created": timestamp, "updated": timestamp}

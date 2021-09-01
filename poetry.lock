@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "arg-services"
-version = "0.1.16"
+version = "0.1.18"
 description = "GraphQL and gRPC schemas for Microservice-based Argumentation Machines."
 category = "main"
 optional = false
@@ -653,8 +653,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 arg-services = [
-    {file = "arg-services-0.1.16.tar.gz", hash = "sha256:1fc98372c3412276f70f44edbbffe3029d1005eaf61b35794d423f1d1b1662e7"},
-    {file = "arg_services-0.1.16-py3-none-any.whl", hash = "sha256:4dc8a0cf8b951d5ab68771bed25c288161a4ddd2fc7863f18d56bff39d31822d"},
+    {file = "arg-services-0.1.18.tar.gz", hash = "sha256:b249d0b051e63e6baf9ad65152f72db86e097759c43370026800487b35ba2e7a"},
+    {file = "arg_services-0.1.18-py3-none-any.whl", hash = "sha256:bed95aabcf4f7b87196ddd19e140850698472382da706833355bbb8e5b670caf"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},

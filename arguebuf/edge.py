@@ -20,14 +20,16 @@ class Edge:
         "_id",
         "_source",
         "_target",
-        "timestamp",
+        "created",
+        "updated",
         "metadata",
     )
 
     _id: str
     _source: Node
     _target: Node
-    timestamp: pendulum.DateTime
+    created: pendulum.DateTime
+    updated: pendulum.DateTime
     metadata: Metadata
 
     def __init__(
@@ -35,13 +37,15 @@ class Edge:
         id: str,
         source: Node,
         target: Node,
-        timestamp: t.Optional[pendulum.DateTime] = None,
+        created: t.Optional[pendulum.DateTime] = None,
+        updated: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
     ):
         self._id = id
         self._source = source
         self._target = target
-        self.timestamp = timestamp or pendulum.now()
+        self.created = created or pendulum.now()
+        self.updated = updated or pendulum.now()
         self.metadata = metadata or {}
 
         self.__post_init__()
@@ -83,7 +87,8 @@ class Edge:
             id=utils.unique_id(),
             source=nodes[source_id],
             target=nodes[target_id],
-            timestamp=dt.from_ova(obj.get("date")),
+            created=dt.from_ova(obj.get("date")),
+            updated=dt.from_ova(obj.get("date")),
         )
 
     @classmethod
@@ -120,7 +125,8 @@ class Edge:
             id,
             nodes[obj.source],
             nodes[obj.target],
-            dt.from_protobuf(obj.timestamp),
+            dt.from_protobuf(obj.created),
+            dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
         )
 
@@ -131,8 +137,11 @@ class Edge:
         )
         obj.metadata.update(self.metadata)
 
-        if timestamp := self.timestamp:
-            obj.timestamp.FromDatetime(timestamp)
+        if created := self.created:
+            obj.created.FromDatetime(created)
+
+        if updated := self.updated:
+            obj.updated.FromDatetime(updated)
 
         return obj
 

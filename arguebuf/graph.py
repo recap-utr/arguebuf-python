@@ -53,7 +53,8 @@ class Graph:
         "_resources",
         "_participants",
         "analysts",
-        "timestamp",
+        "created",
+        "updated",
         "metadata",
         "version",
     )
@@ -72,7 +73,8 @@ class Graph:
     _major_claim: t.Optional[Node]
     analysts: t.List[Participant]
     version: str
-    timestamp: pendulum.DateTime
+    created: pendulum.DateTime
+    updated: pendulum.DateTime
     metadata: Metadata
 
     @property
@@ -157,7 +159,8 @@ class Graph:
         self._edges = ImmutableDict()
         self.analysts = []
         self.metadata = {}
-        self.timestamp = pendulum.now()
+        self.created = pendulum.now()
+        self.updated = pendulum.now()
         self._resources = ImmutableDict()
         self._participants = ImmutableDict()
         self._major_claim = None
@@ -209,6 +212,10 @@ class Graph:
 
         if isinstance(node, AtomNode):
             self._atom_nodes._store[node.id] = node
+
+            if node.participant and node.participant.id not in self._participants:
+                self.add_participant(node.participant)
+
         elif isinstance(node, SchemeNode):
             self._scheme_nodes._store[node.id] = node
 
@@ -536,7 +543,8 @@ class Graph:
             g.participants[participant_id].CopyFrom(participant.to_protobuf())
 
         g.metadata.update(self.metadata)
-        dt.to_protobuf(self.timestamp, g.timestamp)
+        dt.to_protobuf(self.created, g.created)
+        dt.to_protobuf(self.updated, g.updated)
         g.version = self.version
 
         return g
@@ -600,7 +608,8 @@ class Graph:
         ]
 
         g.metadata.update(obj.metadata)
-        g.timestamp = dt.from_protobuf(obj.timestamp)
+        g.created = dt.from_protobuf(obj.created)
+        g.updated = dt.from_protobuf(obj.updated)
         g.version = obj.version
 
         return g
@@ -634,7 +643,7 @@ class Graph:
         if format == GraphFormat.AIF:
             return self.to_aif()
 
-        return MessageToDict(self.to_protobuf(), including_default_value_fields=True)
+        return MessageToDict(self.to_protobuf(), including_default_value_fields=False)
 
     @classmethod
     def from_json(

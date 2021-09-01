@@ -20,7 +20,8 @@ class Participant:
     url: t.Optional[str] = None
     location: t.Optional[str] = None
     description: t.Optional[str] = None
-    timestamp: pendulum.DateTime = field(default_factory=pendulum.now)
+    created: pendulum.DateTime = field(default_factory=pendulum.now)
+    updated: pendulum.DateTime = field(default_factory=pendulum.now)
     metadata: Metadata = field(default_factory=dict)
 
     @property
@@ -36,7 +37,8 @@ class Participant:
             location=self.location or "",
             description=self.description or "",
         )
-        dt.to_protobuf(self.timestamp, obj.timestamp)
+        dt.to_protobuf(self.created, obj.created)
+        dt.to_protobuf(self.updated, obj.updated)
         obj.metadata.update(self.metadata)
 
         return obj
@@ -51,7 +53,8 @@ class Participant:
             obj.url,
             obj.location,
             obj.description,
-            dt.from_protobuf(obj.timestamp),
+            dt.from_protobuf(obj.created),
+            dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
         )
 
@@ -62,7 +65,8 @@ class Resource:
     text: t.Any
     title: t.Optional[str] = None
     source: t.Optional[str] = None
-    timestamp: pendulum.DateTime = field(default_factory=pendulum.now)
+    created: pendulum.DateTime = field(default_factory=pendulum.now)
+    updated: pendulum.DateTime = field(default_factory=pendulum.now)
     metadata: Metadata = field(default_factory=dict)
 
     @property
@@ -75,7 +79,8 @@ class Resource:
 
     def to_protobuf(self) -> graph_pb2.Resource:
         obj = graph_pb2.Resource(text=self.plain_text)
-        dt.to_protobuf(self.timestamp, obj.timestamp)
+        dt.to_protobuf(self.created, obj.created)
+        dt.to_protobuf(self.updated, obj.updated)
         obj.metadata.update(self.metadata)
 
         if title := self.title:
@@ -98,7 +103,8 @@ class Resource:
             utils.parse(obj.text, nlp),
             obj.title,
             obj.source,
-            dt.from_protobuf(obj.timestamp),
+            dt.from_protobuf(obj.created),
+            dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
         )
 
