@@ -147,8 +147,7 @@ class Scheme(Enum):
 # TODO
 scheme2text = {}
 
-# TODO
-text2scheme = {}
+text2scheme = {value: key for key, value in scheme2text.items()}
 
 
 @dataclass
