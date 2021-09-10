@@ -145,9 +145,15 @@ class Scheme(Enum):
 
 
 # TODO
-scheme2text = {}
+scheme2text = {
+    Scheme.AD_HOMINEM: "Ad Hominem",
+}
 
-text2scheme = {value: key for key, value in scheme2text.items()}
+# TODO
+text2scheme = {
+    "Alternatives (Cognitive Schemes)": Scheme.ALTERNATIVES,
+    "Alternatives": Scheme.ALTERNATIVES,
+}
 
 
 @dataclass

@@ -190,16 +190,17 @@ class Graph:
             node: Node object that is not already part of the graph.
 
         Examples:
-            >>> g = Graph("Test")
-            >>> g.add_node(Node(g.idgen(), "Node", NodeCategory.I))
+            >>> import arguebuf
+            >>> g = arguebuf.Graph("Test")
+            >>> g.add_node(arguebuf.AtomNode(arguebuf.unique_id(), "Node"))
             >>> len(g.nodes)
             1
-            >>> g.add_node(Node(1, "Node", NodeCategory.I))
-            Traceback (most recent call last):
-            ValueError: ID already used in graph.
+            >>> g.add_node(arguebuf.SchemeNode(arguebuf.unique_id(), arguebuf.SchemeType.SUPPORT))
+            >>> len(g.nodes)
+            2
             >>> g.add_node("Test")
             Traceback (most recent call last):
-            TypeError: Only Node objects possible.
+            TypeError: Expected type '<class 'arguebuf.node.Node'>', but got '<class 'str'>'. Make sure that you are passing the correct method arguments.
         """
 
         if not isinstance(node, Node):
