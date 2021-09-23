@@ -147,12 +147,202 @@ class Scheme(Enum):
 # TODO
 scheme2text = {
     Scheme.AD_HOMINEM: "Ad Hominem",
+    Scheme.ALTERNATIVE_MEANS: "Alternative Means",
+    Scheme.ALTERNATIVES: "Alternatives",
+    Scheme.ANALOGY: "Analogy",
+    Scheme.ARBITRARY_VERBAL_CLASSIFICATION: "Arbitrary Verbal Classification",
+    Scheme.AUTHORITY: "Authority",
+    Scheme.BIAS: "Bias",
+    Scheme.BIASED_CLASSIFICATION: "Biased_Classification",
+    Scheme.CALLING_OUT: "Calling Out",
+    Scheme.CAUSAL_SLIPPERY_SLOPE: "Causal Slippery Slope",
+    Scheme.CAUSE_TO_EFFECT: "Cause To Effect",
+    Scheme.CIRCUMSTANTIAL_AD_HOMINEM: "Circumstantial Ad Hominem",
+    Scheme.COMMITMENT_EXCEPTION: "Commitment Exception",
+    Scheme.COMMITMENT: "Commitment",
+    Scheme.COMPOSITION: "Composition",
+    Scheme.CONFLICTING_GOALS: "Conflicting Goals",
+    Scheme.CONSEQUENCES: "Consequences",
+    Scheme.CORRELATION_TO_CAUSE: "Correlation To Cause",
+    Scheme.DANGER_APPEAL: "Danger Appeal",
+    Scheme.DEFINITION_TO_VERBAL_CLASSIFICATION: "Definition To Verbal Classification",
+    Scheme.DIFFERENCES_UNDERMINE_SIMILARITY: "Differences Undermine Similarity",
+    Scheme.DILEMMA: "Dilemma",
+    Scheme.DIRECT_AD_HOMINEM: "Direct Ad Hominem",
+    Scheme.DIVISION: "Division",
+    Scheme.ESTABLISHED_RULE: "Established Rule",
+    Scheme.ETHOTIC: "Ethotic",
+    Scheme.EVIDENCE_TO_HYPOTHESIS: "Evidence To Hypothesis",
+    Scheme.EXAMPLE: "Example",
+    Scheme.EXCEPTION_SIMILARITY_CASE: "Exception Similarity Case",
+    Scheme.EXCEPTIONAL_CASE: "Exceptional Case",
+    Scheme.EXPERT_OPINION: "Expert Opinion",
+    Scheme.EXPERTISE_INCONSISTENCY: "Expertise Inconsistency",
+    Scheme.FAIRNESS: "Fairness",
+    Scheme.FALSIFICATION_OF_HYPOTHESIS: "Falsification Of Hypothesis",
+    Scheme.FEAR_APPEAL: "Fear Appeal",
+    Scheme.FULL_SLIPPERY_SLOPE: "Full Slippery Slope",
+    Scheme.GENERAL_ACCEPTANCE_DOUBT: "General Acceptance Doubt",
+    Scheme.GENERIC_AD_HOMINEM: "Generic Ad Hominem",
+    Scheme.GOODWILL: "Goodwill",
+    Scheme.GRADUALISM: "Gradualism",
+    Scheme.IGNORANCE: "Ignorance",
+    Scheme.INCONSISTENT_COMMITMENT: "Inconsistent Commitment",
+    Scheme.INFORMANT_REPORT: "Informant Report",
+    Scheme.INTERACTION_OF_ACT_AND_PERSON: "Interaction Of Act And Person",
+    Scheme.IRRATIONAL_FEAR_APPEAL: "Irrational Fear Appeal",
+    Scheme.LACK_OF_COMPLETE_KNOWLEDGE: "Lack Of Complete Knowledge",
+    Scheme.LACK_OF_EXPERT_RELIABILITY: "Lack Of Expert Reliability",
+    Scheme.LOGICAL: "Logical",
+    Scheme.MISPLACED_PRIORITIES: "Misplaced Priorities",
+    Scheme.MODUS_PONENS: "Modus Ponens",
+    Scheme.MORAL_VIRTUE: "Moral Virtue",
+    Scheme.NEED_FOR_HELP: "Need For Help",
+    Scheme.NEGATIVE_CONSEQUENCES: "Negative Consequences",
+    Scheme.OPPOSED_COMMITMENT: "Opposed Commitment",
+    Scheme.OPPOSITIONS: "Oppositions",
+    Scheme.CAUSAL_FACTORS_INVOLVED: "Causal Factors Involved",
+    Scheme.PARAPHRASE: "Paraphrase",
+    Scheme.PERCEPTION: "Perception",
+    Scheme.POPULAR_OPINION: "Popular Opinion",
+    Scheme.POPULAR_PRACTICE: "Popular Practice",
+    Scheme.POSITION_TO_KNOW: "Position To Know",
+    Scheme.POSITIVE_CONSEQUENCES: "Positive Consequences",
+    Scheme.PRACTICAL_REASONING_FROM_ANALOGY: "Practical Reasoning From Analogy",
+    Scheme.PRACTICAL_REASONING: "Practical Reasoning",
+    Scheme.PRACTICAL_WISDOM: "Practical Wisdom",
+    Scheme.PRAGMATIC_ALTERNATIVES: "Pragmatic Alternatives",
+    Scheme.PRAGMATIC_INCONSISTENCY: "Pragmatic Inconsistency",
+    Scheme.PRECEDENT_SLIPPERY_SLOPE: "Precedent Slippery Slope",
+    Scheme.PROPERTY_NOT_EXISTANT: "Property Not Existant",
+    Scheme.REFRAMING: "Reframing",
+    Scheme.REQUIRED_STEPS: "Required Steps",
+    Scheme.RESOLVING_INCONSISTENCY: "Resolving Inconsistency",
+    Scheme.RULE: "Rule",
+    Scheme.RULES: "Rules",
+    Scheme.SIGN_FROM_OTHER_EVENTS: "Sign From Other Events",
+    Scheme.SIGN: "Sign",
+    Scheme.TWO_PERSON_PRACTICAL_REASONING: "Two Person Practical Reasoning",
+    Scheme.UNFAIRNESS: "Unfairness",
+    Scheme.VAGUE_VERBAL_CLASSIFICATION: "Vague Verbal Classification",
+    Scheme.VAGUENESS_OF_VERBAL_CLASSIFICATION: "Vagueness Of Verbal Classification",
+    Scheme.VALUE_BASED_PRACTICAL_REASONING: "Value Based Practical Reasoning",
+    Scheme.VALUES: "Values",
+    Scheme.VERBAL_CLASSIFICATION: "Verbal Classification",
+    Scheme.VERBAL_SLIPPERY_SLOPE: "Verbal Slippery Slope",
+    Scheme.VESTED_INTEREST: "Vested Interest",
+    Scheme.VIRTUE_GOODWILL: "Virtue Goodwill",
+    Scheme.WASTE: "Waste",
+    Scheme.WEAKEST_LINK: "Weakest Link",
+    Scheme.WISDOM_GOODWILL: "Wisdom Goodwill",
+    Scheme.WISDOM_VIRTUE: "Wisdom Virtue",
+    Scheme.WISDOM_VIRTUE_GOODWILL: "Wisdom Virtue Goodwill",
+    Scheme.WITNESS_TESTIMONY: "Witness Testimony"
 }
 
 # TODO
 text2scheme = {
+    "Ad Hominem": Scheme.AD_HOMINEM,
+    "Alternative Means": Scheme.ALTERNATIVE_MEANS,
     "Alternatives (Cognitive Schemes)": Scheme.ALTERNATIVES,
     "Alternatives": Scheme.ALTERNATIVES,
+    "Analogy": Scheme.ANALOGY,
+    "Arbitrary Verbal Classification": Scheme.ARBITRARY_VERBAL_CLASSIFICATION,
+    "Argument From Authority": Scheme.AUTHORITY,
+    "Bias": Scheme.BIAS,
+    "Biased Classification": Scheme.BIASED_CLASSIFICATION,
+    "Calling Out": Scheme.CALLING_OUT,
+    "Causal Slippery Slope": Scheme.CAUSAL_SLIPPERY_SLOPE,
+    "Cause To Effect": Scheme.CAUSE_TO_EFFECT,
+    "Circumstantial Ad Hominem": Scheme.CIRCUMSTANTIAL_AD_HOMINEM,
+    "Commitment Exception": Scheme.COMMITMENT_EXCEPTION,
+    "Commitment": Scheme.COMMITMENT,
+    "Composition": Scheme.COMPOSITION,
+    "Conflicting Goals": Scheme.CONFLICTING_GOALS,
+    "Consequences": Scheme.CONSEQUENCES,
+    "Correlation To Cause": Scheme.CORRELATION_TO_CAUSE,
+    "Danger Appeal": Scheme.DANGER_APPEAL,
+    "Definition To Verbal Classification": Scheme.DEFINITION_TO_VERBAL_CLASSIFICATION,
+    "Differences Undermine Similarity": Scheme.DIFFERENCES_UNDERMINE_SIMILARITY,
+    "Dilemma": Scheme.DILEMMA,
+    "Direct Ad Hominem": Scheme.DIRECT_AD_HOMINEM,
+    "Division": Scheme.DIVISION,
+    "Established Rule": Scheme.ESTABLISHED_RULE,
+    "Ethotic": Scheme.ETHOTIC,
+    "Evidence To Hypothesis": Scheme.EVIDENCE_TO_HYPOTHESIS,
+    "Example": Scheme.EXAMPLE,
+    "Exception Similarity Case": Scheme.EXCEPTION_SIMILARITY_CASE,
+    "Exceptional Case": Scheme.EXCEPTIONAL_CASE,
+    "Expert Opinion": Scheme.EXPERT_OPINION,
+    "Expertise Inconsistency": Scheme.EXPERTISE_INCONSISTENCY,
+    "Fairness": Scheme.FAIRNESS,
+    "Falsification Of Hypothesis": Scheme.FALSIFICATION_OF_HYPOTHESIS,
+    "Fear Appeal": Scheme.FEAR_APPEAL,
+    "Full Slippery Slope": Scheme.FULL_SLIPPERY_SLOPE,
+    "General Acceptance Doubt": Scheme.GENERAL_ACCEPTANCE_DOUBT,
+    "Generic Ad Hominem": Scheme.GENERIC_AD_HOMINEM,
+    "Argument From Goodwill": Scheme.GOODWILL,
+    "Gradualism": Scheme.GRADUALISM,
+    "Ignorance": Scheme.IGNORANCE,
+    "Inconsistent Commitment": Scheme.INCONSISTENT_COMMITMENT,
+    "Informant Report": Scheme.INFORMANT_REPORT,
+    "Interaction Of Act And Person": Scheme.INTERACTION_OF_ACT_AND_PERSON,
+    "Irrational Fear Appeal": Scheme.IRRATIONAL_FEAR_APPEAL,
+    "Lack Of Complete Knowledge": Scheme.LACK_OF_COMPLETE_KNOWLEDGE,
+    "Lack Of Expert Reliability": Scheme.LACK_OF_EXPERT_RELIABILITY,
+    "Logical": Scheme.LOGICAL,
+    "Misplaced Priorities": Scheme.MISPLACED_PRIORITIES,
+    "Modus Ponens": Scheme.MODUS_PONENS,
+    "Argument From Moral Virtue": Scheme.MORAL_VIRTUE,
+    "Need For Help": Scheme.NEED_FOR_HELP,
+    "Negative Consequences": Scheme.NEGATIVE_CONSEQUENCES,
+    "Opposed Commitment": Scheme.OPPOSED_COMMITMENT,
+    "Oppositions": Scheme.OPPOSITIONS,
+    "Causal Factors Involved": Scheme.CAUSAL_FACTORS_INVOLVED,
+    "Paraphrase": Scheme.PARAPHRASE,
+    "Perception": Scheme.PERCEPTION,
+    "Popular Opinion": Scheme.POPULAR_OPINION,
+    "Popular Practice": Scheme.POPULAR_PRACTICE,
+    "Position To Know": Scheme.POSITION_TO_KNOW,
+    "Positive Consequences": Scheme.POSITIVE_CONSEQUENCES,
+    "Practical Reasoning From Analogy": Scheme.PRACTICAL_REASONING_FROM_ANALOGY,
+    "Practical Reasoning": Scheme.PRACTICAL_REASONING,
+    "Argument From Practical Wisdom": Scheme.PRACTICAL_WISDOM,
+    "Pragmatic Alternatives": Scheme.PRAGMATIC_ALTERNATIVES,
+    "Pragmatic Inconsistency": Scheme.PRAGMATIC_INCONSISTENCY,
+    "Precedent Slippery Slope": Scheme.PRECEDENT_SLIPPERY_SLOPE,
+    "Property Not Existant": Scheme.PROPERTY_NOT_EXISTANT,
+    "Reframing": Scheme.REFRAMING,
+    "Required Steps": Scheme.REQUIRED_STEPS,
+    "Resolving Inconsistency": Scheme.RESOLVING_INCONSISTENCY,
+    "Rule": Scheme.RULE,
+    "Rules": Scheme.RULES,
+    "Sign From Other Events": Scheme.SIGN_FROM_OTHER_EVENTS,
+    "Sign": Scheme.SIGN,
+    "Two Person Practical Reasoning": Scheme.TWO_PERSON_PRACTICAL_REASONING,
+    "Unfairness": Scheme.UNFAIRNESS,
+    "Vague Verbal Classification": Scheme.VAGUE_VERBAL_CLASSIFICATION,
+    "Vagueness Of Verbal Classification": Scheme.VAGUENESS_OF_VERBAL_CLASSIFICATION,
+    "Value Based Practical Reasoning": Scheme.VALUE_BASED_PRACTICAL_REASONING,
+    "Values": Scheme.VALUES,
+    "Verbal Classification": Scheme.VERBAL_CLASSIFICATION,
+    "Verbal Slippery Slope": Scheme.VERBAL_SLIPPERY_SLOPE,
+    "Vested Interest": Scheme.VESTED_INTEREST,
+    "Argument From Virtue/Goodwill": Scheme.VIRTUE_GOODWILL,
+    "Waste": Scheme.WASTE,
+    "Weakest Link": Scheme.WEAKEST_LINK,
+    "Argument From Wisdom/Goodwill": Scheme.WISDOM_GOODWILL,
+    "Argument From Wisdom/Virtue": Scheme.WISDOM_VIRTUE,
+    "Argument From Wisdom/Virtue/Goodwill": Scheme.WISDOM_VIRTUE_GOODWILL,
+    "Witness Testimony": Scheme.WITNESS_TESTIMONY,
+    "Conflict From Wisdom/Goodwill": Scheme.WISDOM_GOODWILL,
+    "Conflict From Wisdom/Virtue": Scheme.WISDOM_VIRTUE,
+    "Conflict From Wisdom/Virtue/Goodwill": Scheme.WISDOM_VIRTUE_GOODWILL,
+    "Conflict From Virtue/Goodwill": Scheme.VIRTUE_GOODWILL,
+    "Conflict From Practical Wisdom": Scheme.PRACTICAL_WISDOM,
+    "Conflict From Moral Virtue": Scheme.MORAL_VIRTUE,
+    "Conflict From Goodwill": Scheme.GOODWILL,
+    "ERAd Hominem": Scheme.AD_HOMINEM
 }
 
 
@@ -197,7 +387,7 @@ class Node(ABC):
 
     @abstractmethod
     def color(self, major_claim: bool) -> ColorMapping:
-        """Get the color used in OVA based on `category`."""
+    """Get the color used in OVA based on `category`."""
 
     @classmethod
     @abstractmethod
@@ -206,6 +396,7 @@ class Node(ABC):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
+    """Generate Node object from OVA Node format."""
         pass
 
     @classmethod
@@ -215,10 +406,12 @@ class Node(ABC):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
+    """Generate Node object from AIF Node format."""
         pass
 
     @abstractmethod
     def to_aif(self) -> t.Dict[str, t.Any]:
+    """Export Node object into AIF Node format."""
         pass
 
     @classmethod
@@ -232,18 +425,22 @@ class Node(ABC):
         reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
+    """Generate Node object from PROTOBUF Node object."""
         pass
 
     @abstractmethod
     def to_protobuf(self) -> graph_pb2.Node:
+    """Export Node object into PROTOBUF Node object."""
         pass
 
     @abstractmethod
     def to_nx(self, g: nx.DiGraph) -> None:
+    """Submethod used to export Graph object g into NX Graph format."""
         pass
 
     @abstractmethod
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
+    """Submethod used to export Graph object g into GV Graph format."""
         pass
 
     # @abstractmethod
@@ -347,12 +544,14 @@ class AtomNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
+    """Generate AtomNode object from AIF Node object."""
         return cls(
             **_from_aif(obj),
             text=utils.parse(obj["text"], nlp),
         )
 
     def to_aif(self) -> t.Dict[str, t.Any]:
+    """Export AtomNode object into AIF Node object."""
         return {
             **_to_aif(self),
             "text": self.plain_text,
@@ -365,6 +564,7 @@ class AtomNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
+    """Generate AtomNode object from OVA Node object."""
         return cls(**_from_ova(obj), text=utils.parse(obj["text"], nlp))
 
     @classmethod
@@ -377,6 +577,7 @@ class AtomNode(Node):
         reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
+    """Generate AtomNode object from PROTOBUF Node object."""
         return cls(
             id,
             utils.parse(obj.atom.text, nlp),
@@ -388,6 +589,7 @@ class AtomNode(Node):
         )
 
     def to_protobuf(self) -> graph_pb2.Node:
+    """Export AtomNode object into PROTOBUF Node object."""
         obj = graph_pb2.Node()
         obj.metadata.update(self.metadata)
 
@@ -408,18 +610,21 @@ class AtomNode(Node):
         return obj
 
     def to_nx(self, g: nx.DiGraph) -> None:
+    """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
             label=self.plain_text,
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
+    """Get the color used in OVA based on `category`."""
         if major_claim:
             return ColorMapping(bg="#3498db", border="#3498db")
 
         return ColorMapping(bg="#ddeef9", border="#3498db")
 
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
+    """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
 
         # TODO: Improve wrapping
@@ -480,6 +685,7 @@ class SchemeNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
+    """Generate SchemeNode object from AIF Node object."""
         node = cls(
             **_from_aif(obj),
             type=aif2scheme_type[obj["type"]],
@@ -492,6 +698,7 @@ class SchemeNode(Node):
         return node
 
     def to_aif(self) -> t.Dict[str, t.Any]:
+    """Export SchemeNode object into AIF Node object."""
         return {
             **_to_aif(self),
             "text": scheme_type2text[self.type],
@@ -504,6 +711,7 @@ class SchemeNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
+    """Generate SchemeNode object from OVA Node object."""
         ova_desc = obj["descriptors"]
         descriptors = {}
 
@@ -532,6 +740,7 @@ class SchemeNode(Node):
         reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
+    """Generate SchemeNode object from OVA Node object."""
         return cls(
             id,
             SchemeType(obj.scheme.type)
@@ -545,6 +754,7 @@ class SchemeNode(Node):
         )
 
     def to_protobuf(self) -> graph_pb2.Node:
+    """Export SchemeNode object into PROTOBUF Node object."""
         obj = graph_pb2.Node()
         obj.metadata.update(self.metadata)
 
@@ -563,6 +773,7 @@ class SchemeNode(Node):
         return obj
 
     def to_nx(self, g: nx.DiGraph) -> None:
+    """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
             label=scheme2text.get(
@@ -571,7 +782,7 @@ class SchemeNode(Node):
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
-
+    """Get the color used in OVA based on `category`."""
         if self.type == SchemeType.SUPPORT:
             return ColorMapping(bg="#def8e9", border="#2ecc71")
         elif self.type == SchemeType.ATTACK:
@@ -588,6 +799,7 @@ class SchemeNode(Node):
         return ColorMapping(bg="#e9eded", border="#95a5a6")
 
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
+    """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
         label = scheme2text.get(self.argumentation_scheme, scheme_type2text[self.type])
 

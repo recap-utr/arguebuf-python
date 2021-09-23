@@ -23,12 +23,13 @@ class Participant:
     created: pendulum.DateTime = field(default_factory=pendulum.now)
     updated: pendulum.DateTime = field(default_factory=pendulum.now)
     metadata: Metadata = field(default_factory=dict)
-
+    
     @property
     def id(self) -> str:
         return self._id
 
     def to_protobuf(self) -> graph_pb2.Participant:
+    """Export Participant object into a Graph's Participant object in PROTOBUF format."""
         obj = graph_pb2.Participant(
             name=self.name or "",
             username=self.username or "",
@@ -45,6 +46,7 @@ class Participant:
 
     @classmethod
     def from_protobuf(cls, id: str, obj: graph_pb2.Participant) -> Participant:
+    """Generate Participant object from PROTOBUF format Graph's Participant object."""
         return cls(
             id,
             obj.name,
@@ -75,9 +77,11 @@ class Resource:
 
     @property
     def plain_text(self) -> str:
+    """Generate a string from Resource object."""
         return utils.xstr(self.text)
 
     def to_protobuf(self) -> graph_pb2.Resource:
+    """Export Resource object into a Graph's Resource object in PROTOBUF format."""
         obj = graph_pb2.Resource(text=self.plain_text)
         dt.to_protobuf(self.created, obj.created)
         dt.to_protobuf(self.updated, obj.updated)
@@ -98,6 +102,7 @@ class Resource:
         obj: graph_pb2.Resource,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Resource:
+    """Generate Resource object from PROTOBUF format Graph's Resource object."""
         return cls(
             id,
             utils.parse(obj.text, nlp),
@@ -118,10 +123,12 @@ class Reference:
 
     @property
     def plain_text(self) -> str:
+    """Generate a string from Resource object."""
         return utils.xstr(self.text)
 
     def to_protobuf(self) -> graph_pb2.Reference:
-        obj = graph_pb2.Reference(text=self.plain_text)
+    """Export Resource object into a Graph's Resource object in PROTOBUF format."""
+       obj = graph_pb2.Reference(text=self.plain_text)
 
         if resource := self.resource:
             obj.resource = resource.id
@@ -140,6 +147,7 @@ class Reference:
         resources: t.Mapping[str, Resource],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> t.Optional[Reference]:
+    """Generate Resource object from PROTOBUF format Graph's Resource object."""
         if obj.text:
             if obj.resource:
                 return cls(
