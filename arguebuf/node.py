@@ -693,7 +693,7 @@ class SchemeNode(Node):
         text: str = obj["text"]
 
         if not text.startswith("Default "):
-            node.argumentation_scheme = text2scheme[text]
+            node.argumentation_scheme = text2scheme.get(text)
 
         return node
 
