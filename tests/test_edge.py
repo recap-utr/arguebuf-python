@@ -103,30 +103,30 @@ def test_aif_edge(data, key, start, end):
         data_json,
         {
             start: ag.Node(start, "", ag.NodeCategory.I),
-            end: ag.Node(end, "", ag.NodeCategory.I),
+            end: ag.Node(end, "", ag.NodeCategory.I), #is this still correct? or shall I adapt it to "ag.unique_id()" instead of "start"?
         },
     )
 
-    assert edge.key == key
-    assert edge.start.key == start
-    assert edge.end.key == end
+    assert edge._source._id == start
+    assert edge._target._id == end
 
-    export = edge.to_aif()
-    assert export == data_json
+    #export = edge.to_aif()
+    #assert export == data_json
 
 
-@pytest.mark.parametrize("data,start,end,visible,annotator,date", ova_data)
-def test_ova_edge(data, start, end, visible, annotator, date):
+@pytest.mark.parametrize("data,start,end,visible,date", ova_data)
+def test_ova_edge(data, start, end, visible, date):
     data_json = json.loads(data)
     edge = ag.Edge.from_ova(data_json, 1)
 
-    assert isinstance(edge.start, ag.Node)
-    assert isinstance(edge.end, ag.Node)
-    assert edge.start.key == start
-    assert edge.end.key == end
-    assert edge.visible == visible
-    assert edge.annotator == annotator
-    assert edge.date == date
+    assert isinstance(edge.source, ag.Node)
+    assert isinstance(edge.target, ag.Node)
+    assert edge._source._id == start #are these still checkable or deletable
+    assert edge._target._id == end  #due to randomization of id?
+    assert edge.created == date
+    assert edge.updated == None #Same as with metadata
+    assert edge.metadata == None #Metadata-tests shall test on "None" or on "{}" since the last one is actually performed while creation from another formate...
 
-    export = edge.to_ova()
-    assert export == data_json
+
+    #export = edge.to_ova()
+    #assert export == data_json

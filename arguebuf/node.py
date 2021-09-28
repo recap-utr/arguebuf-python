@@ -504,7 +504,7 @@ class AtomNode(Node):
         "_id",
         "created",
         "updated",
-        "metadata",
+        "metadata", 
         "text",
         "reference",
         "participant",
