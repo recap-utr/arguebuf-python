@@ -65,12 +65,12 @@ class Edge:
 
     @property
     def source(self) -> Node:
-    """Define the 'From'-Node."""
+        """Define the 'From'-Node."""
         return self._source
 
     @property
     def target(self) -> Node:
-    """Define the 'To'-Node."""
+        """Define the 'To'-Node."""
         return self._target
 
     @classmethod
@@ -79,7 +79,7 @@ class Edge:
         obj: t.Mapping[str, t.Any],
         nodes: t.Mapping[str, Node] = None,
     ) -> Edge:
-    """Generate Edge object from OVA Edge format."""
+        """Generate Edge object from OVA Edge format."""
         if not nodes:
             nodes = {}
 
@@ -100,7 +100,7 @@ class Edge:
         obj: t.Any,
         nodes: t.Mapping[str, Node],
     ) -> Edge:
-    """Generate Edge object from AIF Edge format."""
+        """Generate Edge object from AIF Edge format."""
         start_id = obj.get("fromID")
         end_id = obj.get("toID")
 
@@ -111,7 +111,7 @@ class Edge:
         )
 
     def to_aif(self) -> t.Dict[str, t.Any]:
-    """Export Edge object into AIF Edge format."""
+        """Export Edge object into AIF Edge format."""
         return {
             "edgeID": str(self.id),
             "fromID": str(self.source.id),
@@ -126,7 +126,7 @@ class Edge:
         obj: graph_pb2.Edge,
         nodes: t.Mapping[str, Node],
     ) -> Edge:
-    """Generate Edge object from PROTOBUF Edge format."""
+        """Generate Edge object from PROTOBUF Edge format."""
         return cls(
             id,
             nodes[obj.source],
@@ -137,7 +137,7 @@ class Edge:
         )
 
     def to_protobuf(self) -> graph_pb2.Edge:
-    """Export Edge object into PROTOBUF Edge format."""
+        """Export Edge object into PROTOBUF Edge format."""
         obj = graph_pb2.Edge(
             source=self._source.id,
             target=self._target.id,
@@ -153,11 +153,11 @@ class Edge:
         return obj
 
     def to_nx(self, g: nx.DiGraph) -> None:
-    """Submethod used to export Graph object g into NX Graph format."""
+        """Submethod used to export Graph object g into NX Graph format."""
         g.add_edge(self.source.id, self.target.id)
 
     def to_gv(self, g: gv.Digraph) -> None:
-    """Submethod used to export Graph object g into GV Graph format."""
+        """Submethod used to export Graph object g into GV Graph format."""
         g.edge(
             self.source._id,
             self.target._id,

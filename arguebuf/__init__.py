@@ -1,7 +1,8 @@
 # from .utils import keygen
 import logging
 
-from arg_services.graph.v1 import graph_pb2
+from arg_services.graph.v1 import graph_pb2 as proto
+from arg_services.graph.v1 import graph_pb2_grpc as grpc
 
 from arguebuf.data import Metadata as Metadata
 from arguebuf.data import Participant as Participant
