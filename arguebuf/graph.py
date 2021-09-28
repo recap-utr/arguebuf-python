@@ -193,10 +193,10 @@ class Graph:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
             >>> g.add_node(arguebuf.AtomNode(arguebuf.unique_id(), "Node"))
-            >>> len(g.nodes)
+            >>> print(len(g.nodes))
             1
             >>> g.add_node(arguebuf.SchemeNode(arguebuf.unique_id(), arguebuf.SchemeType.SUPPORT))
-            >>> len(g.nodes)
+            >>> print(len(g.nodes))
             2
             >>> g.add_node("Test")
             Traceback (most recent call last):
@@ -231,20 +231,21 @@ class Graph:
         Args:
             node: Node object that is part of the graph.
 
-        Examples:
-            >>> g = Graph("")
-            >>> n1 = Node(g.idgen(), "Node 1", NodeCategory.I)
-            >>> n2 = Node(g.idgen(), "Node 2", NodeCategory.I)
-            >>> e = Edge(g.idgen(), n1, n2)
+        Example - AtomNode object; SchemeNode object analogously:
+            >>> import arguebuf
+            >>> g = Graph("Test")
+            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
+            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2") 
+            >>> e = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
             >>> g.add_edge(e)
-            >>> len(g.nodes)
+            >>> print(len(g.nodes))
             2
-            >>> len(g.edges)
+            >>> print(len(g.edges))
             1
             >>> g.remove_node(n1)
-            >>> len(g.nodes)
+            >>> print(len(g.nodes))
             1
-            >>> len(g.edges)
+            >>> print(len(g.edges))
             0
             >>> g.remove_node(n1)
             Traceback (most recent call last):
@@ -277,15 +278,16 @@ class Graph:
         """Add an edge and its nodes (if not already added).
 
         Args:
-            edge: Edge object that is part of the graph.
+            edge: Edge object that is not part of the graph.
 
-        Examples:
-            >>> g = Graph("")
-            >>> n1 = Node(g.idgen(), "Node 1", NodeCategory.I)
-            >>> n2 = Node(g.idgen(), "Node 2", NodeCategory.I)
-            >>> n3 = Node(g.idgen(), "Node 3", NodeCategory.I)
-            >>> e1 = Edge(g.idgen(), n1, n2)
-            >>> e2 = Edge(g.idgen(), n2, n3)
+        Example - AtomNode object; SchemeNode object analogously:
+            >>> import arguebuf
+            >>> g = arguebuf.Graph("Test")
+            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
+            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
+            >>> n3 = arguebuf.AtomNode(arguebuf.unique_id(), "Node3")
+            >>> e1 = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
+            >>> e2 = arguebuf.Edge(arguebuf.unique_id(), n2, n3)
             >>> g.add_edge(e1)
             >>> print(len(g.edges))
             1
@@ -318,20 +320,21 @@ class Graph:
         Args:
             edge: Edge object that is part of the graph.
 
-        Examples:
-            >>> g = Graph("")
-            >>> n1 = Node(g.idgen(), "Node 1", NodeCategory.I)
-            >>> n2 = Node(g.idgen(), "Node 2", NodeCategory.I)
-            >>> e = Edge(g.idgen(), n1, n2)
+        Example - AtomNode object; SchemeNode analogously:
+            >>> import arguebuf
+            >>> g = arguebuf.Graph("Test")
+            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
+            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
+            >>> e = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
             >>> g.add_edge(e)
-            >>> len(g.edges)
+            >>> print(len(g.edges))
             1
-            >>> len(g.nodes)
+            >>> print(len(g.nodes))
             2
             >>> g.remove_edge(e)
-            >>> len(g.edges)
+            >>> print(len(g.edges))
             0
-            >>> len(g.nodes)
+            >>> print(len(g.nodes))
             2
         """
         if not isinstance(edge, Edge):
@@ -346,8 +349,21 @@ class Graph:
         self._incoming_edges[edge.target]._store.remove(edge)
         self._outgoing_nodes[edge.source]._store.remove(edge.target)
         self._incoming_nodes[edge.target]._store.remove(edge.source)
-
+##What does a Resource look like?
     def add_resource(self, resource: Resource) -> None:
+        """Add a resource.
+
+        Args:
+            resource: Resource object that is not part of the graph. 
+
+        Example:
+            >>> import arguebuf
+            >>> g = arguebuf.Graph("Test")
+            >>> r1 = arguebuf.Resource(arguebuf.unique_id(), "Resource1")
+            >>> g.add_resource(e)
+            >>> print(len(g.resources))
+            1
+        """
         if not isinstance(resource, Resource):
             raise TypeError(utils.type_error(type(resource), Resource))
 
@@ -357,6 +373,22 @@ class Graph:
         self._resources._store[resource.id] = resource
 
     def remove_resource(self, resource: Resource) -> None:
+        """Add a resource.
+
+        Args:
+            resource: Resource object that is part of the graph. 
+
+        Example:
+            >>> import arguebuf
+            >>> g = arguebuf.Graph("Test")
+            >>> r1 = arguebuf.Resource(arguebuf.unique_id(), "Resource1")
+            >>> g.add_resource(r1)
+            >>> print(len(g.resources))
+            1
+            >>> g.remove_resource(r1)
+            >>> print(len(g.resources))
+            0
+        """
         if not isinstance(resource, Resource):
             raise TypeError(utils.type_error(type(resource), Resource))
 
@@ -371,6 +403,19 @@ class Graph:
                 node.reference.offset = None
 
     def add_participant(self, participant: Participant) -> None:
+        """Add a resource.
+
+        Args:
+            participant: Participant object that is not part of the graph. 
+
+        Example:
+            >>> import arguebuf
+            >>> g = arguebuf.Graph("Test")
+            >>> p1 = arguebuf.Participant(arguebuf.unique_id(), "Participant1")
+            >>> g.add_participant(p1)
+            >>> print(len(g.participants))
+            1
+        """
         if not isinstance(participant, Participant):
             raise TypeError(utils.type_error(type(participant), Participant))
 
@@ -380,6 +425,22 @@ class Graph:
         self._participants._store[participant.id] = participant
 
     def remove_participant(self, participant: Participant) -> None:
+        """Add a resource.
+
+        Args:
+            participant: Participant object that is part of the graph. 
+
+        Example:
+            >>> import arguebuf
+            >>> g = arguebuf.Graph("Test")
+            >>> p1 = arguebuf.Participant(arguebuf.unique_id(), "Participant1")
+            >>> g.add_participant(p1)
+            >>> print(len(g.participants))
+            1
+            >>> remove_participant(p1)
+            >>> print(len(g.participants))
+            0
+        """
         if not isinstance(participant, Participant):
             raise TypeError(utils.type_error(type(participant), Participant))
 
@@ -391,9 +452,33 @@ class Graph:
         for node in self._atom_nodes.values():
             if node.participant == participant:
                 node.participant = None
+#Muss man hier nicht auch noch den zweiten Node als Node Objekt definieren?
+    def node_distance(self, node1: Node, node2) -> t.Optional[int]: 
+        """If node is in the graph, return the distance to the major claim (if set).
+        
+        Args:
+            node1: Node object that is part of the graph.
+            node2: Node object that is part of the graph.
 
-    def node_distance(self, node1: Node, node2) -> t.Optional[int]:
-        """If node is in the graph, return the distance to the major claim (if set)."""
+        Example - AtomNode object; SchemeNode analogously:
+            >>> import arguebuf
+            >>> g = arguebuf.Graph("Test")
+            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
+            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
+            >>> n3 = arguebuf.AtomNode(arguebuf.unique_id(), "Node3")
+            >>> e1 = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
+            >>> e2 = arguebuf.Edge(arguebuf.unique_id(), n2, n3)
+            >>> g.add_node(n1)
+            >>> g.add_node(n2)
+            >>> print(len(g.nodes))
+            2
+            >>> g.add_edge(e1)
+            >>> g.add_edge(e2)
+            >>> print(len(g.edges))
+            2
+            >>> g.node_distance(n1, n3)
+            2
+            """
 
         # TODO: Currently, there is no differentiation between I-nodes and S-nodes.
 
@@ -523,6 +608,7 @@ class Graph:
         }
 
     def to_protobuf(self) -> graph_pb2.Graph:
+        """Export structure of Graph instance to PROTOBUF argument graph format."""
         g = graph_pb2.Graph()
 
         for node_id, node in self._nodes.items():
@@ -563,8 +649,9 @@ class Graph:
         reference_class: t.Type[Reference] = Reference,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+    """Generate Graph structure from PROTOBUF argument graph file.(Link?)"""
         g = cls(name)
-
+        
         for resource_id, resource in obj.resources.items():
             g.add_resource(resource_class.from_protobuf(resource_id, resource, nlp))
 
@@ -625,6 +712,7 @@ class Graph:
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+    """Generate Graph structure from DICT argument graph file(Link?)."""
         if "analysis" in obj:
             return cls.from_ova(obj, name, atom_class, scheme_class, edge_class, nlp)
 
@@ -641,6 +729,8 @@ class Graph:
         )
 
     def to_dict(self, format: GraphFormat) -> t.Dict[str, t.Any]:
+     """Export structure of Graph instance to DICT argument graph format."""
+
         if format == GraphFormat.AIF:
             return self.to_aif()
 
@@ -656,6 +746,7 @@ class Graph:
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+        """Generate Graph structure from JSON argument graph file(Link?)."""
         return cls.from_dict(
             json.load(obj), name, atom_class, scheme_class, edge_class, nlp
         )
@@ -666,6 +757,7 @@ class Graph:
         format: GraphFormat = GraphFormat.ARGUEBUF,
         pretty: bool = False,
     ) -> None:
+    """Export structure of Graph instance to JSON argument graph format."""
         json.dump(
             self.to_dict(format), obj, ensure_ascii=False, indent=4 if pretty else None
         )
@@ -680,7 +772,7 @@ class Graph:
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
-        """Generate Graph structure from brat argument graph file (reference: https://brat.nlplab.org/)"""
+        """Generate Graph structure from BRAT argument graph file (reference: https://brat.nlplab.org/)"""
         reader = csv.reader(obj, delimiter="\t")
         g = cls(name)
 
@@ -737,6 +829,7 @@ class Graph:
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+    """Generate Graph structure from IO argument graph file(Link?)."""
         if suffix == ".ann":
             return cls.from_brat(obj, name, atom_class, scheme_class, edge_class, nlp)
 
@@ -748,6 +841,7 @@ class Graph:
         format: GraphFormat = GraphFormat.ARGUEBUF,
         pretty: bool = False,
     ) -> None:
+    """Export structure of Graph instance to IO argument graph format."""
         self.to_json(obj, format, pretty)
 
     @classmethod
@@ -759,6 +853,7 @@ class Graph:
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
+    """Generate Graph structure from a File."""
         with path.open("r", encoding="utf-8") as file:
             return cls.from_io(
                 file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp
@@ -770,6 +865,7 @@ class Graph:
         format: GraphFormat = GraphFormat.ARGUEBUF,
         pretty: bool = False,
     ) -> None:
+    """Export strucure of Graph instance into structure of File/Folder format."""
         if path.is_dir() or not path.suffix:
             path = path / f"{self.name}.json"
 
@@ -788,6 +884,7 @@ class Graph:
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
         suffixes: t.Iterable[str] = (".json"),
     ) -> t.List[Graph]:
+    "Generate Graph structure from Folder."
         graphs = []
 
         for suffix in suffixes:
@@ -802,10 +899,10 @@ class Graph:
         """Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
 
         Examples:
-            >>> g = Graph("")
-            >>> n1 = Node(g.idgen(), "Node 1", NodeCategory.I)
-            >>> n2 = Node(g.idgen(), "Node 2", NodeCategory.I)
-            >>> e = Edge(g.idgen(), n1, n2)
+            >>> g = Graph("Test")
+            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
+            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
+            >>> e = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
             >>> g.add_edge(e)
             >>> gnx = g.to_nx()
             >>> gnx.number_of_nodes()

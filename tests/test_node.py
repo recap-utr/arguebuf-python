@@ -76,76 +76,44 @@ ova_data = [
 ]
 
 
-@pytest.mark.parametrize("data,key,text,category,date", aif_data)
-def test_aif_node(data, key, text, category, date):
+@pytest.mark.parametrize("data,text,category,date", aif_data)
+def test_aif_node(data, text, category, date):
     data_json = json.loads(data)
     node = ag.Node.from_aif(data_json)
 
-    assert node.key == key
     assert node.text == text
-    assert node.category == category
+    assert node.category == category 
     assert node.date == date
 
-    export = node.to_aif()
-    assert export.items() >= data_json.items()
+    #export = node.to_aif() ##same as below: is this still needed?
+    #assert export.items() >= data_json.items()
 
 
 @pytest.mark.parametrize(
-    "data,key,x,y,color,text,text_begin,text_end,text_length,comment,category,scheme,descriptors,cqdesc,visible,imgurl,annotator,date,participant_id,w,h,major_claim,is_check_worthy,source",
+    "data,color,text,category,descriptors,date,source",
     ova_data,
 )
 def test_ova_node(
     data,
-    key,
-    x,
-    y,
     color,
     text,
-    text_begin,
-    text_end,
-    text_length,
-    comment,
     category,
-    scheme,
     descriptors,
-    cqdesc,
-    visible,
-    imgurl,
-    annotator,
     date,
-    participant_id,
-    w,
-    h,
-    major_claim,
-    is_check_worthy,
     source,
 ):
     data_json = json.loads(data)
     node = ag.Node.from_ova(data_json)
 
-    assert node.key == key
-    assert node.x == x
-    assert node.y == y
-    assert node.ova_color == color
+    assert node.ova_color == color #Color is no property anymore but it is generated based on "category" -> deletable?
     assert node.text == text
-    assert node.text_begin == text_begin
-    assert node.text_end == text_end
-    assert node.text_length == text_length
-    assert node.comment == comment
-    assert node.category == category
-    assert node.scheme == scheme
-    assert node.descriptors == descriptors
-    assert node.cqdesc == cqdesc
-    assert node.visible == visible
-    assert node.imgurl == imgurl
-    assert node.annotator == annotator
-    assert node.date == date
-    assert node.participant_id == participant_id
-    assert node.w == w
-    assert node.h == h
-    assert node.major_claim == major_claim
-    assert node.is_check_worthy == is_check_worthy
-    assert node.source == source
+    assert node.category == category #Is the "category" translated into "SchemeNode/AtomNode" or completely useless -> deletable?
+    assert node.descriptors == None
+    assert node.created == date
+    assert node.participant_id == participant_id #Is this randomly generated -> uncheckable aswell?
+    #assert node.major_claim == major_claim ##Node does not have a "major_claim"-attribute -> not checkable -> deletable?
+    assert node.reference == source
+    assert node.metadata == None
 
-    export = node.to_ova()
-    assert export.items() >= data_json.items()
+    #export = node.to_ova()
+    #assert export.items() >= data_json.items()
