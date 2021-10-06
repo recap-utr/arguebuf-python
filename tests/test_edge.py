@@ -106,9 +106,13 @@ def test_aif_edge(data, key, start, end):
             end: ag.Node(end, "", ag.NodeCategory.I), #is this still correct? or shall I adapt it to "ag.unique_id()" instead of "start"?
         },
     )
-
-    assert edge._source._id == start
-    assert edge._target._id == end
+    
+    assert isinstance(node._id, str) 
+    assert edge.source._id == start
+    assert edge.target._id == end
+    assert edge.created == None
+    assert edge.updated == None
+    assert edge.metadata == None
 
     #export = edge.to_aif()
     #assert export == data_json
@@ -118,11 +122,12 @@ def test_aif_edge(data, key, start, end):
 def test_ova_edge(data, start, end, visible, date):
     data_json = json.loads(data)
     edge = ag.Edge.from_ova(data_json, 1)
-
+    
+    assert isinstance(node._id, str) 
     assert isinstance(edge.source, ag.Node)
     assert isinstance(edge.target, ag.Node)
-    assert edge._source._id == start #are these still checkable or deletable
-    assert edge._target._id == end  #due to randomization of id?
+    assert edge.source._id == start #are these still checkable or deletable
+    assert edge.target._id == end  #due to randomization of id?
     assert edge.created == date
     assert edge.updated == None #Same as with metadata
     assert edge.metadata == None #Metadata-tests shall test on "None" or on "{}" since the last one is actually performed while creation from another formate...

@@ -81,9 +81,13 @@ def test_aif_node(data, text, category, date):
     data_json = json.loads(data)
     node = ag.Node.from_aif(data_json)
 
+    assert isinstance(node._id, str) 
     assert node.text == text
     assert node.category == category 
-    assert node.date == date
+    assert node.created == date
+    assert node.updated == None
+    assert node.reference == None
+    assert node.metadata == None
 
     #export = node.to_aif() ##same as below: is this still needed?
     #assert export.items() >= data_json.items()
@@ -100,11 +104,12 @@ def test_ova_node(
     category,
     descriptors,
     date,
-    source,
+    source
 ):
     data_json = json.loads(data)
     node = ag.Node.from_ova(data_json)
 
+    assert isinstance(node._id, str) 
     assert node.ova_color == color #Color is no property anymore but it is generated based on "category" -> deletable?
     assert node.text == text
     assert node.category == category #Is the "category" translated into "SchemeNode/AtomNode" or completely useless -> deletable?
