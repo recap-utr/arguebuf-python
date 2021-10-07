@@ -104,9 +104,13 @@ def test_aif_edge(data, key, start, end):
             end: ag.AtomNode(end, ""),
         },
     )
-
-    assert edge._source._id == start
-    assert edge._target._id == end
+    
+    assert isinstance(node._id, str) 
+    assert edge.source._id == start
+    assert edge.target._id == end
+    assert edge.created == None
+    assert edge.updated == None
+    assert edge.metadata == None
 
     # export = edge.to_aif()
     # assert export == data_json
@@ -116,7 +120,8 @@ def test_aif_edge(data, key, start, end):
 def test_ova_edge(data, start, end, date):
     data_json = json.loads(data)
     edge = ag.Edge.from_ova(data_json, 1)
-
+    
+    assert isinstance(node._id, str) 
     assert isinstance(edge.source, ag.Node)
     assert isinstance(edge.target, ag.Node)
     assert edge.source.id == start  # are these still checkable or deletable

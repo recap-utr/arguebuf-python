@@ -65,12 +65,12 @@ class Edge:
 
     @property
     def source(self) -> Node:
-        """Define the 'From'-Node."""
+        """Gives the 'From'-Node."""
         return self._source
 
     @property
     def target(self) -> Node:
-        """Define the 'To'-Node."""
+        """Gives the 'To'-Node."""
         return self._target
 
     @classmethod
