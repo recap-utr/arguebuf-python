@@ -237,7 +237,7 @@ scheme2text = {
     Scheme.WISDOM_GOODWILL: "Wisdom Goodwill",
     Scheme.WISDOM_VIRTUE: "Wisdom Virtue",
     Scheme.WISDOM_VIRTUE_GOODWILL: "Wisdom Virtue Goodwill",
-    Scheme.WITNESS_TESTIMONY: "Witness Testimony"
+    Scheme.WITNESS_TESTIMONY: "Witness Testimony",
 }
 
 # TODO
@@ -342,7 +342,7 @@ text2scheme = {
     "Conflict From Practical Wisdom": Scheme.PRACTICAL_WISDOM,
     "Conflict From Moral Virtue": Scheme.MORAL_VIRTUE,
     "Conflict From Goodwill": Scheme.GOODWILL,
-    "ERAd Hominem": Scheme.AD_HOMINEM
+    "ERAd Hominem": Scheme.AD_HOMINEM,
 }
 
 
@@ -387,7 +387,8 @@ class Node(ABC):
 
     @abstractmethod
     def color(self, major_claim: bool) -> ColorMapping:
-    """Get the color used in OVA based on `category`."""
+        """Get the color used in OVA based on `category`."""
+        pass
 
     @classmethod
     @abstractmethod
@@ -396,7 +397,7 @@ class Node(ABC):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-    """Generate Node object from OVA Node format."""
+        """Generate Node object from OVA Node format."""
         pass
 
     @classmethod
@@ -406,12 +407,12 @@ class Node(ABC):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-    """Generate Node object from AIF Node format."""
+        """Generate Node object from AIF Node format."""
         pass
 
     @abstractmethod
     def to_aif(self) -> t.Dict[str, t.Any]:
-    """Export Node object into AIF Node format."""
+        """Export Node object into AIF Node format."""
         pass
 
     @classmethod
@@ -425,22 +426,22 @@ class Node(ABC):
         reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-    """Generate Node object from PROTOBUF Node object."""
+        """Generate Node object from PROTOBUF Node object."""
         pass
 
     @abstractmethod
     def to_protobuf(self) -> graph_pb2.Node:
-    """Export Node object into PROTOBUF Node object."""
+        """Export Node object into PROTOBUF Node object."""
         pass
 
     @abstractmethod
     def to_nx(self, g: nx.DiGraph) -> None:
-    """Submethod used to export Graph object g into NX Graph format."""
+        """Submethod used to export Graph object g into NX Graph format."""
         pass
 
     @abstractmethod
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
-    """Submethod used to export Graph object g into GV Graph format."""
+        """Submethod used to export Graph object g into GV Graph format."""
         pass
 
     # @abstractmethod
@@ -504,7 +505,7 @@ class AtomNode(Node):
         "_id",
         "created",
         "updated",
-        "metadata", 
+        "metadata",
         "text",
         "reference",
         "participant",
@@ -544,14 +545,14 @@ class AtomNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-    """Generate AtomNode object from AIF Node object."""
+        """Generate AtomNode object from AIF Node object."""
         return cls(
             **_from_aif(obj),
             text=utils.parse(obj["text"], nlp),
         )
 
     def to_aif(self) -> t.Dict[str, t.Any]:
-    """Export AtomNode object into AIF Node object."""
+        """Export AtomNode object into AIF Node object."""
         return {
             **_to_aif(self),
             "text": self.plain_text,
@@ -564,7 +565,7 @@ class AtomNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-    """Generate AtomNode object from OVA Node object."""
+        """Generate AtomNode object from OVA Node object."""
         return cls(**_from_ova(obj), text=utils.parse(obj["text"], nlp))
 
     @classmethod
@@ -577,7 +578,7 @@ class AtomNode(Node):
         reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
-    """Generate AtomNode object from PROTOBUF Node object."""
+        """Generate AtomNode object from PROTOBUF Node object."""
         return cls(
             id,
             utils.parse(obj.atom.text, nlp),
@@ -589,7 +590,7 @@ class AtomNode(Node):
         )
 
     def to_protobuf(self) -> graph_pb2.Node:
-    """Export AtomNode object into PROTOBUF Node object."""
+        """Export AtomNode object into PROTOBUF Node object."""
         obj = graph_pb2.Node()
         obj.metadata.update(self.metadata)
 
@@ -610,21 +611,21 @@ class AtomNode(Node):
         return obj
 
     def to_nx(self, g: nx.DiGraph) -> None:
-    """Submethod used to export Graph object g into NX Graph format."""
+        """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
             label=self.plain_text,
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
-    """Get the color used in OVA based on `category`."""
+        """Get the color used in OVA based on `category`."""
         if major_claim:
             return ColorMapping(bg="#3498db", border="#3498db")
 
         return ColorMapping(bg="#ddeef9", border="#3498db")
 
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
-    """Submethod used to export Graph object g into GV Graph format."""
+        """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
 
         # TODO: Improve wrapping
@@ -685,7 +686,7 @@ class SchemeNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-    """Generate SchemeNode object from AIF Node object."""
+        """Generate SchemeNode object from AIF Node object."""
         node = cls(
             **_from_aif(obj),
             type=aif2scheme_type[obj["type"]],
@@ -693,12 +694,12 @@ class SchemeNode(Node):
         text: str = obj["text"]
 
         if not text.startswith("Default "):
-            node.argumentation_scheme = text2scheme[text]
+            node.argumentation_scheme = text2scheme.get(text)
 
         return node
 
     def to_aif(self) -> t.Dict[str, t.Any]:
-    """Export SchemeNode object into AIF Node object."""
+        """Export SchemeNode object into AIF Node object."""
         return {
             **_to_aif(self),
             "text": scheme_type2text[self.type],
@@ -711,7 +712,7 @@ class SchemeNode(Node):
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-    """Generate SchemeNode object from OVA Node object."""
+        """Generate SchemeNode object from OVA Node object."""
         ova_desc = obj["descriptors"]
         descriptors = {}
 
@@ -740,7 +741,7 @@ class SchemeNode(Node):
         reference_class: t.Type[Reference],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
-    """Generate SchemeNode object from OVA Node object."""
+        """Generate SchemeNode object from OVA Node object."""
         return cls(
             id,
             SchemeType(obj.scheme.type)
@@ -754,7 +755,7 @@ class SchemeNode(Node):
         )
 
     def to_protobuf(self) -> graph_pb2.Node:
-    """Export SchemeNode object into PROTOBUF Node object."""
+        """Export SchemeNode object into PROTOBUF Node object."""
         obj = graph_pb2.Node()
         obj.metadata.update(self.metadata)
 
@@ -773,7 +774,7 @@ class SchemeNode(Node):
         return obj
 
     def to_nx(self, g: nx.DiGraph) -> None:
-    """Submethod used to export Graph object g into NX Graph format."""
+        """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
             label=scheme2text.get(
@@ -782,7 +783,7 @@ class SchemeNode(Node):
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
-    """Get the color used in OVA based on `category`."""
+        """Get the color used in OVA based on `category`."""
         if self.type == SchemeType.SUPPORT:
             return ColorMapping(bg="#def8e9", border="#2ecc71")
         elif self.type == SchemeType.ATTACK:
@@ -799,7 +800,7 @@ class SchemeNode(Node):
         return ColorMapping(bg="#e9eded", border="#95a5a6")
 
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
-    """Submethod used to export Graph object g into GV Graph format."""
+        """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
         label = scheme2text.get(self.argumentation_scheme, scheme_type2text[self.type])
 

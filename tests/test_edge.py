@@ -1,8 +1,8 @@
-import pytest
 import json
+
 import arguebuf as ag
 import pendulum
-
+import pytest
 
 aif_data = [
     (
@@ -89,8 +89,6 @@ ova_data = [
         """,
         119935,
         119940,
-        True,
-        "",
         pendulum.datetime(2019, 3, 6, 14, 31, 23),
     )
 ]
@@ -102,8 +100,8 @@ def test_aif_edge(data, key, start, end):
     edge = ag.Edge.from_aif(
         data_json,
         {
-            start: ag.Node(start, "", ag.NodeCategory.I),
-            end: ag.Node(end, "", ag.NodeCategory.I), #is this still correct? or shall I adapt it to "ag.unique_id()" instead of "start"?
+            start: ag.AtomNode(start, ""),
+            end: ag.AtomNode(end, ""),
         },
     )
     
@@ -114,24 +112,25 @@ def test_aif_edge(data, key, start, end):
     assert edge.updated == None
     assert edge.metadata == None
 
-    #export = edge.to_aif()
-    #assert export == data_json
+    # export = edge.to_aif()
+    # assert export == data_json
 
 
-@pytest.mark.parametrize("data,start,end,visible,date", ova_data)
-def test_ova_edge(data, start, end, visible, date):
+@pytest.mark.parametrize("data,start,end,date", ova_data)
+def test_ova_edge(data, start, end, date):
     data_json = json.loads(data)
     edge = ag.Edge.from_ova(data_json, 1)
     
     assert isinstance(node._id, str) 
     assert isinstance(edge.source, ag.Node)
     assert isinstance(edge.target, ag.Node)
-    assert edge.source._id == start #are these still checkable or deletable
-    assert edge.target._id == end  #due to randomization of id?
+    assert edge.source.id == start  # are these still checkable or deletable
+    assert edge.target.id == end  # due to randomization of id?
     assert edge.created == date
-    assert edge.updated == None #Same as with metadata
-    assert edge.metadata == None #Metadata-tests shall test on "None" or on "{}" since the last one is actually performed while creation from another formate...
+    assert edge.updated == None  # Same as with metadata
+    assert (
+        edge.metadata == None
+    )  # Metadata-tests shall test on "None" or on "{}" since the last one is actually performed while creation from another formate...
 
-
-    #export = edge.to_ova()
-    #assert export == data_json
+    # export = edge.to_ova()
+    # assert export == data_json
