@@ -1,8 +1,8 @@
-import pytest
 import json
+
 import arguebuf as ag
 import pendulum
-
+import pytest
 
 aif_data = [
     (
@@ -14,9 +14,9 @@ aif_data = [
             "timestamp": "2015-12-14 12:09:15"
         }
         """,
-        119935,
+        "119935",
         "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
-        ag.NodeCategory.I,
+        ag.AtomNode,
         pendulum.datetime(2015, 12, 14, 12, 9, 15),
     )
 ]
@@ -49,76 +49,42 @@ ova_data = [
             "majorClaim": false
         }
         """,
-        119935,
-        656,
-        317,
+        "119935",
         "b",
         "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
-        None,
-        None,
-        114,
-        "",
-        ag.NodeCategory.I,
-        0,
-        {},
-        {},
-        True,
-        "",
-        "",
+        ag.AtomNode,
         pendulum.datetime(2019, 3, 6, 14, 31, 23),
-        0,
-        200,
-        90,
-        False,
-        None,
-        None,
     )
 ]
 
 
-@pytest.mark.parametrize("data,text,category,date", aif_data)
-def test_aif_node(data, text, category, date):
+@pytest.mark.parametrize("data,id,text,type,date", aif_data)
+def test_aif_node(data, id, text, type, date):
     data_json = json.loads(data)
-    node = ag.Node.from_aif(data_json)
+    node = ag.AtomNode.from_aif(data_json)
 
-    assert isinstance(node._id, str) 
+    assert node.id == id
     assert node.text == text
-    assert node.category == category 
+    assert isinstance(node, type)
     assert node.created == date
-    assert node.updated == None
-    assert node.reference == None
-    assert node.metadata == None
-
-    #export = node.to_aif() ##same as below: is this still needed?
-    #assert export.items() >= data_json.items()
+    assert node.updated == date
+    assert node.reference is None
+    assert node.metadata == {}
 
 
 @pytest.mark.parametrize(
-    "data,color,text,category,descriptors,date,source",
+    "data,id,color,text,type,date",
     ova_data,
 )
-def test_ova_node(
-    data,
-    color,
-    text,
-    category,
-    descriptors,
-    date,
-    source
-):
+def test_ova_node(data, id, color, text, type, date):
     data_json = json.loads(data)
-    node = ag.Node.from_ova(data_json)
+    node = ag.AtomNode.from_ova(data_json)
 
-    assert isinstance(node._id, str) 
-    assert node.ova_color == color #Color is no property anymore but it is generated based on "category" -> deletable?
+    assert node.id == id
+    assert node.color(False) == color
     assert node.text == text
-    assert node.category == category #Is the "category" translated into "SchemeNode/AtomNode" or completely useless -> deletable?
-    assert node.descriptors == None
+    assert isinstance(node, type)
     assert node.created == date
-    assert node.participant_id == participant_id #Is this randomly generated -> uncheckable aswell?
-    #assert node.major_claim == major_claim ##Node does not have a "major_claim"-attribute -> not checkable -> deletable?
-    assert node.reference == source
-    assert node.metadata == None
-
-    #export = node.to_ova()
-    #assert export.items() >= data_json.items()
+    assert node.updated == date
+    assert node.reference is None
+    assert node.metadata == {}

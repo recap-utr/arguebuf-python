@@ -99,11 +99,45 @@ class Graph:
 
         return self._incoming_nodes[node]
 
+    def incoming_atom_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[AtomNode]:
+        if isinstance(node, str):
+            node = self._nodes[node]
+
+        incoming_nodes = list(self._incoming_nodes[node])
+        incoming_atom_nodes = set()
+
+        while incoming_nodes:
+            incoming_node = incoming_nodes.pop()
+
+            if isinstance(incoming_node, AtomNode):
+                incoming_atom_nodes.add(incoming_node)
+            else:
+                incoming_nodes.extend(self._incoming_nodes[incoming_node])
+
+        return incoming_atom_nodes
+
     def outgoing_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[Node]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._outgoing_nodes[node]
+
+    def outgoing_atom_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[AtomNode]:
+        if isinstance(node, str):
+            node = self._nodes[node]
+
+        outgoing_nodes = list(self._outgoing_nodes[node])
+        outgoing_atom_nodes = set()
+
+        while outgoing_nodes:
+            outgoing_node = outgoing_nodes.pop()
+
+            if isinstance(outgoing_node, AtomNode):
+                outgoing_atom_nodes.add(outgoing_node)
+            else:
+                outgoing_nodes.extend(self._outgoing_nodes[outgoing_node])
+
+        return outgoing_atom_nodes
 
     def incoming_edges(self, node: t.Union[str, Node]) -> t.AbstractSet[Edge]:
         if isinstance(node, str):
@@ -116,6 +150,21 @@ class Graph:
             node = self._nodes[node]
 
         return self._outgoing_edges[node]
+
+    def scheme_between(
+        self, premise: AtomNode, claim: AtomNode
+    ) -> t.Optional[SchemeNode]:
+        candidates = set(self._outgoing_nodes[premise]).intersection(
+            self._incoming_nodes[claim]
+        )
+
+        if len(candidates) == 1:
+            scheme = next(iter(candidates))
+
+            if isinstance(scheme, SchemeNode):
+                return scheme
+
+        return None
 
     @property
     def resources(self) -> t.Mapping[str, Resource]:
@@ -812,11 +861,11 @@ class Graph:
                     source_inode = inodes[metadata[1].split(":")[1]]
                     target_inode = inodes[metadata[2].split(":")[1]]
 
-                snode = scheme_class(utils.unique_id(), scheme_type)
+                snode = scheme_class(scheme_type)
                 g.add_node(snode)
 
-                g.add_edge(edge_class(utils.unique_id(), source_inode, snode))
-                g.add_edge(edge_class(utils.unique_id(), snode, target_inode))
+                g.add_edge(edge_class(source_inode, snode))
+                g.add_edge(edge_class(snode, target_inode))
 
         return g
 
@@ -998,9 +1047,9 @@ class Graph:
                 ):
                     self.add_edge(
                         Edge(
-                            f"{incoming.id}-{outgoing.id}",
                             incoming.source,
                             outgoing.target,
+                            id=f"{incoming.id}-{outgoing.id}",
                         )
                     )
 

@@ -363,12 +363,12 @@ class Node(ABC):
 
     def __init__(
         self,
-        id: str,
         created: t.Optional[pendulum.DateTime] = None,
         updated: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
+        id: t.Optional[str] = None,
     ):
-        self._id = id
+        self._id = id or utils.unique_id()
         self.created = created or pendulum.now()
         self.updated = updated or pendulum.now()
         self.metadata = metadata or {}
@@ -517,15 +517,15 @@ class AtomNode(Node):
 
     def __init__(
         self,
-        id: str,
         text: t.Any,
         resource: t.Optional[Reference] = None,
         participant: t.Optional[Participant] = None,
         created: t.Optional[pendulum.DateTime] = None,
         updated: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
+        id: t.Optional[str] = None,
     ):
-        super().__init__(id, created, updated, metadata)
+        super().__init__(created, updated, metadata, id)
         self.text = text
         self.reference = resource
         self.participant = participant
@@ -544,7 +544,7 @@ class AtomNode(Node):
         cls,
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Node:
+    ) -> AtomNode:
         """Generate AtomNode object from AIF Node object."""
         return cls(
             **_from_aif(obj),
@@ -564,7 +564,7 @@ class AtomNode(Node):
         cls,
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Node:
+    ) -> AtomNode:
         """Generate AtomNode object from OVA Node object."""
         return cls(**_from_ova(obj), text=utils.parse(obj["text"], nlp))
 
@@ -580,13 +580,13 @@ class AtomNode(Node):
     ) -> AtomNode:
         """Generate AtomNode object from PROTOBUF Node object."""
         return cls(
-            id,
             utils.parse(obj.atom.text, nlp),
             reference_class.from_protobuf(obj.atom.reference, resources, nlp),
             participants[obj.atom.participant],
             dt.from_protobuf(obj.created),
             dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
+            id=id,
         )
 
     def to_protobuf(self) -> graph_pb2.Node:
@@ -657,15 +657,15 @@ class SchemeNode(Node):
 
     def __init__(
         self,
-        id: str,
         type: SchemeType,
         argumentation_scheme: t.Optional[Scheme] = None,
         descriptors: t.Optional[t.Mapping[str, str]] = None,
         created: t.Optional[pendulum.DateTime] = None,
         updated: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
+        id: t.Optional[str] = None,
     ):
-        super().__init__(id, created, updated, metadata)
+        super().__init__(created, updated, metadata, id)
         self.type = type
         self.argumentation_scheme = argumentation_scheme
         self.descriptors = dict(descriptors) if descriptors else {}
@@ -676,7 +676,11 @@ class SchemeNode(Node):
             [
                 self._id,
                 scheme_type2text[self.type],
-                utils.xstr(scheme2text.get(self.argumentation_scheme)),
+                utils.xstr(
+                    scheme2text[self.argumentation_scheme]
+                    if self.argumentation_scheme
+                    else None
+                ),
             ],
         )
 
@@ -685,7 +689,7 @@ class SchemeNode(Node):
         cls,
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Node:
+    ) -> AtomNode:
         """Generate SchemeNode object from AIF Node object."""
         node = cls(
             **_from_aif(obj),
@@ -711,7 +715,7 @@ class SchemeNode(Node):
         cls,
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Node:
+    ) -> AtomNode:
         """Generate SchemeNode object from OVA Node object."""
         ova_desc = obj["descriptors"]
         descriptors = {}
@@ -743,7 +747,6 @@ class SchemeNode(Node):
     ) -> SchemeNode:
         """Generate SchemeNode object from OVA Node object."""
         return cls(
-            id,
             SchemeType(obj.scheme.type)
             if obj.scheme.type != graph_pb2.SCHEME_TYPE_UNSPECIFIED
             else SchemeType.SUPPORT,
@@ -752,6 +755,7 @@ class SchemeNode(Node):
             dt.from_protobuf(obj.created),
             dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
+            id=id,
         )
 
     def to_protobuf(self) -> graph_pb2.Node:
@@ -777,9 +781,9 @@ class SchemeNode(Node):
         """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
-            label=scheme2text.get(
-                self.argumentation_scheme, scheme_type2text[self.type]
-            ),
+            label=scheme2text[self.argumentation_scheme]
+            if self.argumentation_scheme
+            else scheme_type2text[self.type],
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
@@ -802,7 +806,11 @@ class SchemeNode(Node):
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
-        label = scheme2text.get(self.argumentation_scheme, scheme_type2text[self.type])
+        label = (
+            scheme2text[self.argumentation_scheme]
+            if self.argumentation_scheme
+            else scheme_type2text[self.type]
+        )
 
         g.node(
             self._id,

@@ -14,9 +14,9 @@ aif_data = [
 			"formEdgeID": null
 		}
         """,
-        160913,
-        119935,
-        119940,
+        "160913",
+        "119935",
+        "119940",
     )
 ]
 
@@ -87,50 +87,50 @@ ova_data = [
             "date": "06/03/2019 - 14:31:23"
             }
         """,
-        119935,
-        119940,
+        "119935",
+        "119940",
         pendulum.datetime(2019, 3, 6, 14, 31, 23),
     )
 ]
 
 
-@pytest.mark.parametrize("data,key,start,end", aif_data)
-def test_aif_edge(data, key, start, end):
+@pytest.mark.parametrize("data,id,start,end", aif_data)
+def test_aif_edge(data, id, start, end):
     data_json = json.loads(data)
     edge = ag.Edge.from_aif(
         data_json,
         {
-            start: ag.AtomNode(start, ""),
-            end: ag.AtomNode(end, ""),
+            start: ag.AtomNode(id=start, text=""),
+            end: ag.AtomNode(id=end, text=""),
         },
     )
-    
-    assert isinstance(node._id, str) 
-    assert edge.source._id == start
-    assert edge.target._id == end
-    assert edge.created == None
-    assert edge.updated == None
-    assert edge.metadata == None
 
-    # export = edge.to_aif()
-    # assert export == data_json
+    assert edge.id == id
+    assert isinstance(edge.source, ag.AtomNode)
+    assert isinstance(edge.target, ag.AtomNode)
+    assert edge.source.id == start
+    assert edge.target.id == end
+    assert edge.created is not None
+    assert edge.updated is not None
+    assert edge.metadata == {}
 
 
 @pytest.mark.parametrize("data,start,end,date", ova_data)
 def test_ova_edge(data, start, end, date):
     data_json = json.loads(data)
-    edge = ag.Edge.from_ova(data_json, 1)
-    
-    assert isinstance(node._id, str) 
-    assert isinstance(edge.source, ag.Node)
-    assert isinstance(edge.target, ag.Node)
-    assert edge.source.id == start  # are these still checkable or deletable
-    assert edge.target.id == end  # due to randomization of id?
-    assert edge.created == date
-    assert edge.updated == None  # Same as with metadata
-    assert (
-        edge.metadata == None
-    )  # Metadata-tests shall test on "None" or on "{}" since the last one is actually performed while creation from another formate...
+    edge = ag.Edge.from_ova(
+        data_json,
+        {
+            start: ag.AtomNode(id=start, text=""),
+            end: ag.AtomNode(id=end, text=""),
+        },
+    )
 
-    # export = edge.to_ova()
-    # assert export == data_json
+    assert isinstance(edge.id, str)
+    assert isinstance(edge.source, ag.AtomNode)
+    assert isinstance(edge.target, ag.AtomNode)
+    assert edge.source.id == start
+    assert edge.target.id == end
+    assert edge.created == date
+    assert edge.updated == date
+    assert edge.metadata == {}

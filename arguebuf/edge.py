@@ -34,14 +34,14 @@ class Edge:
 
     def __init__(
         self,
-        id: str,
         source: Node,
         target: Node,
         created: t.Optional[pendulum.DateTime] = None,
         updated: t.Optional[pendulum.DateTime] = None,
         metadata: t.Optional[Metadata] = None,
+        id: t.Optional[str] = None,
     ):
-        self._id = id
+        self._id = id or utils.unique_id()
         self._source = source
         self._target = target
         self.created = created or pendulum.now()
@@ -128,12 +128,12 @@ class Edge:
     ) -> Edge:
         """Generate Edge object from PROTOBUF Edge format."""
         return cls(
-            id,
             nodes[obj.source],
             nodes[obj.target],
             dt.from_protobuf(obj.created),
             dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
+            id=id,
         )
 
     def to_protobuf(self) -> graph_pb2.Edge:
