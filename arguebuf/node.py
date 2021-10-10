@@ -24,7 +24,7 @@ class SchemeType(Enum):
     ASSERTION = graph_pb2.SCHEME_TYPE_ASSERTION
 
 
-scheme_type2aif = {
+scheme_type2aif_type = {
     SchemeType.SUPPORT: "RA",
     SchemeType.ATTACK: "CA",
     SchemeType.REPHRASE: "MA",
@@ -33,7 +33,7 @@ scheme_type2aif = {
     SchemeType.ASSERTION: "YA",
 }
 
-aif2scheme_type = {value: key for key, value in scheme_type2aif.items()}
+aif_type2scheme_type = {value: key for key, value in scheme_type2aif_type.items()}
 
 scheme_type2text = {
     SchemeType.SUPPORT: "Support",
@@ -42,6 +42,15 @@ scheme_type2text = {
     SchemeType.TRANSITION: "Transition",
     SchemeType.PREFERENCE: "Preference",
     SchemeType.ASSERTION: "Assertion",
+}
+
+scheme_type2aif_text = {
+    SchemeType.SUPPORT: "Default Inference",
+    SchemeType.ATTACK: "Default Conflict",
+    SchemeType.REPHRASE: "Default Rephrase",
+    SchemeType.TRANSITION: "Default Transition",
+    SchemeType.PREFERENCE: "Default Preference",
+    SchemeType.ASSERTION: "Default Assertion",
 }
 
 
@@ -689,11 +698,11 @@ class SchemeNode(Node):
         cls,
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> AtomNode:
+    ) -> SchemeNode:
         """Generate SchemeNode object from AIF Node object."""
         node = cls(
             **_from_aif(obj),
-            type=aif2scheme_type[obj["type"]],
+            type=aif_type2scheme_type[obj["type"]],
         )
         text: str = obj["text"]
 
@@ -706,8 +715,10 @@ class SchemeNode(Node):
         """Export SchemeNode object into AIF Node object."""
         return {
             **_to_aif(self),
-            "text": scheme_type2text[self.type],
-            "type": scheme_type2aif[self.type],
+            "text": scheme_type2aif_text[self.type]
+            if not self.argumentation_scheme
+            else scheme2text[self.argumentation_scheme],
+            "type": scheme_type2aif_type[self.type],
         }
 
     @classmethod
@@ -715,7 +726,7 @@ class SchemeNode(Node):
         cls,
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> AtomNode:
+    ) -> SchemeNode:
         """Generate SchemeNode object from OVA Node object."""
         ova_desc = obj["descriptors"]
         descriptors = {}
@@ -731,7 +742,7 @@ class SchemeNode(Node):
         return cls(
             **_from_ova(obj),
             argumentation_scheme=text2scheme.get(obj["text"]),
-            type=aif2scheme_type[obj["type"]],
+            type=aif_type2scheme_type[obj["type"]],
             descriptors=descriptors,
         )
 

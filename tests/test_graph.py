@@ -1,8 +1,8 @@
 import json
 import multiprocessing
-from typing import Any, Dict, List, Optional
 
 import arguebuf as ag
+from deepdiff import DeepDiff
 
 
 def test_create_graph(shared_datadir):
@@ -95,5 +95,14 @@ def _import_aif_graph(file):
     graph = ag.Graph.from_file(file)
     export = graph.to_dict(ag.GraphFormat.AIF)
 
-    assert export == raw, file
-    # assert DeepDiff(raw, export, ignore_order=True) == {}, file
+    # assert export == raw, file
+    diff = DeepDiff(raw, export, ignore_order=True)
+
+    if diff != {}:
+        print("RAW:")
+        print(json.dumps(raw))
+        print("EXPORT:")
+        print(json.dumps(export))
+        print()
+
+    assert diff == {}, file
