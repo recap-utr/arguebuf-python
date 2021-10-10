@@ -13,7 +13,6 @@ Metadata = t.Dict[str, t.Any]
 
 @dataclass()
 class Participant:
-    _id: str
     name: t.Optional[str] = None
     username: t.Optional[str] = None
     email: t.Optional[str] = None
@@ -23,6 +22,7 @@ class Participant:
     created: pendulum.DateTime = field(default_factory=pendulum.now)
     updated: pendulum.DateTime = field(default_factory=pendulum.now)
     metadata: Metadata = field(default_factory=dict)
+    _id: str = field(default_factory=utils.unique_id)
 
     @property
     def id(self) -> str:
@@ -48,7 +48,6 @@ class Participant:
     def from_protobuf(cls, id: str, obj: graph_pb2.Participant) -> Participant:
         """Generate Participant object from PROTOBUF format Graph's Participant object."""
         return cls(
-            id,
             obj.name,
             obj.username,
             obj.email,
@@ -58,18 +57,19 @@ class Participant:
             dt.from_protobuf(obj.created),
             dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
+            id,
         )
 
 
 @dataclass()
 class Resource:
-    _id: str
     text: t.Any
     title: t.Optional[str] = None
     source: t.Optional[str] = None
     created: pendulum.DateTime = field(default_factory=pendulum.now)
     updated: pendulum.DateTime = field(default_factory=pendulum.now)
     metadata: Metadata = field(default_factory=dict)
+    _id: str = field(default_factory=utils.unique_id)
 
     @property
     def id(self) -> str:
@@ -104,13 +104,13 @@ class Resource:
     ) -> Resource:
         """Generate Resource object from PROTOBUF format Graph's Resource object."""
         return cls(
-            id,
             utils.parse(obj.text, nlp),
             obj.title,
             obj.source,
             dt.from_protobuf(obj.created),
             dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
+            id,
         )
 
 

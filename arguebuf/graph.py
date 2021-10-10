@@ -241,10 +241,10 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
-            >>> g.add_node(arguebuf.AtomNode(arguebuf.unique_id(), "Node"))
-            >>> en(g.nodes)
+            >>> g.add_node(arguebuf.AtomNode("Node"))
+            >>> len(g.nodes)
             1
-            >>> g.add_node(arguebuf.SchemeNode(arguebuf.unique_id(), arguebuf.SchemeType.SUPPORT))
+            >>> g.add_node(arguebuf.SchemeNode(arguebuf.SchemeType.SUPPORT))
             >>> len(g.nodes)
             2
             >>> g.add_node("Test")
@@ -283,9 +283,9 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = Graph("Test")
-            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
-            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
-            >>> e = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
+            >>> n1 = arguebuf.AtomNode("Node1")
+            >>> n2 = arguebuf.AtomNode("Node2")
+            >>> e = arguebuf.Edge(n1, n2)
             >>> g.add_edge(e)
             >>> len(g.nodes)
             2
@@ -332,11 +332,11 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
-            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
-            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
-            >>> n3 = arguebuf.AtomNode(arguebuf.unique_id(), "Node3")
-            >>> e1 = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
-            >>> e2 = arguebuf.Edge(arguebuf.unique_id(), n2, n3)
+            >>> n1 = arguebuf.AtomNode("Node1")
+            >>> n2 = arguebuf.AtomNode("Node2")
+            >>> n3 = arguebuf.AtomNode("Node3")
+            >>> e1 = arguebuf.Edge(n1, n2)
+            >>> e2 = arguebuf.Edge(n2, n3)
             >>> g.add_edge(e1)
             >>> len(g.edges)
             1
@@ -372,9 +372,9 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
-            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
-            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
-            >>> e = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
+            >>> n1 = arguebuf.AtomNode("Node1")
+            >>> n2 = arguebuf.AtomNode("Node2")
+            >>> e = arguebuf.Edge(n1, n2)
             >>> g.add_edge(e)
             >>> len(g.edges)
             1
@@ -409,8 +409,8 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
-            >>> r1 = arguebuf.Resource(arguebuf.unique_id(), "Resource1")
-            >>> g.add_resource(e)
+            >>> r1 = arguebuf.Resource("Resource1")
+            >>> g.add_resource(r1)
             >>> len(g.resources)
             1
         """
@@ -431,7 +431,7 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
-            >>> r1 = arguebuf.Resource(arguebuf.unique_id(), "Resource1")
+            >>> r1 = arguebuf.Resource("Resource1")
             >>> g.add_resource(r1)
             >>> len(g.resources)
             1
@@ -461,9 +461,9 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
-            >>> p1 = arguebuf.Participant(arguebuf.unique_id(), "Participant1")
+            >>> p1 = arguebuf.Participant("Participant1")
             >>> g.add_participant(p1)
-            >>> len(g.participants))
+            >>> len(g.participants)
             1
         """
         if not isinstance(participant, Participant):
@@ -483,11 +483,11 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
-            >>> p1 = arguebuf.Participant(arguebuf.unique_id(), "Participant1")
+            >>> p1 = arguebuf.Participant("Participant1")
             >>> g.add_participant(p1)
             >>> len(g.participants)
             1
-            >>> remove_participant(p1)
+            >>> g.remove_participant(p1)
             >>> len(g.participants)
             0
         """
@@ -514,11 +514,11 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
-            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
-            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
-            >>> n3 = arguebuf.AtomNode(arguebuf.unique_id(), "Node3")
-            >>> e1 = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
-            >>> e2 = arguebuf.Edge(arguebuf.unique_id(), n2, n3)
+            >>> n1 = arguebuf.AtomNode("Node1")
+            >>> n2 = arguebuf.AtomNode("Node2")
+            >>> n3 = arguebuf.AtomNode("Node3")
+            >>> e1 = arguebuf.Edge(n1, n2)
+            >>> e2 = arguebuf.Edge(n2, n3)
             >>> g.add_node(n1)
             >>> g.add_node(n2)
             >>> len(g.nodes)
@@ -533,7 +533,7 @@ class Graph:
 
         # TODO: Currently, there is no differentiation between I-nodes and S-nodes.
 
-        if node1 in self.nodes and node2 in self.nodes:
+        if node1 in self.nodes.values() and node2 in self.nodes.values():
             if node1 == node2:
                 return 0
 
@@ -561,7 +561,6 @@ class Graph:
         # g.metadata = utils.parse_metadata(obj, include=["participants", "ovaVersion"])
 
         resource = Resource(
-            utils.unique_id(),
             utils.parse(analysis.get("plain_txt"), nlp),
             analysis.get("documentTitle"),
             analysis.get("documentSource"),
@@ -570,7 +569,7 @@ class Graph:
         g.add_resource(resource)
 
         if analyst_name := analysis.get("annotatorName"):
-            g.analysts.append(Participant(utils.unique_id(), name=analyst_name))
+            g.analysts.append(Participant(name=analyst_name))
 
         for ova_node in obj["nodes"]:
             node = (
@@ -828,7 +827,7 @@ class Graph:
         g = cls(name)
 
         inodes = {}
-        mc = atom_class(utils.unique_id(), utils.parse("", nlp))
+        mc = atom_class(utils.parse("", nlp))
         g.add_node(mc)
         g._major_claim = mc
 
@@ -839,7 +838,7 @@ class Graph:
                 if metadata[0] == "MajorClaim":
                     mc.text = utils.parse(mc.plain_text + ". " + row[2], nlp)
                 else:
-                    inode = atom_class(utils.unique_id(), utils.parse(row[2], nlp))
+                    inode = atom_class(utils.parse(row[2], nlp))
                     g.add_node(inode)
                     inodes[row[0]] = inode
 
@@ -952,9 +951,9 @@ class Graph:
         Examples:
             >>> import arguebuf
             >>> g = Graph("Test")
-            >>> n1 = arguebuf.AtomNode(arguebuf.unique_id(), "Node1")
-            >>> n2 = arguebuf.AtomNode(arguebuf.unique_id(), "Node2")
-            >>> e = arguebuf.Edge(arguebuf.unique_id(), n1, n2)
+            >>> n1 = arguebuf.AtomNode("Node1")
+            >>> n2 = arguebuf.AtomNode("Node2")
+            >>> e = arguebuf.Edge(n1, n2)
             >>> g.add_edge(e)
             >>> gnx = g.to_nx()
             >>> gnx.number_of_nodes()

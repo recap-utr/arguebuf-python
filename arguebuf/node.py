@@ -618,7 +618,7 @@ class AtomNode(Node):
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
-        """Get the color used in OVA based on `category`."""
+        """Get the color for rendering the node."""
         if major_claim:
             return ColorMapping(bg="#3498db", border="#3498db")
 

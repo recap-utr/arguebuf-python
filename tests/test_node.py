@@ -50,7 +50,6 @@ ova_data = [
         }
         """,
         "119935",
-        "b",
         "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
         ag.AtomNode,
         pendulum.datetime(2019, 3, 6, 14, 31, 23),
@@ -73,15 +72,14 @@ def test_aif_node(data, id, text, type, date):
 
 
 @pytest.mark.parametrize(
-    "data,id,color,text,type,date",
+    "data,id,text,type,date",
     ova_data,
 )
-def test_ova_node(data, id, color, text, type, date):
+def test_ova_node(data, id, text, type, date):
     data_json = json.loads(data)
     node = ag.AtomNode.from_ova(data_json)
 
     assert node.id == id
-    assert node.color(False) == color
     assert node.text == text
     assert isinstance(node, type)
     assert node.created == date
