@@ -506,8 +506,7 @@ class Graph:
             if node.participant == participant:
                 node.participant = None
 
-    # Muss man hier nicht auch noch den zweiten Node als Node Objekt definieren?
-    def node_distance(self, node1: Node, node2) -> t.Optional[int]:
+    def node_distance(self, node1: Node, node2: Node) -> t.Optional[int]:
         """If node is in the graph, return the distance to the major claim (if set).
 
         Args:
