@@ -70,7 +70,7 @@ class Graph:
     _outgoing_edges: ImmutableDict[Node, ImmutableSet[Edge]]
     _resources: ImmutableDict[str, Resource]
     _participants: ImmutableDict[str, Participant]
-    _major_claim: t.Optional[Node]
+    _major_claim: t.Optional[AtomNode]
     analysts: t.List[Participant]
     version: str
     created: pendulum.DateTime
@@ -171,7 +171,7 @@ class Graph:
         return self._resources
 
     @property
-    def major_claim(self) -> t.Optional[Node]:
+    def major_claim(self) -> t.Optional[AtomNode]:
         if self._major_claim:
             return self._major_claim
 
@@ -190,7 +190,10 @@ class Graph:
         return None
 
     @major_claim.setter
-    def major_claim(self, value: t.Optional[Node]) -> None:
+    def major_claim(self, value: t.Optional[AtomNode]) -> None:
+        if not (value is None or isinstance(value, AtomNode)):
+            raise TypeError(utils.type_error(type(value), AtomNode))
+
         self._major_claim = value
         # self._metadata.update()
 
