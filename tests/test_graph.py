@@ -1,5 +1,6 @@
 import json
 import multiprocessing
+from pathlib import Path
 
 import arguebuf as ag
 from deepdiff import DeepDiff
@@ -60,10 +61,13 @@ def test_create_graph(shared_datadir):
     assert g.node_distance(n4, n4) == 0
     assert g.node_distance(n5, n5) == 0
 
+    assert g.outgoing_atom_nodes(n1) == set([n3])
+
     g.strip_snodes()
 
     assert len(g.nodes) == 3
     assert len(g.edges) == 2
+    ag.render(g.to_gv(), shared_datadir / "output" / "test_create_graph.pdf")
 
 
 def test_import_graphs(shared_datadir):

@@ -581,7 +581,7 @@ class Graph:
             )
             g.add_node(node)
 
-            if ova_node.get("major_claim"):
+            if ova_node.get("major_claim") and isinstance(node, AtomNode):
                 g._major_claim = node
 
         for edge in obj["edges"]:
@@ -739,8 +739,10 @@ class Graph:
         for edge_id, edge in obj.edges.items():
             g.add_edge(edge_class.from_protobuf(edge_id, edge, g._nodes))
 
-        if major_claim := obj.major_claim:
-            g._major_claim = g._nodes[major_claim]
+        major_claim = g._nodes[obj.major_claim] if obj.major_claim else None
+
+        if major_claim and isinstance(major_claim, AtomNode):
+            g._major_claim = major_claim
 
         g.analysts = [
             participant_class.from_protobuf(utils.unique_id(), analyst)
