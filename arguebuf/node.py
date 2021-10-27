@@ -591,7 +591,7 @@ class AtomNode(Node):
         return cls(
             utils.parse(obj.atom.text, nlp),
             reference_class.from_protobuf(obj.atom.reference, resources, nlp),
-            participants[obj.atom.participant],
+            participants.get(obj.atom.participant),
             dt.from_protobuf(obj.created),
             dt.from_protobuf(obj.updated),
             dict(obj.metadata.items()),
@@ -761,7 +761,9 @@ class SchemeNode(Node):
             SchemeType(obj.scheme.type)
             if obj.scheme.type != graph_pb2.SCHEME_TYPE_UNSPECIFIED
             else SchemeType.SUPPORT,
-            Scheme(obj.scheme.argumentation_scheme),
+            Scheme(obj.scheme.argumentation_scheme)
+            if obj.scheme.argumentation_scheme
+            else None,
             dict(obj.scheme.descriptors.items()),
             dt.from_protobuf(obj.created),
             dt.from_protobuf(obj.updated),
