@@ -3,6 +3,7 @@ import json
 import arguebuf as ag
 import pendulum
 import pytest
+from arg_services.graph.v1 import graph_pb2
 
 aif_data = [
     (
@@ -113,7 +114,7 @@ def test_aif_edge(data, id, start, end):
     assert edge.created is not None
     assert edge.updated is not None
     assert edge.metadata == {}
-
+    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
 
 @pytest.mark.parametrize("data,start,end,date", ova_data)
 def test_ova_edge(data, start, end, date):
@@ -134,3 +135,4 @@ def test_ova_edge(data, start, end, date):
     assert edge.created == date
     assert edge.updated == date
     assert edge.metadata == {}
+    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
