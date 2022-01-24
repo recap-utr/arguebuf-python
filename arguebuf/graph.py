@@ -506,18 +506,30 @@ class Graph:
             if node.participant == participant:
                 node.participant = None
 
-    def node_distance(self, node1: Node, node2: Node) -> t.Optional[int]:
-        """If node is in the graph, return the distance to the major claim (if set).
+    def node_distance(
+        self,
+        start_node: Node,
+        end_node: Node,
+        max_distance: t.Optional[int] = None,
+        directed: bool = True,
+    ) -> t.Optional[int]:
+        """Get the distance between `start_node` and `end_node` in the graph.
 
         Args:
-            node1: Node object that is part of the graph.
-            node2: Node object that is part of the graph.
+            start_node: Node object that is part of the graph.
+            end_node: Node object that is part of the graph.
+            max_distance: Only search for nodes having at most a distance of this argument.
+                Especially helpful when dealing with large graphs where shorts paths are searched for.
+            directed: If `False`, also search for the direction `end_node` -> `start_node`.
+
+        Returns:
+            `None` if no path between
 
         Examples:
             >>> import arguebuf
             >>> g = arguebuf.Graph("Test")
             >>> n1 = arguebuf.AtomNode("Node1")
-            >>> n2 = arguebuf.AtomNode("Node2")
+            >>> n2 = arguebuf.SchemeNode(arguebuf.SchemeType.SUPPORT)
             >>> n3 = arguebuf.AtomNode("Node3")
             >>> e1 = arguebuf.Edge(n1, n2)
             >>> e2 = arguebuf.Edge(n2, n3)
@@ -531,17 +543,24 @@ class Graph:
             2
             >>> g.node_distance(n1, n3)
             2
+            >>> g.node_distance(n3, n1)
+            None
         """
 
-        # TODO: Currently, there is no differentiation between I-nodes and S-nodes.
-
-        if node1 in self.nodes.values() and node2 in self.nodes.values():
-            if node1 == node2:
+        if start_node in self.nodes.values() and end_node in self.nodes.values():
+            if start_node == end_node:
                 return 0
 
-            return _node_distance(node1, node2, self._incoming_nodes) or _node_distance(
-                node1, node2, self._outgoing_nodes
+            dist = _node_distance(
+                start_node, end_node, self._outgoing_nodes, max_distance
             )
+
+            if dist is None and not directed:
+                dist = _node_distance(
+                    end_node, start_node, self._outgoing_nodes, max_distance
+                )
+
+            return dist
 
         return None
 
@@ -1077,14 +1096,19 @@ class Graph:
 
 
 def _node_distance(
-    node1: Node, node2: Node, connections: t.Mapping[Node, t.Iterable[Node]]
+    node1: Node,
+    node2: Node,
+    connections: t.Mapping[Node, t.Iterable[Node]],
+    max_distance: t.Optional[int],
 ) -> t.Optional[int]:
     expansion: t.List[t.Tuple[Node, int]] = [(n, 1) for n in connections[node1]]
 
     while len(expansion) > 0:
         candidate, distance = expansion.pop()
 
-        if candidate == node2:
+        if max_distance is not None and distance > max_distance:
+            continue
+        elif candidate == node2:
             return distance
         else:
             expansion.extend((n, distance + 1) for n in connections[candidate])
