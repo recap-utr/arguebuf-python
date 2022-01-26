@@ -20,7 +20,7 @@ from arguebuf.data import Metadata, Participant, Reference, Resource
 
 from . import dt, utils
 from .edge import Edge
-from .node import AtomNode, Node, SchemeNode, SchemeType
+from .node import AtomNode, Node, SchemeNode, SchemeType, aif_type2scheme_type
 from .utils import ImmutableDict, ImmutableSet
 
 log = logging.getLogger(__name__)
@@ -544,7 +544,6 @@ class Graph:
             >>> g.node_distance(n1, n3)
             2
             >>> g.node_distance(n3, n1)
-            None
         """
 
         if start_node in self.nodes.values() and end_node in self.nodes.values():
@@ -598,13 +597,18 @@ class Graph:
                 if ova_node.get("type") == "I"
                 else scheme_class.from_ova(ova_node, nlp)
             )
-            g.add_node(node)
+
+            if node:
+                g.add_node(node)
 
             if ova_node.get("major_claim") and isinstance(node, AtomNode):
                 g._major_claim = node
 
-        for edge in obj["edges"]:
-            g.add_edge(edge_class.from_ova(edge, g._nodes))
+        for ova_edge in obj["edges"]:
+            edge = edge_class.from_ova(ova_edge, g._nodes)
+
+            if edge:
+                g.add_edge(edge)
 
         if analysis and analysis.get("txt"):
             analysis_txt = analysis["txt"]
@@ -658,15 +662,19 @@ class Graph:
         """
         g = cls(name)
 
-        for node in obj["nodes"]:
-            g.add_node(
-                atom_class.from_aif(node, nlp)
-                if node["type"] == "I"
-                else scheme_class.from_aif(node, nlp)
+        for aif_node in obj["nodes"]:
+            node = (
+                atom_class.from_aif(aif_node, nlp)
+                if aif_node["type"] == "I"
+                else scheme_class.from_aif(aif_node, nlp)
             )
 
-        for edge in obj["edges"]:
-            g.add_edge(edge_class.from_aif(edge, g._nodes))
+            if node:
+                g.add_node(node)
+
+        for aif_edge in obj["edges"]:
+            if edge := edge_class.from_aif(aif_edge, g._nodes):
+                g.add_edge(edge)
 
         return g
 

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, annotations
 
+import re
 import textwrap
 import typing as t
 from abc import ABC, abstractmethod
@@ -698,18 +699,28 @@ class SchemeNode(Node):
         cls,
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> SchemeNode:
+    ) -> t.Optional[SchemeNode]:
         """Generate SchemeNode object from AIF Node object."""
-        node = cls(
-            **_from_aif(obj),
-            type=aif_type2scheme_type[obj["type"]],
-        )
-        text: str = obj["text"]
 
-        if not text.startswith("Default "):
-            node.argumentation_scheme = text2scheme.get(text)
+        if obj["type"] in aif_type2scheme_type:
+            node = cls(
+                **_from_aif(obj),
+                type=aif_type2scheme_type[obj["type"]],
+            )
 
-        return node
+            if scheme := obj.get("scheme"):
+                # In araucaria, 'Expert Opinion' is written as 'ExpertOpinion'.
+                # https://stackoverflow.com/a/199094/7626878
+                scheme = re.sub("([A-Z])", r" \1", scheme)
+
+                node.argumentation_scheme = text2scheme.get(scheme)
+
+            elif not obj["text"].startswith("Default "):
+                node.argumentation_scheme = text2scheme.get(obj["text"])
+
+            return node
+
+        return None
 
     def to_aif(self) -> t.Dict[str, t.Any]:
         """Export SchemeNode object into AIF Node object."""
@@ -726,25 +737,29 @@ class SchemeNode(Node):
         cls,
         obj: t.Mapping[str, t.Any],
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> SchemeNode:
+    ) -> t.Optional[SchemeNode]:
         """Generate SchemeNode object from OVA Node object."""
-        ova_desc = obj["descriptors"]
-        descriptors = {}
 
-        ova_key: str
-        ova_value: int
-        for ova_key, ova_value in ova_desc.items():
-            value = utils.xstr(ova_value)
-            key = ova_key.lstrip("s_").split("։")[0]
+        if obj["type"] in aif_type2scheme_type:
+            ova_desc = obj["descriptors"]
+            descriptors = {}
 
-            descriptors[key] = value
+            ova_key: str
+            ova_value: int
+            for ova_key, ova_value in ova_desc.items():
+                value = utils.xstr(ova_value)
+                key = ova_key.lstrip("s_").split("։")[0]
 
-        return cls(
-            **_from_ova(obj),
-            argumentation_scheme=text2scheme.get(obj["text"]),
-            type=aif_type2scheme_type[obj["type"]],
-            descriptors=descriptors,
-        )
+                descriptors[key] = value
+
+            return cls(
+                **_from_ova(obj),
+                argumentation_scheme=text2scheme.get(obj["text"]),
+                type=aif_type2scheme_type[obj["type"]],
+                descriptors=descriptors,
+            )
+
+        return None
 
     @classmethod
     def from_protobuf(

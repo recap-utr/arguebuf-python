@@ -77,38 +77,41 @@ class Edge:
     def from_ova(
         cls,
         obj: t.Mapping[str, t.Any],
-        nodes: t.Mapping[str, Node] = None,
-    ) -> Edge:
+        nodes: t.Mapping[str, Node],
+    ) -> t.Optional[Edge]:
         """Generate Edge object from OVA Edge format."""
-        if not nodes:
-            nodes = {}
-
         source_id = str(obj["from"]["id"])
         target_id = str(obj["to"]["id"])
 
-        return cls(
-            id=utils.unique_id(),
-            source=nodes[source_id],
-            target=nodes[target_id],
-            created=dt.from_ova(obj.get("date")),
-            updated=dt.from_ova(obj.get("date")),
-        )
+        if source_id in nodes and target_id in nodes:
+            return cls(
+                id=utils.unique_id(),
+                source=nodes[source_id],
+                target=nodes[target_id],
+                created=dt.from_ova(obj.get("date")),
+                updated=dt.from_ova(obj.get("date")),
+            )
+
+        return None
 
     @classmethod
     def from_aif(
         cls,
         obj: t.Any,
         nodes: t.Mapping[str, Node],
-    ) -> Edge:
+    ) -> t.Optional[Edge]:
         """Generate Edge object from AIF Edge format."""
-        start_id = obj.get("fromID")
-        end_id = obj.get("toID")
+        source_id = obj.get("fromID")
+        target_id = obj.get("toID")
 
-        return cls(
-            id=obj["edgeID"],
-            source=nodes[start_id],
-            target=nodes[end_id],
-        )
+        if source_id in nodes and target_id in nodes:
+            return cls(
+                id=obj["edgeID"],
+                source=nodes[source_id],
+                target=nodes[target_id],
+            )
+
+        return None
 
     def to_aif(self) -> t.Dict[str, t.Any]:
         """Export Edge object into AIF Edge format."""
