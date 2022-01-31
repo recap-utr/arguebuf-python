@@ -186,8 +186,8 @@ def test_import_graphs(shared_datadir):
         pool.map(_import_aif_graph, sorted(aif_folder.rglob("*.json")))
 
     # For debugging
-    # for file in sorted(aif_folder.rglob("*.json")):
-    #     _import_aif_graph(file)
+    # for file in sorted(kialo_folder.rglob("*.txt")):
+    #     _import_generic_graph(file)
 
 
 def _import_generic_graph(file):
