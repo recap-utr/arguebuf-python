@@ -857,7 +857,7 @@ class Graph:
         reader = csv.reader(obj, delimiter="\t")
         g = cls(name)
 
-        inodes = {}
+        atom_nodes = {}
         mc = atom_class(utils.parse("", nlp))
         g.add_node(mc)
         g._major_claim = mc
@@ -869,9 +869,9 @@ class Graph:
                 if metadata[0] == "MajorClaim":
                     mc.text = utils.parse(mc.plain_text + ". " + row[2], nlp)
                 else:
-                    inode = atom_class(utils.parse(row[2], nlp))
-                    g.add_node(inode)
-                    inodes[row[0]] = inode
+                    atom = atom_class(utils.parse(row[2], nlp))
+                    g.add_node(atom)
+                    atom_nodes[row[0]] = atom
 
             elif row[0].startswith("A") or row[0].startswith("R"):
                 if row[0].startswith("A"):
@@ -880,22 +880,22 @@ class Graph:
                         if metadata[2] == "Against"
                         else SchemeType.SUPPORT
                     )
-                    source_inode = inodes[metadata[1]]
-                    target_inode = mc
+                    source = atom_nodes[metadata[1]]
+                    target = mc
                 else:
                     scheme_type = (
                         SchemeType.ATTACK
                         if metadata[0] == "attacks"
                         else SchemeType.SUPPORT
                     )
-                    source_inode = inodes[metadata[1].split(":")[1]]
-                    target_inode = inodes[metadata[2].split(":")[1]]
+                    source = atom_nodes[metadata[1].split(":")[1]]
+                    target = atom_nodes[metadata[2].split(":")[1]]
 
-                snode = scheme_class(scheme_type)
-                g.add_node(snode)
+                scheme = scheme_class(scheme_type)
+                g.add_node(scheme)
 
-                g.add_edge(edge_class(source_inode, snode))
-                g.add_edge(edge_class(snode, target_inode))
+                g.add_edge(edge_class(source, scheme))
+                g.add_edge(edge_class(scheme, target))
 
         return g
 
