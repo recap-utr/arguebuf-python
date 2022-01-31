@@ -917,22 +917,31 @@ class Graph:
         assert obj.readline().strip() == ""
 
         g = cls(name)
-        mc_match = re.search(r"^((?:\d+\.)+) (.*)", obj.readline())
+
+        # Example: 1.1. Pro: Gold is better than silver.
+        # Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
+        pattern = re.compile(r"^(1\.(?:\d+\.)+) (?:(Con|Pro): )?(.*)")
+        current_line = obj.readline()
+        next_line = obj.readline()
+
+        mc_match = re.search(r"^((?:\d+\.)+) (.*)", current_line)
 
         if not mc_match:
             raise ValueError("The major claim is not present in the third line!")
 
         mc_id = mc_match.group(1)
         mc_text = mc_match.group(2)
+
+        # See in the following while loop for explanation of this block
+        while next_line and not pattern.search(next_line):
+            mc_text = f"{mc_text}\n{next_line.strip()}"
+            next_line = obj.readline()
+
         mc = _kialo_atom_node(mc_id, mc_text, nlp, atom_class)
         g.add_node(mc)
         g.major_claim = mc
 
-        # Example: 1.1. Pro: Gold is better than silver.
-        # Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
-        pattern = re.compile(r"^((?:\d+\.)+) (Con|Pro): (.*)")
-
-        current_line = obj.readline()
+        current_line = next_line
         next_line = obj.readline()
 
         while current_line:
@@ -953,9 +962,6 @@ class Graph:
 
                 assert source_id
                 assert text
-                assert stance
-
-                stance = stance.lower()
 
                 if id_ref_match := re.search(r"^-> See ((?:\d+\.)+)", text):
                     id_ref = id_ref_match.group(1)
@@ -964,10 +970,14 @@ class Graph:
                     source = _kialo_atom_node(source_id, text, nlp, atom_class)
                     g.add_node(source)
 
-                scheme = scheme_class(
-                    SchemeType.ATTACK if stance == "con" else SchemeType.SUPPORT,
-                    id=f"{source_id}{stance}",
-                )
+                if stance:
+                    stance = stance.lower()
+                    scheme = scheme_class(
+                        SchemeType.ATTACK if stance == "con" else SchemeType.SUPPORT,
+                        id=f"{source_id}scheme",
+                    )
+                else:
+                    scheme = scheme_class(SchemeType.REPHRASE, id=f"{source_id}scheme")
 
                 target_id = ".".join(source_id_parts[:-1] + [""])
                 target = g.atom_nodes[target_id]

@@ -186,7 +186,11 @@ def test_import_graphs(shared_datadir):
         pool.map(_import_aif_graph, sorted(aif_folder.rglob("*.json")))
 
     # For debugging
-    # for file in sorted(kialo_folder.rglob("*.txt")):
+    # for file in sorted(
+    #     kialo_folder.rglob(
+    #         "which-distributed-ledger-technologies-are-the-most-relevant-16186.txt"
+    #     )
+    # ):
     #     _import_generic_graph(file)
 
 
