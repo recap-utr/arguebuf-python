@@ -175,11 +175,13 @@ def test_import_graphs(shared_datadir):
     brat_folder = shared_datadir / "brat"
     aif_folder = shared_datadir / "aif"
     ova_folder = shared_datadir / "ova"
+    kialo_folder = shared_datadir / "kialo"
 
     with multiprocessing.Pool() as pool:
         pool.map(_import_generic_graph, sorted(aif_folder.rglob("*.json")))
         pool.map(_import_generic_graph, sorted(ova_folder.rglob("*.json")))
         pool.map(_import_generic_graph, sorted(brat_folder.rglob("*.ann")))
+        pool.map(_import_generic_graph, sorted(kialo_folder.rglob("*.txt")))
 
         pool.map(_import_aif_graph, sorted(aif_folder.rglob("*.json")))
 
@@ -195,16 +197,6 @@ def _import_generic_graph(file):
     assert graph.to_dict(ag.GraphFormat.ARGUEBUF) != {}
     assert graph.to_gv() is not None
     assert graph.to_nx() is not None
-
-
-araucaria_scheme_text = {
-    "RA": "Default Inference",
-    "CA": "Default Conflict",
-    "MA": "Default Rephrase",
-    "TA": "Default Transition",
-    "PA": "Default Preference",
-    "YA": "Default Assertion",
-}
 
 
 def _clean_raw_aif(g: t.MutableMapping[str, t.Any]) -> None:

@@ -5,6 +5,7 @@ import importlib.metadata
 import itertools
 import json
 import logging
+import re
 import typing as t
 from enum import Enum
 from pathlib import Path
@@ -900,6 +901,80 @@ class Graph:
         return g
 
     @classmethod
+    def from_kialo(
+        cls,
+        obj: t.IO,
+        name: t.Optional[str] = None,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        if name_match := re.search(r"Discussion Title: (.*)", obj.readline()):
+            name = name_match.group(1)
+
+        g = cls(name)
+        # Example: 1.1. Pro: Gold is better than silver.
+        # Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
+        pattern = re.compile(r"^((?:\d+\.)+) (?:(Con|Pro): )?(.*)")
+
+        while line := obj.readline():
+            if match := pattern.search(line):
+                source_id = match.group(1)
+                source_id_parts = source_id[:-1].split(".")
+                level = len(source_id_parts)
+                stance = match.group(2)
+                text = match.group(3)
+
+                assert source_id
+                assert text
+
+                if id_ref_match := re.search(r"^-> See ((?:\d+\.)+)", text):
+                    id_ref = id_ref_match.group(1)
+                    source = g.atom_nodes[id_ref]
+
+                else:
+                    # Remove backslashes before parentheses
+                    text = text.replace("\\(", "(").replace("\\)", ")")
+
+                    # Remove markdown links
+                    text = re.sub(
+                        r"\[(.*?)\]\(.*?\)",
+                        r"\1",
+                        text,
+                    )
+
+                    # Apply user-provided nlp function
+                    text = utils.parse(text, nlp)
+
+                    source = atom_class(text, id=source_id)
+                    g.add_node(source)
+
+                if level == 1:
+                    g.major_claim = source
+
+                if stance:
+                    stance = stance.lower()
+
+                    scheme = scheme_class(
+                        SchemeType.ATTACK if stance == "con" else SchemeType.SUPPORT,
+                        id=f"{source_id}{stance}",
+                    )
+
+                    target_id = ".".join(source_id_parts[:-1] + [""])
+                    target = g.atom_nodes[target_id]
+
+                    g.add_node(scheme)
+                    g.add_edge(
+                        edge_class(source, scheme, id=f"{source.id}->{scheme.id}")
+                    )
+                    g.add_edge(
+                        edge_class(scheme, target, id=f"{scheme.id}->{target.id}")
+                    )
+
+        return g
+
+    @classmethod
     def from_io(
         cls,
         obj: t.IO,
@@ -911,10 +986,14 @@ class Graph:
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Generate Graph structure from IO argument graph file(Link?)."""
-        if suffix == ".ann":
-            return cls.from_brat(obj, name, atom_class, scheme_class, edge_class, nlp)
+        args = (obj, name, atom_class, scheme_class, edge_class, nlp)
 
-        return cls.from_json(obj, name, atom_class, scheme_class, edge_class, nlp)
+        if suffix == ".ann":
+            return cls.from_brat(*args)
+        if suffix == ".txt":
+            return cls.from_kialo(*args)
+
+        return cls.from_json(*args)
 
     def to_io(
         self,
