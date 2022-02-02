@@ -661,13 +661,13 @@ class SchemeNode(Node):
         "descriptors",
     )
 
-    type: SchemeType
+    type: t.Optional[SchemeType]
     argumentation_scheme: t.Optional[Scheme]
     descriptors: t.Dict[str, str]
 
     def __init__(
         self,
-        type: SchemeType,
+        type: t.Optional[SchemeType],
         argumentation_scheme: t.Optional[Scheme] = None,
         descriptors: t.Optional[t.Mapping[str, str]] = None,
         created: t.Optional[pendulum.DateTime] = None,
@@ -685,7 +685,7 @@ class SchemeNode(Node):
             self,
             [
                 self._id,
-                scheme_type2text[self.type],
+                utils.xstr(scheme_type2text[self.type] if self.type else None),
                 utils.xstr(
                     scheme2text[self.argumentation_scheme]
                     if self.argumentation_scheme
@@ -693,6 +693,16 @@ class SchemeNode(Node):
                 ),
             ],
         )
+
+    @property
+    def _label(self) -> str:
+        if self.argumentation_scheme:
+            return scheme2text[self.argumentation_scheme]
+
+        if self.type:
+            return scheme_type2aif_text[self.type]
+
+        return ""
 
     @classmethod
     def from_aif(
@@ -724,12 +734,11 @@ class SchemeNode(Node):
 
     def to_aif(self) -> t.Dict[str, t.Any]:
         """Export SchemeNode object into AIF Node object."""
+
         return {
             **_to_aif(self),
-            "text": scheme_type2aif_text[self.type]
-            if not self.argumentation_scheme
-            else scheme2text[self.argumentation_scheme],
-            "type": scheme_type2aif_type[self.type],
+            "text": self._label,
+            "type": utils.xstr(scheme_type2aif_type[self.type] if self.type else None),
         }
 
     @classmethod
@@ -775,7 +784,7 @@ class SchemeNode(Node):
         return cls(
             SchemeType(obj.scheme.type)
             if obj.scheme.type != graph_pb2.SCHEME_TYPE_UNSPECIFIED
-            else SchemeType.SUPPORT,
+            else None,
             Scheme(obj.scheme.argumentation_scheme)
             if obj.scheme.argumentation_scheme
             else None,
@@ -791,7 +800,9 @@ class SchemeNode(Node):
         obj = graph_pb2.Node()
         obj.metadata.update(self.metadata)
 
-        obj.scheme.type = self.type.value
+        obj.scheme.type = (
+            self.type.value if self.type else graph_pb2.SCHEME_TYPE_UNSPECIFIED
+        )
         obj.scheme.descriptors.update(self.descriptors)
 
         if arg_scheme := self.argumentation_scheme:
@@ -809,9 +820,7 @@ class SchemeNode(Node):
         """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
-            label=scheme2text[self.argumentation_scheme]
-            if self.argumentation_scheme
-            else scheme_type2text[self.type],
+            label=self._label,
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
@@ -834,15 +843,10 @@ class SchemeNode(Node):
     def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
-        label = (
-            scheme2text[self.argumentation_scheme]
-            if self.argumentation_scheme
-            else scheme_type2text[self.type]
-        )
 
         g.node(
             self._id,
-            label=label.strip(),
+            label=self._label,
             fontcolor=color.fg,
             fillcolor=color.bg,
             color=color.border,
