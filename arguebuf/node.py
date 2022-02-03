@@ -32,6 +32,7 @@ scheme_type2aif_type = {
     SchemeType.TRANSITION: "TA",
     SchemeType.PREFERENCE: "PA",
     SchemeType.ASSERTION: "YA",
+    None: "",
 }
 
 aif_type2scheme_type = {value: key for key, value in scheme_type2aif_type.items()}
@@ -43,6 +44,7 @@ scheme_type2text = {
     SchemeType.TRANSITION: "Transition",
     SchemeType.PREFERENCE: "Preference",
     SchemeType.ASSERTION: "Assertion",
+    None: "Unspecified",
 }
 
 scheme_type2aif_text = {
@@ -52,6 +54,7 @@ scheme_type2aif_text = {
     SchemeType.TRANSITION: "Default Transition",
     SchemeType.PREFERENCE: "Default Preference",
     SchemeType.ASSERTION: "Default Assertion",
+    None: "",
 }
 
 
@@ -685,7 +688,7 @@ class SchemeNode(Node):
             self,
             [
                 self._id,
-                utils.xstr(scheme_type2text[self.type] if self.type else None),
+                scheme_type2text[self.type],
                 utils.xstr(
                     scheme2text[self.argumentation_scheme]
                     if self.argumentation_scheme
@@ -693,16 +696,6 @@ class SchemeNode(Node):
                 ),
             ],
         )
-
-    @property
-    def _label(self) -> str:
-        if self.argumentation_scheme:
-            return scheme2text[self.argumentation_scheme]
-
-        if self.type:
-            return scheme_type2aif_text[self.type]
-
-        return ""
 
     @classmethod
     def from_aif(
@@ -737,8 +730,10 @@ class SchemeNode(Node):
 
         return {
             **_to_aif(self),
-            "text": self._label,
-            "type": utils.xstr(scheme_type2aif_type[self.type] if self.type else None),
+            "text": scheme2text[self.argumentation_scheme]
+            if self.argumentation_scheme
+            else scheme_type2aif_text[self.type],
+            "type": scheme_type2aif_type[self.type],
         }
 
     @classmethod
@@ -782,9 +777,7 @@ class SchemeNode(Node):
     ) -> SchemeNode:
         """Generate SchemeNode object from OVA Node object."""
         return cls(
-            SchemeType(obj.scheme.type)
-            if obj.scheme.type != graph_pb2.SCHEME_TYPE_UNSPECIFIED
-            else None,
+            SchemeType(obj.scheme.type) if obj.scheme.type else None,
             Scheme(obj.scheme.argumentation_scheme)
             if obj.scheme.argumentation_scheme
             else None,
@@ -800,10 +793,10 @@ class SchemeNode(Node):
         obj = graph_pb2.Node()
         obj.metadata.update(self.metadata)
 
-        obj.scheme.type = (
-            self.type.value if self.type else graph_pb2.SCHEME_TYPE_UNSPECIFIED
-        )
         obj.scheme.descriptors.update(self.descriptors)
+
+        if type := self.type:
+            obj.scheme.type = type.value
 
         if arg_scheme := self.argumentation_scheme:
             obj.scheme.argumentation_scheme = arg_scheme.value
@@ -820,7 +813,9 @@ class SchemeNode(Node):
         """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
-            label=self._label,
+            label=scheme2text[self.argumentation_scheme]
+            if self.argumentation_scheme
+            else scheme_type2text[self.type],
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
@@ -846,7 +841,9 @@ class SchemeNode(Node):
 
         g.node(
             self._id,
-            label=self._label,
+            label=scheme2text[self.argumentation_scheme]
+            if self.argumentation_scheme
+            else scheme_type2text[self.type],
             fontcolor=color.fg,
             fillcolor=color.bg,
             color=color.border,
