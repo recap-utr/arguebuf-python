@@ -777,7 +777,7 @@ class SchemeNode(Node):
     ) -> SchemeNode:
         """Generate SchemeNode object from OVA Node object."""
         return cls(
-            SchemeType(obj.scheme.type) if obj.scheme.type else None,
+            SchemeType(obj.scheme.type),
             Scheme(obj.scheme.argumentation_scheme)
             if obj.scheme.argumentation_scheme
             else None,
@@ -792,11 +792,12 @@ class SchemeNode(Node):
         """Export SchemeNode object into PROTOBUF Node object."""
         obj = graph_pb2.Node()
         obj.metadata.update(self.metadata)
-
+        obj.scheme.type = (
+            self.type.value
+            if self.type
+            else graph_pb2.SchemeType.SCHEME_TYPE_UNSPECIFIED
+        )
         obj.scheme.descriptors.update(self.descriptors)
-
-        if type := self.type:
-            obj.scheme.type = type.value
 
         if arg_scheme := self.argumentation_scheme:
             obj.scheme.argumentation_scheme = arg_scheme.value
