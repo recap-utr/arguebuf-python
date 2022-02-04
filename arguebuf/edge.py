@@ -6,6 +6,7 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 from arg_services.graph.v1 import graph_pb2
+from pendulum.datetime import DateTime
 
 from arguebuf.data import Metadata
 
@@ -28,16 +29,16 @@ class Edge:
     _id: str
     _source: Node
     _target: Node
-    created: pendulum.DateTime
-    updated: pendulum.DateTime
+    created: DateTime
+    updated: DateTime
     metadata: Metadata
 
     def __init__(
         self,
         source: Node,
         target: Node,
-        created: t.Optional[pendulum.DateTime] = None,
-        updated: t.Optional[pendulum.DateTime] = None,
+        created: t.Optional[DateTime] = None,
+        updated: t.Optional[DateTime] = None,
         metadata: t.Optional[Metadata] = None,
         id: t.Optional[str] = None,
     ):

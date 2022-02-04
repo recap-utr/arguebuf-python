@@ -11,6 +11,7 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 from arg_services.graph.v1 import graph_pb2
+from pendulum.datetime import DateTime
 
 from arguebuf import dt, utils
 from arguebuf.data import Metadata, Participant, Reference, Resource
@@ -370,14 +371,14 @@ class Node(ABC):
     """Node in the AIF format."""
 
     _id: str
-    created: pendulum.DateTime
-    updated: pendulum.DateTime
+    created: DateTime
+    updated: DateTime
     metadata: Metadata
 
     def __init__(
         self,
-        created: t.Optional[pendulum.DateTime] = None,
-        updated: t.Optional[pendulum.DateTime] = None,
+        created: t.Optional[DateTime] = None,
+        updated: t.Optional[DateTime] = None,
         metadata: t.Optional[Metadata] = None,
         id: t.Optional[str] = None,
     ):
@@ -533,8 +534,8 @@ class AtomNode(Node):
         text: t.Any,
         resource: t.Optional[Reference] = None,
         participant: t.Optional[Participant] = None,
-        created: t.Optional[pendulum.DateTime] = None,
-        updated: t.Optional[pendulum.DateTime] = None,
+        created: t.Optional[DateTime] = None,
+        updated: t.Optional[DateTime] = None,
         metadata: t.Optional[Metadata] = None,
         id: t.Optional[str] = None,
     ):
@@ -673,8 +674,8 @@ class SchemeNode(Node):
         type: t.Optional[SchemeType],
         argumentation_scheme: t.Optional[Scheme] = None,
         descriptors: t.Optional[t.Mapping[str, str]] = None,
-        created: t.Optional[pendulum.DateTime] = None,
-        updated: t.Optional[pendulum.DateTime] = None,
+        created: t.Optional[DateTime] = None,
+        updated: t.Optional[DateTime] = None,
         metadata: t.Optional[Metadata] = None,
         id: t.Optional[str] = None,
     ):

@@ -16,6 +16,7 @@ import pendulum
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from lxml import html
+from pendulum.datetime import DateTime
 
 from arguebuf.data import Metadata, Participant, Reference, Resource
 
@@ -74,8 +75,8 @@ class Graph:
     _major_claim: t.Optional[AtomNode]
     analysts: t.List[Participant]
     version: str
-    created: pendulum.DateTime
-    updated: pendulum.DateTime
+    created: DateTime
+    updated: DateTime
     metadata: Metadata
 
     @property
@@ -629,9 +630,7 @@ class Graph:
                 g._major_claim = node
 
         for ova_edge in obj["edges"]:
-            edge = edge_class.from_ova(ova_edge, g._nodes)
-
-            if edge:
+            if edge := edge_class.from_ova(ova_edge, g._nodes):
                 g.add_edge(edge)
 
         if analysis and analysis.get("txt"):
@@ -646,9 +645,7 @@ class Graph:
                 if elem.tag == "span":
                     # The id is prefixed with 'node', e.g. 'node5'.
                     node_key = elem.attrib["id"].replace("node", "")
-                    node = g._atom_nodes.get(node_key)
-
-                    if node:
+                    if node := g._atom_nodes.get(node_key):
                         node.reference = Reference(
                             resource, len(text), utils.parse(elem.text, nlp)
                         )
@@ -656,11 +653,9 @@ class Graph:
                     if elem.text:
                         text += elem.text
 
-                # A line break does not contain text, thus we only insert a newline
                 elif elem.tag == "br":
                     text += "\n"
 
-                # All other elements (e.g., the body tag) are just added to the text
                 elif elem.text:
                     text += elem.text
 

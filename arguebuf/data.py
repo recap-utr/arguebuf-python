@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 import pendulum
 from arg_services.graph.v1 import graph_pb2
+from pendulum.datetime import DateTime
 
 from arguebuf import dt, utils
 
@@ -19,8 +20,8 @@ class Participant:
     url: t.Optional[str] = None
     location: t.Optional[str] = None
     description: t.Optional[str] = None
-    created: pendulum.DateTime = field(default_factory=pendulum.now)
-    updated: pendulum.DateTime = field(default_factory=pendulum.now)
+    created: DateTime = field(default_factory=pendulum.now)
+    updated: DateTime = field(default_factory=pendulum.now)
     metadata: Metadata = field(default_factory=dict)
     _id: str = field(default_factory=utils.unique_id)
 
@@ -66,8 +67,8 @@ class Resource:
     text: t.Any
     title: t.Optional[str] = None
     source: t.Optional[str] = None
-    created: pendulum.DateTime = field(default_factory=pendulum.now)
-    updated: pendulum.DateTime = field(default_factory=pendulum.now)
+    created: DateTime = field(default_factory=pendulum.now)
+    updated: DateTime = field(default_factory=pendulum.now)
     metadata: Metadata = field(default_factory=dict)
     _id: str = field(default_factory=utils.unique_id)
 
