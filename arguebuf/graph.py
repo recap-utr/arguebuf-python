@@ -535,6 +535,7 @@ class Graph:
         end_node: Node,
         max_distance: t.Optional[int] = None,
         directed: bool = True,
+        ignore_schemes: bool = False,
     ) -> t.Optional[int]:
         """Get the distance between `start_node` and `end_node` in the graph.
 
@@ -573,14 +574,14 @@ class Graph:
             if start_node == end_node:
                 return 0
 
-            dist = _node_distance(
-                start_node, end_node, self._outgoing_nodes, max_distance
+            connections = (
+                self.outgoing_atom_nodes if ignore_schemes else self.outgoing_nodes
             )
 
+            dist = _node_distance(start_node, end_node, connections, max_distance)
+
             if dist is None and not directed:
-                dist = _node_distance(
-                    end_node, start_node, self._outgoing_nodes, max_distance
-                )
+                dist = _node_distance(end_node, start_node, connections, max_distance)
 
             return dist
 
@@ -1224,10 +1225,10 @@ class Graph:
 def _node_distance(
     node1: Node,
     node2: Node,
-    connections: t.Mapping[Node, t.Iterable[Node]],
+    connections: t.Callable[[Node], t.Iterable[Node]],
     max_distance: t.Optional[int],
 ) -> t.Optional[int]:
-    expansion: t.List[t.Tuple[Node, int]] = [(n, 1) for n in connections[node1]]
+    expansion: t.List[t.Tuple[Node, int]] = [(n, 1) for n in connections(node1)]
 
     while len(expansion) > 0:
         candidate, distance = expansion.pop()
@@ -1237,7 +1238,7 @@ def _node_distance(
         elif candidate == node2:
             return distance
         else:
-            expansion.extend((n, distance + 1) for n in connections[candidate])
+            expansion.extend((n, distance + 1) for n in connections(candidate))
 
     return None
 
