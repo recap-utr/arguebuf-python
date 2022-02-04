@@ -778,7 +778,7 @@ class SchemeNode(Node):
     ) -> SchemeNode:
         """Generate SchemeNode object from OVA Node object."""
         return cls(
-            SchemeType(obj.scheme.type),
+            SchemeType(obj.scheme.type) if obj.scheme.type else None,
             Scheme(obj.scheme.argumentation_scheme)
             if obj.scheme.argumentation_scheme
             else None,
