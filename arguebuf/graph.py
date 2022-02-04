@@ -199,6 +199,28 @@ class Graph:
         # self._metadata.update()
 
     @property
+    def leaf_nodes(self) -> t.Set[Node]:
+        return {
+            node for node in self.nodes.values() if len(self.incoming_nodes(node)) == 0
+        }
+
+    @property
+    def leaf_atom_nodes(self) -> t.Set[AtomNode]:
+        return {
+            node
+            for node in self.atom_nodes.values()
+            if len(self.incoming_nodes(node)) == 0
+        }
+
+    @property
+    def leaf_scheme_nodes(self) -> t.Set[SchemeNode]:
+        return {
+            node
+            for node in self.scheme_nodes.values()
+            if len(self.incoming_nodes(node)) == 0
+        }
+
+    @property
     def participants(self) -> t.Mapping[str, Participant]:
         return self._participants
 
