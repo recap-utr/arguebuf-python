@@ -117,7 +117,7 @@ class Resource:
 
 @dataclass()
 class Reference:
-    resource: t.Optional[Resource]
+    _resource: t.Optional[Resource]
     offset: t.Optional[int]
     text: t.Any
     metadata: Metadata = field(default_factory=dict)
@@ -127,11 +127,15 @@ class Reference:
         """Generate a string from Resource object."""
         return utils.xstr(self.text)
 
+    @property
+    def resource(self) -> t.Optional[Resource]:
+        return self._resource
+
     def to_protobuf(self) -> graph_pb2.Reference:
         """Export Resource object into a Graph's Resource object in PROTOBUF format."""
         obj = graph_pb2.Reference(text=self.plain_text)
 
-        if resource := self.resource:
+        if resource := self._resource:
             obj.resource = resource.id
 
         if offset := self.offset:

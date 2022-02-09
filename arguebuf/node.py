@@ -521,13 +521,13 @@ class AtomNode(Node):
         "updated",
         "metadata",
         "text",
-        "reference",
-        "participant",
+        "_reference",
+        "_participant",
     )
 
     text: t.Any
-    reference: t.Optional[Reference]
-    participant: t.Optional[Participant]
+    _reference: t.Optional[Reference]
+    _participant: t.Optional[Participant]
 
     def __init__(
         self,
@@ -541,14 +541,22 @@ class AtomNode(Node):
     ):
         super().__init__(created, updated, metadata, id)
         self.text = text
-        self.reference = resource
-        self.participant = participant
+        self._reference = resource
+        self._participant = participant
 
     @property
     def plain_text(self) -> str:
         """Get the standard `text` as string."""
 
         return utils.xstr(self.text)
+
+    @property
+    def reference(self) -> t.Optional[Reference]:
+        return self._reference
+
+    @property
+    def participant(self) -> t.Optional[Participant]:
+        return self._participant
 
     def __repr__(self):
         return utils.class_repr(self, [self._id, self.plain_text])

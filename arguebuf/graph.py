@@ -293,6 +293,13 @@ class Graph:
             if node.participant and node.participant.id not in self._participants:
                 self.add_participant(node.participant)
 
+            if (
+                node.reference
+                and node.reference.resource
+                and node.reference.resource.id not in self._resources
+            ):
+                self.add_resource(node.reference.resource)
+
         elif isinstance(node, SchemeNode):
             self._scheme_nodes._store[node.id] = node
 
@@ -476,8 +483,21 @@ class Graph:
 
         for node in self._atom_nodes.values():
             if node.reference and node.reference.resource == resource:
-                node.reference.resource = None
+                node.reference._resource = None
                 node.reference.offset = None
+
+    def clean_resources(self) -> None:
+        """Remove resources from the graph that are used by no nodes"""
+
+        node_resources = {
+            node.reference.resource.id
+            for node in self._atom_nodes.values()
+            if node.reference and node.reference.resource
+        }
+
+        for resource_id in set(self._resources):
+            if resource_id not in node_resources:
+                del self._resources._store[resource_id]
 
     def add_participant(self, participant: Participant) -> None:
         """Add a resource.
@@ -528,7 +548,20 @@ class Graph:
 
         for node in self._atom_nodes.values():
             if node.participant == participant:
-                node.participant = None
+                node._participant = None
+
+    def clean_participants(self) -> None:
+        """Remove resources from the graph that are used by no nodes"""
+
+        node_participants = {
+            node.participant.id
+            for node in self._atom_nodes.values()
+            if node.participant
+        }
+
+        for participant in set(self._participants):
+            if participant not in node_participants:
+                del self._participants._store[participant]
 
     def node_distance(
         self,
@@ -646,7 +679,7 @@ class Graph:
                     # The id is prefixed with 'node', e.g. 'node5'.
                     node_key = elem.attrib["id"].replace("node", "")
                     if node := g._atom_nodes.get(node_key):
-                        node.reference = Reference(
+                        node._reference = Reference(
                             resource, len(text), utils.parse(elem.text, nlp)
                         )
 
