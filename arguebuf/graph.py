@@ -919,7 +919,7 @@ class Graph:
 
             if row[0].startswith("T"):
                 if metadata[0] == "MajorClaim":
-                    mc.text = utils.parse(mc.plain_text + ". " + row[2], nlp)
+                    mc.text = utils.parse(f"{mc.plain_text}. {row[2]}", nlp)
                 else:
                     atom = atom_class(utils.parse(row[2], nlp))
                     g.add_node(atom)
