@@ -449,7 +449,7 @@ class Node(ABC):
         pass
 
     @abstractmethod
-    def to_nx(self, g: nx.DiGraph) -> None:
+    def to_nx(self, g: nx.DiGraph, label_attr: t.Optional[str] = None) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
         pass
 
@@ -632,11 +632,11 @@ class AtomNode(Node):
 
         return obj
 
-    def to_nx(self, g: nx.DiGraph) -> None:
+    def to_nx(self, g: nx.DiGraph, label_attr: t.Optional[str] = None) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
-            label=self.plain_text,
+            label=getattr(self, label_attr) if label_attr else self.plain_text,
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
@@ -819,13 +819,18 @@ class SchemeNode(Node):
 
         return obj
 
-    def to_nx(self, g: nx.DiGraph) -> None:
+    def to_nx(self, g: nx.DiGraph, label_attr: t.Optional[str] = None) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
+        if label_attr:
+            label = getattr(self, label_attr)
+        elif self.argumentation_scheme:
+            label = f"{scheme_type2text[self.type]}: {scheme2text[self.argumentation_scheme]}"
+        else:
+            label = scheme_type2text[self.type]
+
         g.add_node(
             self._id,
-            label=scheme2text[self.argumentation_scheme]
-            if self.argumentation_scheme
-            else scheme_type2text[self.type],
+            label=label,
         )
 
     def color(self, major_claim: bool) -> ColorMapping:

@@ -1119,7 +1119,9 @@ class Graph:
             for file in sorted(path.rglob(f"*{suffix}"))
         ]
 
-    def to_nx(self) -> nx.DiGraph:
+    def to_nx(
+        self, atom_label: t.Optional[str] = None, scheme_label: t.Optional[str] = None
+    ) -> nx.DiGraph:
         """Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
 
         Examples:
@@ -1136,8 +1138,11 @@ class Graph:
         """
         g = nx.DiGraph()
 
-        for node in self._nodes.values():
-            node.to_nx(g)
+        for node in self._atom_nodes.values():
+            node.to_nx(g, atom_label)
+
+        for node in self._scheme_nodes.values():
+            node.to_nx(g, scheme_label)
 
         for edge in self._edges.values():
             edge.to_nx(g)
