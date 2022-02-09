@@ -632,11 +632,13 @@ class AtomNode(Node):
 
         return obj
 
-    def to_nx(self, g: nx.DiGraph, label_attr: t.Optional[str] = None) -> None:
+    def to_nx(
+        self, g: nx.DiGraph, label_func: t.Optional[t.Callable[[AtomNode], str]] = None
+    ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
         g.add_node(
             self._id,
-            label=getattr(self, label_attr) if label_attr else self.plain_text,
+            label=label_func(self) if label_func else self.plain_text,
         )
 
     def color(self, major_claim: bool) -> ColorMapping:
@@ -646,15 +648,22 @@ class AtomNode(Node):
 
         return ColorMapping(bg="#ddeef9", border="#3498db")
 
-    def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
+    def to_gv(
+        self,
+        g: gv.Digraph,
+        major_claim: bool,
+        wrap_col: int,
+        label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
+    ) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
+        label = label_func(self) if label_func else self.plain_text
 
         # TODO: Improve wrapping
         # https://stackoverflow.com/a/26538082/7626878
         g.node(
             self._id,
-            label=textwrap.fill(self.plain_text, wrap_col).strip(),
+            label=textwrap.fill(label, wrap_col).strip(),
             fontcolor=color.fg,
             fillcolor=color.bg,
             color=color.border,
@@ -819,10 +828,14 @@ class SchemeNode(Node):
 
         return obj
 
-    def to_nx(self, g: nx.DiGraph, label_attr: t.Optional[str] = None) -> None:
+    def to_nx(
+        self,
+        g: nx.DiGraph,
+        label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
+    ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
-        if label_attr:
-            label = getattr(self, label_attr)
+        if label_func:
+            label = label_func(self)
         elif self.argumentation_scheme:
             label = f"{scheme_type2text[self.type]}: {scheme2text[self.argumentation_scheme]}"
         else:
@@ -850,9 +863,22 @@ class SchemeNode(Node):
 
         return ColorMapping(bg="#e9eded", border="#95a5a6")
 
-    def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
+    def to_gv(
+        self,
+        g: gv.Digraph,
+        major_claim: bool,
+        wrap_col: int,
+        label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
+    ) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
+
+        if label_func:
+            label = label_func(self)
+        elif self.argumentation_scheme:
+            label = f"{scheme_type2text[self.type]}: {scheme2text[self.argumentation_scheme]}"
+        else:
+            label = scheme_type2text[self.type]
 
         g.node(
             self._id,

@@ -1120,7 +1120,9 @@ class Graph:
         ]
 
     def to_nx(
-        self, atom_label: t.Optional[str] = None, scheme_label: t.Optional[str] = None
+        self,
+        atom_label: t.Optional[t.Callable[[AtomNode], str]] = None,
+        scheme_label: t.Optional[t.Callable[[SchemeNode], str]] = None,
     ) -> nx.DiGraph:
         """Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
 
@@ -1159,6 +1161,8 @@ class Graph:
         margin: t.Optional[t.Tuple[float, float]] = None,
         font_name: t.Optional[str] = None,
         font_size: t.Optional[float] = None,
+        atom_label: t.Optional[t.Callable[[AtomNode], str]] = None,
+        scheme_label: t.Optional[t.Callable[[SchemeNode], str]] = None,
         graph_attr: t.Optional[t.Mapping[str, str]] = None,
         node_attr: t.Optional[t.Mapping[str, str]] = None,
         edge_attr: t.Optional[t.Mapping[str, str]] = None,
@@ -1200,10 +1204,19 @@ class Graph:
             },
         )
 
-        for node in self._nodes.values():
+        for node in self._atom_nodes.values():
             node.to_gv(
                 g,
                 self.major_claim == node,
+                label_func=atom_label,
+                wrap_col=wrap_col or 36,
+            )
+
+        for node in self._scheme_nodes.values():
+            node.to_gv(
+                g,
+                self.major_claim == node,
+                label_func=scheme_label,
                 wrap_col=wrap_col or 36,
             )
 
