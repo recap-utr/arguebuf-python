@@ -228,7 +228,7 @@ class Graph:
     def __init__(self, name: t.Optional[str] = None):
         """Create a graph from scratch."""
 
-        self.name = name or ""
+        self.name = name or utils.unique_id()
         self._nodes = ImmutableDict()
         self._atom_nodes = ImmutableDict()
         self._scheme_nodes = ImmutableDict()
