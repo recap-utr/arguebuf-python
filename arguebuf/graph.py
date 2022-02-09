@@ -1113,15 +1113,11 @@ class Graph:
         suffixes: t.Iterable[str] = (".json"),
     ) -> t.List[Graph]:
         "Generate Graph structure from Folder."
-        graphs = []
-
-        for suffix in suffixes:
-            for file in sorted(path.rglob(f"*{suffix}")):
-                graphs.append(
-                    cls.from_file(file, atom_class, scheme_class, edge_class, nlp)
-                )
-
-        return graphs
+        return [
+            cls.from_file(file, atom_class, scheme_class, edge_class, nlp)
+            for suffix in suffixes
+            for file in sorted(path.rglob(f"*{suffix}"))
+        ]
 
     def to_nx(self) -> nx.DiGraph:
         """Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
