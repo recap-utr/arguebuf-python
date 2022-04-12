@@ -717,7 +717,7 @@ class Graph:
         for aif_node in obj["nodes"]:
             node = (
                 atom_class.from_aif(aif_node, nlp)
-                if aif_node["type"] == "I"
+                if aif_node["type"] in ("I", "L")
                 else scheme_class.from_aif(aif_node, nlp)
             )
 
@@ -814,6 +814,7 @@ class Graph:
                         nlp,
                     )
                 )
+            # TODO: Raise error if node is neither scheme nor atom
 
         for edge_id, edge in obj.edges.items():
             g.add_edge(edge_class.from_protobuf(edge_id, edge, g._nodes))

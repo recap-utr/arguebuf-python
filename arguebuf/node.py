@@ -158,7 +158,6 @@ class Scheme(Enum):
     WITNESS_TESTIMONY = graph_pb2.SCHEME_WITNESS_TESTIMONY
 
 
-# TODO
 scheme2text = {
     Scheme.AD_HOMINEM: "Ad Hominem",
     Scheme.ALTERNATIVE_MEANS: "Alternative Means",
@@ -254,7 +253,6 @@ scheme2text = {
     Scheme.WITNESS_TESTIMONY: "Witness Testimony",
 }
 
-# TODO
 text2scheme = {
     "Ad Hominem": Scheme.AD_HOMINEM,
     "Alternative Means": Scheme.ALTERNATIVE_MEANS,
