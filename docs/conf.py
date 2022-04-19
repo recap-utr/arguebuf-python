@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
-project = "ReCAP Argument Graph"
+project = "Arguebuf"
 copyright = "Mirko Lenz"
 author = "Mirko Lenz"
 
