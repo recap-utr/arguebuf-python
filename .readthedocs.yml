@@ -2,8 +2,8 @@
 # https://github.com/readthedocs/readthedocs.org/issues/4912
 version: 2
 
-sphinx:
-  configuration: docs/conf.py
+mkdocs:
+  configuration: mkdocs.yml
 
 formats:
   - epub
@@ -11,7 +11,7 @@ formats:
   - htmlzip
 
 python:
-  version: 3.8
+  version: "3.8"
   install:
     - method: pip
       path: .

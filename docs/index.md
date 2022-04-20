@@ -107,18 +107,3 @@ simple_graph.render(Path("simplegraph"),format='png')
 ```
 
 ![Simple Graph](img/simple_graph.png)
-
-### Contents
-
-More extensive information to the methods used in this library can be found under the following links:
-
-<!-- https://stackoverflow.com/a/62613202/7626878 -->
-
-```{eval-rst}
-.. autosummary::
-   :toctree: _autosummary
-   :template: module.rst
-   :recursive:
-
-   arguebuf
-```
