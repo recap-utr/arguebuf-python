@@ -1,4 +1,4 @@
-# Argument Buffers (Arguebuf)
+# Arguebuf
 
 Many resources dealing with argumentation are available, but the content is mostly unstructured.
 With its priority program _Robust Argumentation Machines_ ([RATIO](http://www.spp-ratio.de/)) the German Research Association aims at developing new methodologies to extract and process argumentative information from natural text through coherent argumentative structures rather than only considering individual facts.
