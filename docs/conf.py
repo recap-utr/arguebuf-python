@@ -36,24 +36,29 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
-    # "sphinx.ext.autosummary",
-    # "sphinx_rtd_theme",
-    "autoapi.extension",
+    # "autoapi.extension",
+    "autodocsumm",
     "myst_parser",
 ]
 
-autodoc_typehints = "description"
-# autoclass_content = "both"
+autodoc_typehints = "both"
+autoclass_content = "both"
 autodoc_member_order = "groupwise"
+autodoc_default_options = {
+    "autosummary": True,
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": True,
+}
 
-# autosummary_generate = True
+# autosummary_imported_members = True
+
 autoapi_dirs = ["../arguebuf"]
 autoapi_options = [
     "members",
     "undoc-members",
     "show-inheritance",
     "show-module-summary",
-    "special-members",
     "imported-members",
 ]
 autoapi_member_order = "groupwise"
