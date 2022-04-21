@@ -18,6 +18,12 @@ from arguebuf.data import Metadata, Participant, Reference, Resource
 
 
 class SchemeType(Enum):
+    """Enumeration of all relation types between atom nodes.
+
+    .. autoclasssumm:: SchemeType
+        :autosummary-sections: Methods
+    """
+
     SUPPORT = graph_pb2.SCHEME_TYPE_SUPPORT
     ATTACK = graph_pb2.SCHEME_TYPE_ATTACK
     REPHRASE = graph_pb2.SCHEME_TYPE_REPHRASE
@@ -60,6 +66,12 @@ scheme_type2aif_text = {
 
 
 class Scheme(Enum):
+    """Enumeration of all available Argumentation Schemes (Walton et al.)
+
+    .. autoclasssumm:: Scheme
+        :autosummary-sections: Methods
+    """
+
     AD_HOMINEM = graph_pb2.SCHEME_AD_HOMINEM
     ALTERNATIVE_MEANS = graph_pb2.SCHEME_ALTERNATIVE_MEANS
     ALTERNATIVES = graph_pb2.SCHEME_ALTERNATIVES
