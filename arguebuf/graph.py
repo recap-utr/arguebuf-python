@@ -22,7 +22,7 @@ from arguebuf.data import Metadata, Participant, Reference, Resource
 
 from . import dt, utils
 from .edge import Edge
-from .node import AtomNode, Node, SchemeNode, SchemeType, aif_type2scheme_type
+from .node import AtomNode, Node, SchemeNode, SchemeType
 from .utils import ImmutableDict, ImmutableSet
 
 log = logging.getLogger(__name__)
@@ -177,23 +177,27 @@ class Graph:
         if self._major_claim:
             return self._major_claim
 
+    @property
+    def root_node(self) -> t.Optional[AtomNode]:
         # If no major claim explicitly set, try to find one node with no outgoing edges.
         # It is only returned if there exists exactly one node without connections.
         # Otherwise, nothing is returned.
-        mc_candidates = {
+        nodes = {
             node
             for node in self._atom_nodes.values()
             if len(self._outgoing_nodes[node]) == 0
         }
 
-        if len(mc_candidates) == 1:
-            return next(iter(mc_candidates))
+        if len(nodes) == 1:
+            return next(iter(nodes))
 
         return None
 
     @major_claim.setter
-    def major_claim(self, value: t.Optional[AtomNode]) -> None:
-        if not (value is None or isinstance(value, AtomNode)):
+    def major_claim(self, value: t.Union[str, AtomNode, None]) -> None:
+        if isinstance(value, str):
+            value = self._atom_nodes[value]
+        elif not (value is None or isinstance(value, AtomNode)):
             raise TypeError(utils.type_error(type(value), AtomNode))
 
         self._major_claim = value
@@ -963,7 +967,7 @@ class Graph:
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         if name_match := re.search(r"Discussion Title: (.*)", obj.readline()):
-            name = name_match.group(1)
+            name = name_match[1]
 
         # After the title, an empty line should follow
         assert obj.readline().strip() == ""
@@ -981,8 +985,8 @@ class Graph:
         if not mc_match:
             raise ValueError("The major claim is not present in the third line!")
 
-        mc_id = mc_match.group(1)
-        mc_text = mc_match.group(2)
+        mc_id = mc_match[1]
+        mc_text = mc_match[2]
 
         # See in the following while loop for explanation of this block
         while next_line and not pattern.search(next_line):
@@ -998,11 +1002,11 @@ class Graph:
 
         while current_line:
             if current_match := pattern.search(current_line):
-                source_id = current_match.group(1)
+                source_id = current_match[1]
                 source_id_parts = source_id[:-1].split(".")
                 level = len(source_id_parts)
-                stance = current_match.group(2)
-                text = current_match.group(3)
+                stance = current_match[2]
+                text = current_match[3]
 
                 # The text of a node is allowed to span multiple lines.
                 # Thus, we need to look ahead to concatenate the complete text.
@@ -1016,7 +1020,7 @@ class Graph:
                 assert text
 
                 if id_ref_match := re.search(r"^-> See ((?:\d+\.)+)", text):
-                    id_ref = id_ref_match.group(1)
+                    id_ref = id_ref_match[1]
                     source = g.atom_nodes[id_ref]
                 else:
                     source = _kialo_atom_node(source_id, text, nlp, atom_class)
@@ -1309,7 +1313,7 @@ def _kialo_atom_node(
 
 
 def render(
-    g: gv.dot.Dot,
+    g: t.Union[gv.Graph, gv.Digraph],
     path: Path,
     view: bool = False,
 ) -> None:
