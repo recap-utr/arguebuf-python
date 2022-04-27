@@ -1132,11 +1132,10 @@ class Graph:
         """Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
 
         Examples:
-            >>> import arguebuf
             >>> g = Graph("Test")
-            >>> n1 = arguebuf.AtomNode("Node1")
-            >>> n2 = arguebuf.AtomNode("Node2")
-            >>> e = arguebuf.Edge(n1, n2)
+            >>> n1 = AtomNode("Node1")
+            >>> n2 = AtomNode("Node2")
+            >>> e = Edge(n1, n2)
             >>> g.add_edge(e)
             >>> gnx = g.to_nx()
             >>> gnx.number_of_nodes()
