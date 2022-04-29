@@ -13,16 +13,19 @@ from pathlib import Path
 import graphviz as gv
 import networkx as nx
 from arg_services.graph.v1 import graph_pb2
+from arguebuf.models import Userdata
+from arguebuf.models.analyst import Analyst
+from arguebuf.models.edge import Edge
+from arguebuf.models.metadata import Metadata
+from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
+from arguebuf.models.participant import Participant
+from arguebuf.models.reference import Reference
+from arguebuf.models.resource import Resource
+from arguebuf.schema import aif, ova
+from arguebuf.services import utils
+from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
 from lxml import html
-
-from arguebuf import aif, ova
-from arguebuf.data import Analyst, Metadata, Participant, Reference, Resource, Userdata
-
-from . import utils
-from .edge import Edge
-from .node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
-from .utils import ImmutableDict, ImmutableSet
 
 log = logging.getLogger(__name__)
 

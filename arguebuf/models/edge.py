@@ -6,12 +6,11 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 from arg_services.graph.v1 import graph_pb2
-
-from arguebuf import aif, ova
-from arguebuf.data import Metadata, Userdata
-
-from . import dt, utils
-from .node import Node
+from arguebuf.models import Userdata
+from arguebuf.models.metadata import Metadata
+from arguebuf.models.node import Node
+from arguebuf.schema import aif, ova
+from arguebuf.services import dt, utils
 
 
 class Edge:

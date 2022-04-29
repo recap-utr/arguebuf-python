@@ -10,9 +10,13 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 from arg_services.graph.v1 import graph_pb2
-
-from arguebuf import aif, dt, ova, utils
-from arguebuf.data import Metadata, Participant, Reference, Resource, Userdata
+from arguebuf.models import Userdata
+from arguebuf.models.metadata import Metadata
+from arguebuf.models.participant import Participant
+from arguebuf.models.reference import Reference
+from arguebuf.models.resource import Resource
+from arguebuf.schema import aif, ova
+from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
 
