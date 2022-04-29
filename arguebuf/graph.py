@@ -12,17 +12,16 @@ from pathlib import Path
 
 import graphviz as gv
 import networkx as nx
-import pendulum
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from lxml import html
-from pendulum.datetime import DateTime
 
-from arguebuf.data import Metadata, Participant, Reference, Resource
+from arguebuf import aif, ova
+from arguebuf.data import Analyst, Metadata, Participant, Reference, Resource, Userdata
 
-from . import dt, utils
+from . import utils
 from .edge import Edge
-from .node import AtomNode, Node, SchemeNode, SchemeType
+from .node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
 from .utils import ImmutableDict, ImmutableSet
 
 log = logging.getLogger(__name__)
@@ -54,10 +53,9 @@ class Graph:
         "_major_claim",
         "_resources",
         "_participants",
-        "analysts",
-        "created",
-        "updated",
+        "_analysts",
         "metadata",
+        "userdata",
         "version",
     )
 
@@ -73,11 +71,10 @@ class Graph:
     _resources: ImmutableDict[str, Resource]
     _participants: ImmutableDict[str, Participant]
     _major_claim: t.Optional[AtomNode]
-    analysts: t.List[Participant]
-    version: str
-    created: DateTime
-    updated: DateTime
+    _analysts: ImmutableDict[str, Analyst]
+    version: t.Optional[str]
     metadata: Metadata
+    userdata: Userdata
 
     @property
     def edges(self) -> t.Mapping[str, Edge]:
@@ -229,31 +226,30 @@ class Graph:
     def participants(self) -> t.Mapping[str, Participant]:
         return self._participants
 
+    @property
+    def analysts(self) -> t.Mapping[str, Analyst]:
+        return self._analysts
+
     def __init__(self, name: t.Optional[str] = None):
         """Create a graph from scratch."""
 
-        self.name = name or utils.unique_id()
+        self.name = name or utils.uuid()
         self._nodes = ImmutableDict()
         self._atom_nodes = ImmutableDict()
         self._scheme_nodes = ImmutableDict()
         self._edges = ImmutableDict()
-        self.analysts = []
-        self.metadata = {}
-        self.created = pendulum.now()
-        self.updated = pendulum.now()
+        self._analysts = ImmutableDict()
+        self.userdata = {}
         self._resources = ImmutableDict()
         self._participants = ImmutableDict()
+        self.metadata = Metadata()
         self._major_claim = None
 
         self._incoming_nodes = ImmutableDict()
         self._incoming_edges = ImmutableDict()
         self._outgoing_nodes = ImmutableDict()
         self._outgoing_edges = ImmutableDict()
-
-        try:
-            self.version = importlib.metadata.version("arg_services")
-        except importlib.metadata.PackageNotFoundError:
-            self.version = "1.0"
+        self.version = None
 
         self.__post_init__()
 
@@ -270,12 +266,11 @@ class Graph:
             node: Node object that is not already part of the graph.
 
         Examples:
-            >>> import arguebuf
-            >>> g = arguebuf.Graph("Test")
-            >>> g.add_node(arguebuf.AtomNode("Node"))
+            >>> g = Graph()
+            >>> g.add_node(AtomNode("Exemplary node"))
             >>> len(g.nodes)
             1
-            >>> g.add_node(arguebuf.SchemeNode(arguebuf.SchemeType.SUPPORT))
+            >>> g.add_node(SchemeNode(Support.DEFAULT))
             >>> len(g.nodes)
             2
             >>> g.add_node("Test")
@@ -319,11 +314,10 @@ class Graph:
             node: Node object that is part of the graph.
 
         Examples:
-            >>> import arguebuf
-            >>> g = Graph("Test")
-            >>> n1 = arguebuf.AtomNode("Node1")
-            >>> n2 = arguebuf.AtomNode("Node2")
-            >>> e = arguebuf.Edge(n1, n2)
+            >>> g = Graph()
+            >>> n1 = AtomNode("Node1")
+            >>> n2 = SchemeNode(Support.DEFAULT)
+            >>> e = Edge(n1, n2)
             >>> g.add_edge(e)
             >>> len(g.nodes)
             2
@@ -368,13 +362,12 @@ class Graph:
             edge: Edge object that is not part of the graph.
 
         Examples:
-            >>> import arguebuf
-            >>> g = arguebuf.Graph("Test")
-            >>> n1 = arguebuf.AtomNode("Node1")
-            >>> n2 = arguebuf.AtomNode("Node2")
-            >>> n3 = arguebuf.AtomNode("Node3")
-            >>> e1 = arguebuf.Edge(n1, n2)
-            >>> e2 = arguebuf.Edge(n2, n3)
+            >>> g = Graph()
+            >>> n1 = AtomNode("Premise")
+            >>> n2 = SchemeNode(Support.DEFAULT)
+            >>> n3 = AtomNode("Claim")
+            >>> e1 = Edge(n1, n2)
+            >>> e2 = Edge(n2, n3)
             >>> g.add_edge(e1)
             >>> len(g.edges)
             1
@@ -408,11 +401,10 @@ class Graph:
             edge: Edge object that is part of the graph.
 
         Examples:
-            >>> import arguebuf
-            >>> g = arguebuf.Graph("Test")
-            >>> n1 = arguebuf.AtomNode("Node1")
-            >>> n2 = arguebuf.AtomNode("Node2")
-            >>> e = arguebuf.Edge(n1, n2)
+            >>> g = Graph()
+            >>> n1 = AtomNode("Node1")
+            >>> n2 = SchemeNode(Support.DEFAULT)
+            >>> e = Edge(n1, n2)
             >>> g.add_edge(e)
             >>> len(g.edges)
             1
@@ -445,9 +437,8 @@ class Graph:
             resource: Resource object that is not part of the graph.
 
         Examples:
-            >>> import arguebuf
-            >>> g = arguebuf.Graph("Test")
-            >>> r1 = arguebuf.Resource("Resource1")
+            >>> g = Graph()
+            >>> r1 = Resource("Resource1")
             >>> g.add_resource(r1)
             >>> len(g.resources)
             1
@@ -467,9 +458,8 @@ class Graph:
             resource: Resource object that is part of the graph.
 
         Examples:
-            >>> import arguebuf
-            >>> g = arguebuf.Graph("Test")
-            >>> r1 = arguebuf.Resource("Resource1")
+            >>> g = Graph()
+            >>> r1 = Resource("Resource1")
             >>> g.add_resource(r1)
             >>> len(g.resources)
             1
@@ -510,9 +500,8 @@ class Graph:
             participant: Participant object that is not part of the graph.
 
         Examples:
-            >>> import arguebuf
-            >>> g = arguebuf.Graph("Test")
-            >>> p1 = arguebuf.Participant("Participant1")
+            >>> g = Graph()
+            >>> p1 = Participant("Participant1")
             >>> g.add_participant(p1)
             >>> len(g.participants)
             1
@@ -532,9 +521,8 @@ class Graph:
             participant: Participant object that is part of the graph.
 
         Examples:
-            >>> import arguebuf
-            >>> g = arguebuf.Graph("Test")
-            >>> p1 = arguebuf.Participant("Participant1")
+            >>> g = Graph()
+            >>> p1 = Participant("Participant1")
             >>> g.add_participant(p1)
             >>> len(g.participants)
             1
@@ -567,6 +555,52 @@ class Graph:
             if participant not in node_participants:
                 del self._participants._store[participant]
 
+    def add_analyst(self, analyst: Analyst) -> None:
+        """Add a resource.
+
+        Args:
+            analyst: analyst object that is not part of the graph.
+
+        Examples:
+            >>> g = Graph()
+            >>> p1 = Analyst("Name")
+            >>> g.add_analyst(p1)
+            >>> len(g.analysts)
+            1
+        """
+        if not isinstance(analyst, Analyst):
+            raise TypeError(utils.type_error(type(analyst), Analyst))
+
+        if analyst.id in self._analysts:
+            raise ValueError(utils.duplicate_key_error(self.name, analyst.id))
+
+        self._analysts._store[analyst.id] = analyst
+
+    def remove_analyst(self, analyst: Analyst) -> None:
+        """Add a resource.
+
+        Args:
+            analyst: analyst object that is part of the graph.
+
+        Examples:
+            >>> import arguebuf
+            >>> g = Graph()
+            >>> p1 = Analyst("Name")
+            >>> g.add_analyst(p1)
+            >>> len(g.analysts)
+            1
+            >>> g.remove_analyst(p1)
+            >>> len(g.analysts)
+            0
+        """
+        if not isinstance(analyst, Analyst):
+            raise TypeError(utils.type_error(type(analyst), Analyst))
+
+        if analyst.id not in self._analysts:
+            raise ValueError(utils.missing_key_error(self.name, analyst.id))
+
+        del self._analysts._store[analyst.id]
+
     def node_distance(
         self,
         start_node: Node,
@@ -588,13 +622,12 @@ class Graph:
             `None` if no path between
 
         Examples:
-            >>> import arguebuf
-            >>> g = arguebuf.Graph("Test")
-            >>> n1 = arguebuf.AtomNode("Node1")
-            >>> n2 = arguebuf.SchemeNode(arguebuf.SchemeType.SUPPORT)
-            >>> n3 = arguebuf.AtomNode("Node3")
-            >>> e1 = arguebuf.Edge(n1, n2)
-            >>> e2 = arguebuf.Edge(n2, n3)
+            >>> g = Graph()
+            >>> n1 = AtomNode("Premise")
+            >>> n2 = SchemeNode(Support.DEFAULT)
+            >>> n3 = AtomNode("Claim")
+            >>> e1 = Edge(n1, n2)
+            >>> e2 = Edge(n2, n3)
             >>> g.add_node(n1)
             >>> g.add_node(n2)
             >>> len(g.nodes)
@@ -628,7 +661,7 @@ class Graph:
     @classmethod
     def from_ova(
         cls,
-        obj: t.Mapping[str, t.Any],
+        obj: ova.Graph,
         name: t.Optional[str] = None,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
@@ -636,22 +669,16 @@ class Graph:
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Generate Graph structure from OVA argument graph file (reference: http://ova.uni-trier.de/)."""
-        analysis: t.Mapping[str, t.Any] = obj["analysis"]
-
         g = cls(name)
 
-        # g.metadata = utils.parse_metadata(obj, include=["participants", "ovaVersion"])
-
-        resource = Resource(
-            utils.parse(analysis.get("plain_txt"), nlp),
-            analysis.get("documentTitle"),
-            analysis.get("documentSource"),
-            dt.from_analysis(analysis.get("documentDate")) or pendulum.now(),
-        )
+        resource = Resource.from_ova(obj["analysis"], nlp)
         g.add_resource(resource)
 
-        if analyst_name := analysis.get("annotatorName"):
-            g.analysts.append(Participant(name=analyst_name))
+        for participant in obj["participants"]:
+            g.add_participant(Participant.from_ova(participant))
+
+        if analyst_name := obj["analysis"].get("annotatorName"):
+            g.add_analyst(Analyst(name=analyst_name))
 
         for ova_node in obj["nodes"]:
             node = (
@@ -670,42 +697,15 @@ class Graph:
             if edge := edge_class.from_ova(ova_edge, g._nodes):
                 g.add_edge(edge)
 
-        if analysis and analysis.get("txt"):
-            analysis_txt = analysis["txt"]
-            doc = html.fromstring(
-                f"<html><head></head><body>{analysis_txt}</body></html>"
-            )
-            text = ""
-
-            for elem in doc.body.iter():
-                # Span elements need special handling
-                if elem.tag == "span":
-                    # The id is prefixed with 'node', e.g. 'node5'.
-                    node_key = elem.attrib["id"].replace("node", "")
-                    if node := g._atom_nodes.get(node_key):
-                        node._reference = Reference(
-                            resource, len(text), utils.parse(elem.text, nlp)
-                        )
-
-                    if elem.text:
-                        text += elem.text
-
-                elif elem.tag == "br":
-                    text += "\n"
-
-                elif elem.text:
-                    text += elem.text
-
-                # Text after a tag should always be added to the overall text
-                if elem.tail:
-                    text += elem.tail
+        if (analysis := obj.get("analysis")) and (raw_text := analysis.get("txt")):
+            _inject_original_text(raw_text, g._atom_nodes, resource, nlp)
 
         return g
 
     @classmethod
     def from_aif(
         cls,
-        obj: t.Mapping[str, t.Any],
+        obj: aif.Graph,
         name: t.Optional[str] = None,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
@@ -721,7 +721,7 @@ class Graph:
         for aif_node in obj["nodes"]:
             node = (
                 atom_class.from_aif(aif_node, nlp)
-                if aif_node["type"] in ("I", "L")
+                if aif_node["type"] == "I"
                 else scheme_class.from_aif(aif_node, nlp)
             )
 
@@ -734,7 +734,7 @@ class Graph:
 
         return g
 
-    def to_aif(self) -> t.Dict[str, t.Any]:
+    def to_aif(self) -> aif.Graph:
         """Export structure of Graph instance to AIF argument graph format."""
         return {
             "nodes": [node.to_aif() for node in self._nodes.values()],
@@ -744,7 +744,16 @@ class Graph:
 
     def to_protobuf(self) -> graph_pb2.Graph:
         """Export structure of Graph instance to PROTOBUF argument graph format."""
-        g = graph_pb2.Graph()
+        try:
+            version = importlib.metadata.version("arg_services")
+        except importlib.metadata.PackageNotFoundError:
+            version = ""
+
+        g = graph_pb2.Graph(
+            schema_version=1,
+            library_version=version,
+            metadata=self.metadata.to_protobuf(),
+        )
 
         for node_id, node in self._nodes.items():
             g.nodes[node_id].CopyFrom(node.to_protobuf())
@@ -755,19 +764,16 @@ class Graph:
         if self._major_claim:
             g.major_claim = self._major_claim.id
 
-        if self.analysts:
-            g.analysts.extend(analyst.to_protobuf() for analyst in self.analysts)
-
         for resource_id, resource in self._resources.items():
             g.resources[resource_id].CopyFrom(resource.to_protobuf())
 
         for participant_id, participant in self._participants.items():
             g.participants[participant_id].CopyFrom(participant.to_protobuf())
 
-        g.metadata.update(self.metadata)
-        dt.to_protobuf(self.created, g.created)
-        dt.to_protobuf(self.updated, g.updated)
-        g.version = self.version
+        for analyst_id, analyst in self._analysts.items():
+            g.analysts[analyst_id].CopyFrom(analyst.to_protobuf())
+
+        g.userdata.update(self.userdata)
 
         return g
 
@@ -780,6 +786,7 @@ class Graph:
         scheme_class: t.Type[SchemeNode] = SchemeNode,
         edge_class: t.Type[Edge] = Edge,
         participant_class: t.Type[Participant] = Participant,
+        analyst_class: t.Type[Analyst] = Analyst,
         resource_class: t.Type[Resource] = Resource,
         reference_class: t.Type[Reference] = Reference,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
@@ -795,8 +802,11 @@ class Graph:
                 participant_class.from_protobuf(participant_id, participant)
             )
 
+        for analyst_id, analyst in obj.analysts.items():
+            g.add_analyst(analyst_class.from_protobuf(analyst_id, analyst))
+
         for node_id, node in obj.nodes.items():
-            if node.WhichOneof("node") == "atom":
+            if node.WhichOneof("type") == "atom":
                 g.add_node(
                     atom_class.from_protobuf(
                         node_id,
@@ -807,7 +817,7 @@ class Graph:
                         nlp,
                     )
                 )
-            elif node.WhichOneof("node") == "scheme":
+            elif node.WhichOneof("type") == "scheme":
                 g.add_node(
                     scheme_class.from_protobuf(
                         node_id,
@@ -828,15 +838,9 @@ class Graph:
         if major_claim and isinstance(major_claim, AtomNode):
             g._major_claim = major_claim
 
-        g.analysts = [
-            participant_class.from_protobuf(utils.unique_id(), analyst)
-            for analyst in obj.analysts
-        ]
-
-        g.metadata.update(obj.metadata)
-        g.created = dt.from_protobuf(obj.created)
-        g.updated = dt.from_protobuf(obj.updated)
-        g.version = obj.version
+        g.userdata.update(obj.userdata)
+        g.metadata = Metadata.from_protobuf(obj.metadata)
+        g.version = obj.library_version
 
         return g
 
@@ -852,10 +856,14 @@ class Graph:
     ) -> Graph:
         """Generate Graph structure from DICT argument graph file(Link?)."""
         if "analysis" in obj:
-            return cls.from_ova(obj, name, atom_class, scheme_class, edge_class, nlp)
+            return cls.from_ova(
+                t.cast(ova.Graph, obj), name, atom_class, scheme_class, edge_class, nlp
+            )
 
         if "locutions" in obj:
-            return cls.from_aif(obj, name, atom_class, scheme_class, edge_class, nlp)
+            return cls.from_aif(
+                t.cast(aif.Graph, obj), name, atom_class, scheme_class, edge_class, nlp
+            )
 
         return cls.from_protobuf(
             ParseDict(obj, graph_pb2.Graph()),
@@ -870,7 +878,7 @@ class Graph:
         """Export structure of Graph instance to DICT argument graph format."""
 
         if format == GraphFormat.AIF:
-            return self.to_aif()
+            return t.cast(t.Dict[str, t.Any], self.to_aif())
 
         return MessageToDict(self.to_protobuf(), including_default_value_fields=False)
 
@@ -920,10 +928,10 @@ class Graph:
         g._major_claim = mc
 
         for row in reader:
-            metadata = row[1].split()
+            userdata = row[1].split()
 
             if row[0].startswith("T"):
-                if metadata[0] == "MajorClaim":
+                if userdata[0] == "MajorClaim":
                     mc.text = utils.parse(f"{mc.plain_text}. {row[2]}", nlp)
                 else:
                     atom = atom_class(utils.parse(row[2], nlp))
@@ -933,20 +941,16 @@ class Graph:
             elif row[0].startswith("A") or row[0].startswith("R"):
                 if row[0].startswith("A"):
                     scheme_type = (
-                        SchemeType.ATTACK
-                        if metadata[2] == "Against"
-                        else SchemeType.SUPPORT
+                        Attack.DEFAULT if userdata[2] == "Against" else Support.DEFAULT
                     )
-                    source = atom_nodes[metadata[1]]
+                    source = atom_nodes[userdata[1]]
                     target = mc
                 else:
                     scheme_type = (
-                        SchemeType.ATTACK
-                        if metadata[0] == "attacks"
-                        else SchemeType.SUPPORT
+                        Attack.DEFAULT if userdata[0] == "attacks" else Support.DEFAULT
                     )
-                    source = atom_nodes[metadata[1].split(":")[1]]
-                    target = atom_nodes[metadata[2].split(":")[1]]
+                    source = atom_nodes[userdata[1].split(":")[1]]
+                    target = atom_nodes[userdata[2].split(":")[1]]
 
                 scheme = scheme_class(scheme_type)
                 g.add_node(scheme)
@@ -1029,11 +1033,11 @@ class Graph:
                 if stance:
                     stance = stance.lower()
                     scheme = scheme_class(
-                        SchemeType.ATTACK if stance == "con" else SchemeType.SUPPORT,
+                        Attack.DEFAULT if stance == "con" else Support.DEFAULT,
                         id=f"{source_id}scheme",
                     )
                 else:
-                    scheme = scheme_class(SchemeType.REPHRASE, id=f"{source_id}scheme")
+                    scheme = scheme_class(Rephrase.DEFAULT, id=f"{source_id}scheme")
 
                 target_id = ".".join(source_id_parts[:-1] + [""])
                 target = g.atom_nodes[target_id]
@@ -1329,3 +1333,36 @@ def render(
         )
     except gv.ExecutableNotFound:
         log.error("Rendering not possible. GraphViz might not be installed.")
+
+
+def _inject_original_text(
+    raw_text: str,
+    nodes: t.Mapping[str, AtomNode],
+    resource: Resource,
+    nlp: t.Optional[t.Callable[[str], t.Any]],
+) -> None:
+    doc = html.fromstring(f"<html><head></head><body>{raw_text}</body></html>")
+    text = ""
+
+    for elem in doc.body.iter():
+        # Span elements need special handling
+        if elem.tag == "span":
+            # The id is prefixed with 'node', e.g. 'node5'.
+            node_key = elem.attrib["id"].replace("node", "")
+            if node := nodes.get(node_key):
+                node._reference = Reference(
+                    resource, len(text), utils.parse(elem.text, nlp)
+                )
+
+            if elem.text:
+                text += elem.text
+
+        elif elem.tag == "br":
+            text += "\n"
+
+        elif elem.text:
+            text += elem.text
+
+        # Text after a tag should always be added to the overall text
+        if elem.tail:
+            text += elem.tail

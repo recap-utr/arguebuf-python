@@ -7,23 +7,126 @@ import pendulum
 from arg_services.graph.v1 import graph_pb2
 from pendulum.datetime import DateTime
 
-from arguebuf import dt, utils
+from arguebuf import dt, ova, utils
 
-Metadata = t.Dict[str, t.Any]
+Userdata = t.Dict[str, t.Any]
 
 
-@dataclass()
+class Analyst:
+    name: t.Optional[str]
+    email: t.Optional[str]
+    userdata: Userdata
+    _id: str
+
+    def __init__(
+        self,
+        name: t.Optional[str] = None,
+        email: t.Optional[str] = None,
+        userdata: t.Optional[Userdata] = None,
+        id: t.Optional[str] = None,
+    ) -> None:
+        self.name = name
+        self.email = email
+        self.userdata = userdata or {}
+        self._id = id or utils.uuid()
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    def to_protobuf(self) -> graph_pb2.Analyst:
+        """Export Analyst object into a Graph's Analyst object in PROTOBUF format."""
+        obj = graph_pb2.Analyst(
+            name=self.name or "",
+            email=self.email or "",
+        )
+        obj.userdata.update(self.userdata)
+
+        return obj
+
+    @classmethod
+    def from_protobuf(cls, id: str, obj: graph_pb2.Analyst) -> Analyst:
+        """Generate Analyst object from PROTOBUF format Graph's Analyst object."""
+        return cls(
+            obj.name,
+            obj.email,
+            dict(obj.userdata.items()),
+            id,
+        )
+
+
+class Metadata:
+    created: DateTime
+    updated: DateTime
+    # _analyst: t.Optional[Analyst] = None
+
+    def __init__(
+        self, created: t.Optional[DateTime] = None, updated: t.Optional[DateTime] = None
+    ) -> None:
+        now = pendulum.now()
+
+        self.created = created or now
+        self.updated = updated or now
+
+    # @property
+    # def analyst(self) -> t.Optional[Analyst]:
+    #     return self._analyst
+
+    def update(self) -> None:
+        self.updated = pendulum.now()
+
+    def to_protobuf(self) -> graph_pb2.Metadata:
+        obj = graph_pb2.Metadata()
+
+        # if analyst := self._analyst:
+        #     obj.analyst = analyst.id
+
+        dt.to_protobuf(self.created, obj.created)
+        dt.to_protobuf(self.updated, obj.updated)
+
+        return obj
+
+    @classmethod
+    def from_protobuf(cls, obj: graph_pb2.Metadata) -> Metadata:
+        return cls(
+            dt.from_protobuf(obj.created),
+            dt.from_protobuf(obj.updated),
+            # analysts[obj.analyst]
+        )
+
+
 class Participant:
-    name: t.Optional[str] = None
-    username: t.Optional[str] = None
-    email: t.Optional[str] = None
-    url: t.Optional[str] = None
-    location: t.Optional[str] = None
-    description: t.Optional[str] = None
-    created: DateTime = field(default_factory=pendulum.now)
-    updated: DateTime = field(default_factory=pendulum.now)
-    metadata: Metadata = field(default_factory=dict)
-    _id: str = field(default_factory=utils.unique_id)
+    name: t.Optional[str]
+    username: t.Optional[str]
+    email: t.Optional[str]
+    url: t.Optional[str]
+    location: t.Optional[str]
+    description: t.Optional[str]
+    metadata: Metadata
+    userdata: Userdata
+    _id: str
+
+    def __init__(
+        self,
+        name: t.Optional[str] = None,
+        username: t.Optional[str] = None,
+        email: t.Optional[str] = None,
+        url: t.Optional[str] = None,
+        location: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        metadata: t.Optional[Metadata] = None,
+        userdata: t.Optional[Userdata] = None,
+        id: t.Optional[str] = None,
+    ) -> None:
+        self.name = name
+        self.username = username
+        self.email = email
+        self.url = url
+        self.location = location
+        self.description = description
+        self.metadata = metadata or Metadata()
+        self.userdata = userdata or {}
+        self._id = id or utils.uuid()
 
     @property
     def id(self) -> str:
@@ -38,10 +141,9 @@ class Participant:
             url=self.url or "",
             location=self.location or "",
             description=self.description or "",
+            metadata=self.metadata.to_protobuf(),
         )
-        dt.to_protobuf(self.created, obj.created)
-        dt.to_protobuf(self.updated, obj.updated)
-        obj.metadata.update(self.metadata)
+        obj.userdata.update(self.userdata)
 
         return obj
 
@@ -55,11 +157,14 @@ class Participant:
             obj.url,
             obj.location,
             obj.description,
-            dt.from_protobuf(obj.created),
-            dt.from_protobuf(obj.updated),
-            dict(obj.metadata.items()),
+            Metadata.from_protobuf(obj.metadata),
+            dict(obj.userdata.items()),
             id,
         )
+
+    @classmethod
+    def from_ova(cls, obj: ova.Participant) -> Participant:
+        return cls(name=f"{obj['firstname']} {obj['surname']}", id=str(obj["id"]))
 
 
 @dataclass()
@@ -67,10 +172,10 @@ class Resource:
     text: t.Any
     title: t.Optional[str] = None
     source: t.Optional[str] = None
-    created: DateTime = field(default_factory=pendulum.now)
-    updated: DateTime = field(default_factory=pendulum.now)
-    metadata: Metadata = field(default_factory=dict)
-    _id: str = field(default_factory=utils.unique_id)
+    timestamp: t.Optional[DateTime] = None
+    metadata: Metadata = field(default_factory=Metadata)
+    userdata: Userdata = field(default_factory=dict)
+    _id: str = field(default_factory=utils.uuid)
 
     @property
     def id(self) -> str:
@@ -83,10 +188,10 @@ class Resource:
 
     def to_protobuf(self) -> graph_pb2.Resource:
         """Export Resource object into a Graph's Resource object in PROTOBUF format."""
-        obj = graph_pb2.Resource(text=self.plain_text)
-        dt.to_protobuf(self.created, obj.created)
-        dt.to_protobuf(self.updated, obj.updated)
-        obj.metadata.update(self.metadata)
+        obj = graph_pb2.Resource(
+            text=self.plain_text, metadata=self.metadata.to_protobuf()
+        )
+        obj.userdata.update(self.userdata)
 
         if title := self.title:
             obj.title = title
@@ -108,19 +213,38 @@ class Resource:
             utils.parse(obj.text, nlp),
             obj.title,
             obj.source,
-            dt.from_protobuf(obj.created),
-            dt.from_protobuf(obj.updated),
-            dict(obj.metadata.items()),
+            dt.from_protobuf(obj.timestamp),
+            Metadata.from_protobuf(obj.metadata),
+            dict(obj.userdata.items()),
             id,
         )
 
+    @classmethod
+    def from_ova(
+        cls, obj: ova.Analysis, nlp: t.Optional[t.Callable[[str], t.Any]]
+    ) -> Resource:
+        return cls(
+            utils.parse(obj.get("plain_txt"), nlp),
+            obj.get("documentTitle"),
+            obj.get("documentSource"),
+            dt.from_format(obj.get("documentDate"), ova.DATE_FORMAT_ANALYSIS),
+        )
 
-@dataclass()
+
 class Reference:
     _resource: t.Optional[Resource]
     offset: t.Optional[int]
     text: t.Any
-    metadata: Metadata = field(default_factory=dict)
+
+    def __init__(
+        self,
+        resource: t.Optional[Resource] = None,
+        offset: t.Optional[int] = None,
+        text: t.Optional[t.Any] = None,
+    ) -> None:
+        self._resource = resource
+        self.offset = offset
+        self.text = text
 
     @property
     def plain_text(self) -> str:
@@ -141,8 +265,6 @@ class Reference:
         if offset := self.offset:
             obj.offset = offset
 
-        obj.metadata.update(self.metadata)
-
         return obj
 
     @classmethod
@@ -159,7 +281,6 @@ class Reference:
                     resources[obj.resource],
                     obj.offset,
                     utils.parse(obj.text, nlp),
-                    dict(obj.metadata.items()),
                 )
 
             else:
@@ -167,7 +288,6 @@ class Reference:
                     None,
                     None,
                     utils.parse(obj.text, nlp),
-                    dict(obj.metadata.items()),
                 )
 
         return None

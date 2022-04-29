@@ -6,9 +6,9 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 from arg_services.graph.v1 import graph_pb2
-from pendulum.datetime import DateTime
 
-from arguebuf.data import Metadata
+from arguebuf import aif, ova
+from arguebuf.data import Metadata, Userdata
 
 from . import dt, utils
 from .node import Node
@@ -21,33 +21,32 @@ class Edge:
         "_id",
         "_source",
         "_target",
-        "created",
-        "updated",
         "metadata",
+        "userdata",
     )
 
     _id: str
     _source: Node
     _target: Node
-    created: DateTime
-    updated: DateTime
     metadata: Metadata
+    userdata: Userdata
 
     def __init__(
         self,
         source: Node,
         target: Node,
-        created: t.Optional[DateTime] = None,
-        updated: t.Optional[DateTime] = None,
         metadata: t.Optional[Metadata] = None,
+        userdata: t.Optional[Userdata] = None,
         id: t.Optional[str] = None,
     ):
-        self._id = id or utils.unique_id()
+        # if isinstance(source, AtomNode) and isinstance(target, AtomNode):
+        #     raise ValueError("Cannot create an edge between two atom nodes.")
+
+        self._id = id or utils.uuid()
         self._source = source
         self._target = target
-        self.created = created or pendulum.now()
-        self.updated = updated or pendulum.now()
-        self.metadata = metadata or {}
+        self.metadata = metadata or Metadata()
+        self.userdata = userdata or {}
 
         self.__post_init__()
 
@@ -77,20 +76,20 @@ class Edge:
     @classmethod
     def from_ova(
         cls,
-        obj: t.Mapping[str, t.Any],
+        obj: ova.Edge,
         nodes: t.Mapping[str, Node],
     ) -> t.Optional[Edge]:
         """Generate Edge object from OVA Edge format."""
         source_id = str(obj["from"]["id"])
         target_id = str(obj["to"]["id"])
+        date = dt.from_format(obj.get("date"), ova.DATE_FORMAT) or pendulum.now()
 
         if source_id in nodes and target_id in nodes:
             return cls(
-                id=utils.unique_id(),
+                id=utils.uuid(),
                 source=nodes[source_id],
                 target=nodes[target_id],
-                created=dt.from_ova(obj.get("date")),
-                updated=dt.from_ova(obj.get("date")),
+                metadata=Metadata(date, date),
             )
 
         return None
@@ -98,7 +97,7 @@ class Edge:
     @classmethod
     def from_aif(
         cls,
-        obj: t.Any,
+        obj: aif.Edge,
         nodes: t.Mapping[str, Node],
     ) -> t.Optional[Edge]:
         """Generate Edge object from AIF Edge format."""
@@ -114,7 +113,7 @@ class Edge:
 
         return None
 
-    def to_aif(self) -> t.Dict[str, t.Any]:
+    def to_aif(self) -> aif.Edge:
         """Export Edge object into AIF Edge format."""
         return {
             "edgeID": str(self.id),
@@ -134,9 +133,8 @@ class Edge:
         return cls(
             nodes[obj.source],
             nodes[obj.target],
-            dt.from_protobuf(obj.created),
-            dt.from_protobuf(obj.updated),
-            dict(obj.metadata.items()),
+            Metadata.from_protobuf(obj.metadata),
+            dict(obj.userdata.items()),
             id=id,
         )
 
@@ -145,14 +143,9 @@ class Edge:
         obj = graph_pb2.Edge(
             source=self._source.id,
             target=self._target.id,
+            metadata=self.metadata.to_protobuf(),
         )
-        obj.metadata.update(self.metadata)
-
-        if created := self.created:
-            obj.created.FromDatetime(created)
-
-        if updated := self.updated:
-            obj.updated.FromDatetime(updated)
+        obj.userdata.update(self.userdata)
 
         return obj
 

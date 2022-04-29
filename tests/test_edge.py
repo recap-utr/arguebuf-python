@@ -106,15 +106,16 @@ def test_aif_edge(data, id, start, end):
         },
     )
 
+    assert edge
     assert edge.id == id
     assert isinstance(edge.source, ag.AtomNode)
     assert isinstance(edge.target, ag.AtomNode)
     assert edge.source.id == start
     assert edge.target.id == end
-    assert edge.created is not None
-    assert edge.updated is not None
-    assert edge.metadata == {}
+    assert edge.metadata is not None
+    assert edge.userdata == {}
     assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
+
 
 @pytest.mark.parametrize("data,start,end,date", ova_data)
 def test_ova_edge(data, start, end, date):
@@ -127,12 +128,13 @@ def test_ova_edge(data, start, end, date):
         },
     )
 
+    assert edge
     assert isinstance(edge.id, str)
     assert isinstance(edge.source, ag.AtomNode)
     assert isinstance(edge.target, ag.AtomNode)
     assert edge.source.id == start
     assert edge.target.id == end
-    assert edge.created == date
-    assert edge.updated == date
-    assert edge.metadata == {}
+    assert edge.metadata.created == date
+    assert edge.metadata.updated == date
+    assert edge.userdata == {}
     assert isinstance(edge.to_protobuf(), graph_pb2.Edge)

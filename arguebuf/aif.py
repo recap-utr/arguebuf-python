@@ -1,10 +1,13 @@
 import typing as t
 
+SchemeType = t.Literal["I", "RA", "CA", "MA", "PA", ""]  # "TA", "YA", "L"
+DATE_FORMAT = "YYYY-MM-DD HH:mm:ss"
+
 
 class Node(t.TypedDict):
     nodeID: str
     text: str
-    type: str
+    type: SchemeType
     timestamp: str
 
 
@@ -28,8 +31,3 @@ class Graph(t.TypedDict):
     nodes: t.List[Node]
     edges: t.List[Edge]
     locutions: t.List[Locution]
-
-
-# SchemeType = t.Union["RA", "CA", "MA", "TA", "PA", "YA"];
-
-DATE_FORMAT = "yyyy-MM-dd HH:mm:ss"

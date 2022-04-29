@@ -57,31 +57,23 @@ ova_data_AtomNode = [
     )
 ]
 
+
 @pytest.mark.parametrize("data,id,text,type,date", aif_data_AtomNode)
 def test_aif_node_AN(data, id, text, type, date):
     data_json = json.loads(data)
     node = ag.AtomNode.from_aif(data_json)
-    
+
     assert node.id == id
     assert node.text == text
     assert isinstance(node, type)
-    assert node.created == date
-    assert node.updated == date
+    assert node.metadata.created == date
+    assert node.metadata.updated == date
     assert node.reference is None
-    assert node.metadata == {}
+    assert node.userdata == {}
     assert isinstance(node.to_aif(), Dict)
     assert isinstance(node.to_protobuf(), graph_pb2.Node)
-    #node3 = ag.AtomNode.from_protobuf("123",node.to_protobuf(),{},{}, )
+    # node3 = ag.AtomNode.from_protobuf("123",node.to_protobuf(),{},{}, )
 
-    ag.utils.text2argumentation_scheme("Rule")
-    ag.utils.text2argumentation_scheme("")
-    ag.utils.argumentation_scheme2text(graph_pb2.SCHEME_VALUES)
-    ag.utils.argumentation_scheme2text(None)
-
-    ag.utils.class_repr(node, {})
-    ag.utils.parse("",{})
-    ag.utils.parse(None,{})
-    ag.utils.duplicate_key_error("","")
 
 @pytest.mark.parametrize(
     "data,id,text,type,date",
@@ -94,10 +86,11 @@ def test_ova_node_AN(data, id, text, type, date):
     assert node.id == id
     assert node.text == text
     assert isinstance(node, type)
-    assert node.created == date
-    assert node.updated == date
+    assert node.metadata.created == date
+    assert node.metadata.updated == date
     assert node.reference is None
-    assert node.metadata == {}
+    assert node.userdata == {}
+
 
 '''
 aif_data_SchemeNode = [
@@ -106,7 +99,7 @@ aif_data_SchemeNode = [
         {
             "nodeID": "119935",
             "text": "One can hardly move in Friedrichshain or Neuk\u00f6lln these days without permanently scanning the ground for dog dirt.",
-            "type": "S", 
+            "type": "S",
             "timestamp": "2015-12-14 12:09:15"
         }
         """,
@@ -130,7 +123,7 @@ ova_data_SchemeNode = [
             "text_end": [],
             "text_length": [114],
             "comment": "",
-            "type": "S", 
+            "type": "S",
             "scheme": "0",
             "descriptors": {},
             "cqdesc": {},

@@ -6,151 +6,167 @@ from pathlib import Path
 import arguebuf as ag
 import arguebuf.dt as agdt
 import pendulum
+import pytest
 from arg_services.graph.v1 import graph_pb2
 from deepdiff import DeepDiff
 
-# def test_create_graph(shared_datadir):
-#     g = ag.Graph("Test")
 
-#     # agdt.to_ova("10/04/1998 - 07:07:07")
-#     # agdt.to_aif("10/04/1998 - 07:07:07")
-#     # agdt.from_analysis("10/04/1998")
-#     # agdt.to_analysis("10/04/1998 - 07:07:07")
+def test_create_graph(shared_datadir):
+    g = ag.Graph("Test")
 
-#     p1 = ag.Participant.from_protobuf(
-#         "Participant 1",
-#         graph_pb2.Participant(
-#             name="Participant 1",
-#             username="Parti 1",
-#             email="Parti1@gmail.com",
-#             url="thesenuts",
-#             location="Trier",
-#             description="Hallo Welt!",
-#         ),
-#     )
-#     r1 = ag.Resource.from_protobuf(
-#         "Resource234", graph_pb2.Resource(text="Resource234")
-#     )
+    # agdt.to_ova("10/04/1998 - 07:07:07")
+    # agdt.to_aif("10/04/1998 - 07:07:07")
+    # agdt.from_analysis("10/04/1998")
+    # agdt.to_analysis("10/04/1998 - 07:07:07")
 
-#     assert isinstance(p1.to_protobuf(), graph_pb2.Participant)
-#     n1 = ag.AtomNode(
-#         text="Node 1",
-#         resource=ag.Reference(r1, 0, "Resource234"),
-#         participant=p1,
-#     )
-#     n2 = ag.SchemeNode(ag.SchemeType.SUPPORT)
-#     n3 = ag.AtomNode("Node 3")
-#     n4 = ag.SchemeNode(ag.SchemeType.SUPPORT)
-#     n5 = ag.AtomNode("Node 5")
-#     e12 = ag.Edge(n1, n2)
-#     e23 = ag.Edge(n2, n3)
-#     e34 = ag.Edge(n3, n4)
-#     e45 = ag.Edge(n4, n5)
+    p1 = ag.Participant.from_protobuf(
+        "Participant 1",
+        graph_pb2.Participant(
+            name="Participant 1",
+            username="Parti 1",
+            email="Parti1@gmail.com",
+            url="thesenuts",
+            location="Trier",
+            description="Hallo Welt!",
+        ),
+    )
+    r1 = ag.Resource.from_protobuf(
+        "Resource234", graph_pb2.Resource(text="Resource234")
+    )
 
-#     g.add_node(n1)
-#     g.add_edge(e12)
-#     g.add_edge(e23)
-#     g.add_edge(e34)
-#     g.add_edge(e45)
+    assert isinstance(p1.to_protobuf(), graph_pb2.Participant)
+    n1 = ag.AtomNode(
+        text="Node 1",
+        resource=ag.Reference(r1, 0, "Resource234"),
+        participant=p1,
+    )
+    n2 = ag.SchemeNode(ag.Support.DEFAULT)
+    n3 = ag.AtomNode("Node 3")
+    n4 = ag.SchemeNode(ag.Support.DEFAULT)
+    n5 = ag.AtomNode("Node 5")
+    e12 = ag.Edge(n1, n2)
+    e23 = ag.Edge(n2, n3)
+    e34 = ag.Edge(n3, n4)
+    e45 = ag.Edge(n4, n5)
 
-#     assert e12.source == n1
-#     assert e12.target == n2
-#     assert e23.source == n2
-#     assert e23.target == n3
-#     assert e34.source == n3
-#     assert e34.target == n4
-#     assert e45.source == n4
-#     assert e45.target == n5
-#     e12.to_aif()
-#     e12 = ag.Edge.from_protobuf(
-#         "Edge 1", e12.to_protobuf(), nodes={n1.id: n1, n2.id: n2}
-#     )
+    g.add_node(n1)
+    g.add_edge(e12)
+    g.add_edge(e23)
+    g.add_edge(e34)
+    g.add_edge(e45)
 
-#     assert len(g.incoming_nodes(n1)) == 0
-#     assert len(g.incoming_edges(n1)) == 0
-#     assert len(g.incoming_nodes(n3)) == 1
-#     assert len(g.incoming_edges(n3)) == 1
-#     assert len(g.incoming_edges(n5)) == 1
-#     assert len(g.incoming_edges(n5)) == 1
+    assert e12.source == n1
+    assert e12.target == n2
+    assert e23.source == n2
+    assert e23.target == n3
+    assert e34.source == n3
+    assert e34.target == n4
+    assert e45.source == n4
+    assert e45.target == n5
+    e12.to_aif()
+    e12 = ag.Edge.from_protobuf(
+        "Edge 1", e12.to_protobuf(), nodes={n1.id: n1, n2.id: n2}
+    )
 
-#     assert len(g.outgoing_nodes(n1)) == 1
-#     assert len(g.outgoing_edges(n1)) == 1
-#     assert len(g.outgoing_nodes(n3)) == 1
-#     assert len(g.outgoing_edges(n3)) == 1
-#     assert len(g.outgoing_nodes(n5)) == 0
-#     assert len(g.outgoing_edges(n5)) == 0
+    assert len(g.incoming_nodes(n1)) == 0
+    assert len(g.incoming_edges(n1)) == 0
+    assert len(g.incoming_nodes(n3)) == 1
+    assert len(g.incoming_edges(n3)) == 1
+    assert len(g.incoming_edges(n5)) == 1
+    assert len(g.incoming_edges(n5)) == 1
 
-#     assert g.major_claim == n5
+    assert len(g.outgoing_nodes(n1)) == 1
+    assert len(g.outgoing_edges(n1)) == 1
+    assert len(g.outgoing_nodes(n3)) == 1
+    assert len(g.outgoing_edges(n3)) == 1
+    assert len(g.outgoing_nodes(n5)) == 0
+    assert len(g.outgoing_edges(n5)) == 0
 
-#     assert set(g.nodes.values()) == set([n1, n2, n3, n4, n5])
+    assert g.root_node == n5
+    assert g.major_claim is None
+    g.major_claim = n5
+    assert g.major_claim == n5
 
-#     assert g.node_distance(n1, n1) == 0
-#     assert g.node_distance(n1, n2) == 1
-#     assert g.node_distance(n1, n3) == 2
-#     assert g.node_distance(n1, n4) == 3
-#     assert g.node_distance(n1, n5) == 4
-#     assert g.node_distance(n2, n2) == 0
-#     assert g.node_distance(n3, n3) == 0
-#     assert g.node_distance(n4, n4) == 0
-#     assert g.node_distance(n5, n5) == 0
-#     assert g.scheme_between(n1, n3) == n2
-#     assert g.outgoing_atom_nodes(n1) == set([n3])
+    assert set(g.nodes.values()) == {n1, n2, n3, n4, n5}
 
-#     assert len(g.resources) == 0
-#     r2 = ag.Resource(text="Resource", title="Resourca", source="Wikipedia")
-#     assert r2.plain_text == "Resource"
-#     assert isinstance(r2.to_protobuf(), graph_pb2.Resource)
-#     g.add_resource(r2)
-#     g.add_resource(ag.Resource("Resource2"))
-#     assert len(g.resources) == 2
-#     g.atom_nodes
-#     g.scheme_nodes
-#     g.incoming_nodes(n3)
-#     g.incoming_atom_nodes(n2)
-#     g.outgoing_nodes(n3)
-#     g.outgoing_atom_nodes(n2)
-#     g.incoming_edges(n3)
-#     g.outgoing_edges(n3)
+    assert g.node_distance(n1, n1) == 0
+    assert g.node_distance(n1, n2) == 1
+    assert g.node_distance(n1, n3) == 2
+    assert g.node_distance(n1, n4) == 3
+    assert g.node_distance(n1, n5) == 4
+    assert g.node_distance(n2, n2) == 0
+    assert g.node_distance(n3, n3) == 0
+    assert g.node_distance(n4, n4) == 0
+    assert g.node_distance(n5, n5) == 0
+    assert g.scheme_between(n1, n3) == n2
+    assert g.outgoing_atom_nodes(n1) == {n3}
 
-#     g.major_claim = n5
-#     g.major_claim
-#     g.add_node(n5)
-#     g.remove_node(n4)
-#     g.add_node(n4)
-#     e4 = "Hallo ich bin keine Kante"
-#     g.add_edge(e4)
-#     g.add_edge(e12)
-#     r10 = "Hallo ich bin keine Quelle"
-#     g.add_resource(r10)
-#     g.add_resource(r2)
-#     g.remove_resource(r10)
-#     g.remove_resource(r2)
-#     g.remove_resource(r2)
-#     p3 = "Hallo ich bin kein Teilnehmer"
-#     g.add_participant(p3)
-#     g.add_participant(p1)
-#     g.remove_participant(p3)
-#     g.remove_participant(p1)
-#     g.remove_participant(p1)
+    assert len(g.resources) == 1
+    r2 = ag.Resource(text="Resource", title="Resourca", source="Wikipedia")
+    assert r2.plain_text == "Resource"
+    assert isinstance(r2.to_protobuf(), graph_pb2.Resource)
+    g.add_resource(r2)
+    g.add_resource(ag.Resource("Resource2"))
+    assert len(g.resources) == 3
+    g.atom_nodes
+    g.scheme_nodes
+    g.incoming_nodes(n3)
+    g.incoming_atom_nodes(n2)
+    g.outgoing_nodes(n3)
+    g.outgoing_atom_nodes(n2)
+    g.incoming_edges(n3)
+    g.outgoing_edges(n3)
 
-#     assert g.major_claim == n5
-#     assert len(g.participants) == 1
-#     g.strip_snodes()
+    g.remove_node(n4)
+    g.add_node(n4)
 
-#     ref1 = ag.Reference(resource=r2, offset=1, text="Reference")
-#     assert ref1.plain_text == "Reference"
-#     assert isinstance(ref1.to_protobuf(), graph_pb2.Reference)
-#     # ref2 = ag.data.Reference.from_protobuf(obj = ref1.to_protobuf(), resources= [["Node 1",n1],["Node 2", n2]])
+    # e4 = "Hallo ich bin keine Kante"
+    # g.add_edge(e4)
 
-#     assert len(g.atom_nodes) == 3
-#     assert len(g.scheme_nodes) == 0
-#     assert len(g.nodes) == 3
-#     assert len(g.edges) == 2
-#     ag.render(g.to_gv(), shared_datadir / "output" / "test_create_graph.pdf")
-#     g.remove_node(n1)
-#     assert len(g.nodes) == 2
-#     g.to_protobuf()
-#     assert isinstance(g.to_protobuf(), graph_pb2.Graph)
+    g.add_edge(e12)
+
+    # r10 = "Hallo ich bin keine Quelle"
+    # g.add_resource(r10)
+
+    with pytest.raises(Exception):
+        g.add_resource(r2)
+
+    # g.remove_resource(r10)
+    g.remove_resource(r2)
+
+    with pytest.raises(Exception):
+        g.remove_resource(r2)
+
+    # p3 = "Hallo ich bin kein Teilnehmer"
+    # g.add_participant(p3)
+
+    with pytest.raises(Exception):
+        g.add_participant(p1)
+    # g.remove_participant(p3)
+    g.remove_participant(p1)
+
+    with pytest.raises(Exception):
+        g.remove_participant(p1)
+
+    assert len(g.participants) == 0
+
+    # g.strip_snodes()
+
+    # ref1 = ag.Reference(resource=r2, offset=1, text="Reference")
+    # assert ref1.plain_text == "Reference"
+    # assert isinstance(ref1.to_protobuf(), graph_pb2.Reference)
+    # # ref2 = ag.data.Reference.from_protobuf(obj = ref1.to_protobuf(), resources= [["Node 1",n1],["Node 2", n2]])
+
+    # assert len(g.atom_nodes) == 3
+    # assert len(g.scheme_nodes) == 0
+    # assert len(g.nodes) == 3
+    # assert len(g.edges) == 2
+    # ag.render(g.to_gv(), shared_datadir / "output" / "test_create_graph.pdf")
+    # g.remove_node(n1)
+    # assert len(g.nodes) == 2
+    # g.to_protobuf()
+    # assert isinstance(g.to_protobuf(), graph_pb2.Graph)
+
 
 #     # Nachfolgende Änderungen konnte ich aufgrund mangelnden Kenntnisse nicht durchführen in der nötigen Komplexität:
 #     # für Test muss jede Eigenschaft mit sinnvollem Argument gefüllt sein, weil sonst scheinbar manche Aktivierung nicht gemacht wird...
@@ -186,8 +202,8 @@ def test_import_graphs(shared_datadir):
         pool.map(_import_aif_graph, sorted(aif_folder.rglob("*.json")))
 
     # For debugging
-    # for file in sorted(kialo_folder.rglob("*.txt")):
-    #     _import_generic_graph(file)
+    # for file in sorted(aif_folder.rglob("*.json")):
+    #     _import_aif_graph(file)
 
 
 def _import_generic_graph(file):
@@ -202,7 +218,9 @@ def _import_generic_graph(file):
 def _clean_raw_aif(g: t.MutableMapping[str, t.Any]) -> None:
     # Remove locutions as these are not parsed
     g["locutions"] = []
-    g["nodes"] = [node for node in tuple(g["nodes"]) if node["type"] != "L"]
+    g["nodes"] = [
+        node for node in tuple(g["nodes"]) if node["type"] not in {"L", "TA", "YA"}
+    ]
     node_ids = {node["nodeID"] for node in g["nodes"]}
     g["edges"] = [
         edge
