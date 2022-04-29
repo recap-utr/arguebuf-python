@@ -17,7 +17,8 @@ from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
+from arguebuf.models.node import (AtomNode, Attack, Node, Rephrase, SchemeNode,
+                                  Support)
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
@@ -59,7 +60,8 @@ class Graph:
         "_analysts",
         "metadata",
         "userdata",
-        "version",
+        "library_version",
+        "schema_version",
     )
 
     name: str
@@ -75,7 +77,8 @@ class Graph:
     _participants: ImmutableDict[str, Participant]
     _major_claim: t.Optional[AtomNode]
     _analysts: ImmutableDict[str, Analyst]
-    version: t.Optional[str]
+    library_version: t.Optional[str]
+    schema_version: t.Optional[int]
     metadata: Metadata
     userdata: Userdata
 
@@ -252,7 +255,8 @@ class Graph:
         self._incoming_edges = ImmutableDict()
         self._outgoing_nodes = ImmutableDict()
         self._outgoing_edges = ImmutableDict()
-        self.version = None
+        self.library_version = None
+        self.schema_version = None
 
         self.__post_init__()
 
@@ -843,7 +847,8 @@ class Graph:
 
         g.userdata.update(obj.userdata)
         g.metadata = Metadata.from_protobuf(obj.metadata)
-        g.version = obj.library_version
+        g.library_version = obj.library_version
+        g.schema_version = obj.schema_version
 
         return g
 
