@@ -1,6 +1,7 @@
 import typing as t
 
-SchemeType = t.Literal["I", "RA", "CA", "MA", "PA", ""]  # "TA", "YA", "L"
+from arguebuf.schema.aif import NodeType
+
 DATE_FORMAT = "DD/MM/YYYY - HH:mm:ss"
 DATE_FORMAT_ANALYSIS = "DD/MM/YYYY"
 
@@ -12,7 +13,7 @@ Node = t.TypedDict(
         "y": float,
         "color": str,
         "text": str,
-        "type": SchemeType,
+        "type": NodeType,
         "scheme": str,
         "descriptors": t.Dict[str, int],
         "cqdesc": t.Dict[str, t.Any],

@@ -564,7 +564,7 @@ class SchemeNode(Node):
         aif_scheme: str = obj.get("scheme", obj["text"])
 
         if aif_type in aif2scheme:
-            scheme = aif2scheme[aif_type]
+            scheme = aif2scheme[t.cast(aif.SchemeType, aif_type)]
 
             # TODO: Handle formatting like capitalization, spaces, underscores, etc.
             # TODO: Araucaria does not use spaces between scheme names
@@ -606,7 +606,7 @@ class SchemeNode(Node):
         ova_scheme = obj["text"]
 
         if ova_type in aif2scheme:
-            scheme = aif2scheme[ova_type]
+            scheme = aif2scheme[t.cast(aif.SchemeType, ova_type)]
 
             if scheme and (found_scheme := text2scheme[type(scheme)].get(ova_scheme)):
                 scheme = found_scheme
@@ -650,11 +650,11 @@ class SchemeNode(Node):
         elif scheme_type == "support":
             scheme = protobuf2support[obj.scheme.support]
         elif scheme_type == "attack":
-            scheme = Attack.DEFAULT
+            scheme = protobuf2attack[obj.scheme.attack]
         elif scheme_type == "rephrase":
-            scheme = Rephrase.DEFAULT
+            scheme = protobuf2rephrase[obj.scheme.rephrase]
         elif scheme_type == "preference":
-            scheme = Preference.DEFAULT
+            scheme = protobuf2preference[obj.scheme.preference]
 
         return cls(
             scheme,

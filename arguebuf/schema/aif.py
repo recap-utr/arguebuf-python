@@ -1,13 +1,14 @@
 import typing as t
 
-SchemeType = t.Literal["I", "RA", "CA", "MA", "PA", ""]  # "TA", "YA", "L"
+SchemeType = t.Literal["RA", "CA", "MA", "PA", ""]
+NodeType = t.Literal["RA", "CA", "MA", "PA", "", "I", "TA", "YA", "L"]
 DATE_FORMAT = "YYYY-MM-DD HH:mm:ss"
 
 
 class Node(t.TypedDict):
     nodeID: str
     text: str
-    type: SchemeType
+    type: NodeType
     timestamp: str
 
 
