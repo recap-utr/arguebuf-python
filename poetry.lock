@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "arg-services"
-version = "0.3.4"
+version = "0.3.6"
 description = "gRPC definitions for microservice-based argumentation machines"
 category = "main"
 optional = false
@@ -773,7 +773,7 @@ docs = ["sphinx", "furo", "myst-parser", "sphinx-autoapi", "autodocsumm"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "91b0bb7108d46352907daa268755b4f5ebf89f8636d37d76eaad531000d80f3e"
+content-hash = "a547080de119de1a7afdab3feb735ecd015fe876da648f9299635356467cd686"
 
 [metadata.files]
 alabaster = [
@@ -781,8 +781,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 arg-services = [
-    {file = "arg-services-0.3.4.tar.gz", hash = "sha256:e00e7d9679d0e5ac61767e0c4d69e38d09f940494f3f6a111f5907c31b27e653"},
-    {file = "arg_services-0.3.4-py3-none-any.whl", hash = "sha256:5ad90db7dd0afb3587149db00240b4ac63d8f1d8398bed2f728887ebece049c9"},
+    {file = "arg-services-0.3.6.tar.gz", hash = "sha256:b8ff31d30653428995fb463fd8a02a92689e75f088e36577d02515cc64e8ea5b"},
+    {file = "arg_services-0.3.6-py3-none-any.whl", hash = "sha256:fc9a5b3f598f004f2cfecff43a87cb13205b3ccb075d12a314fa613a3ccc9b6d"},
 ]
 astroid = [
     {file = "astroid-2.11.3-py3-none-any.whl", hash = "sha256:f1af57483cd17e963b2eddce8361e00fc593d1520fe19948488e94ff6476bd71"},
