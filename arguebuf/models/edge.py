@@ -148,9 +148,21 @@ class Edge:
 
         return obj
 
-    def to_nx(self, g: nx.DiGraph) -> None:
+    def to_nx(
+        self,
+        g: nx.DiGraph,
+        attrs: t.Optional[t.MutableMapping[str, t.Callable[[Edge], t.Any]]] = None,
+    ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
-        g.add_edge(self.source.id, self.target.id)
+
+        if attrs is None:
+            attrs = {}
+
+        g.add_edge(
+            self.source.id,
+            self.target.id,
+            **{key: func(self) for key, func in attrs.items()},
+        )
 
     def to_gv(self, g: gv.Digraph) -> None:
         """Submethod used to export Graph object g into GV Graph format."""

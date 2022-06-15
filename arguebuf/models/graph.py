@@ -1154,10 +1154,36 @@ class Graph:
 
     def to_nx(
         self,
-        atom_label: t.Optional[t.Callable[[AtomNode], str]] = None,
-        scheme_label: t.Optional[t.Callable[[SchemeNode], str]] = None,
+        graph_attrs: t.Optional[
+            t.MutableMapping[str, t.Callable[[Graph], t.Any]]
+        ] = None,
+        atom_attrs: t.Optional[
+            t.MutableMapping[str, t.Callable[[AtomNode], t.Any]]
+        ] = None,
+        scheme_attrs: t.Optional[
+            t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]]
+        ] = None,
+        edge_attrs: t.Optional[t.MutableMapping[str, t.Callable[[Edge], t.Any]]] = None,
     ) -> nx.DiGraph:
-        """Transform a Graph instance into an instance of networkx directed graph. Refer to the networkx library for additional information.
+        """Transform the argument graph for use with the library `NetworkX`
+
+        This library allows you to apply advanced graph-related algorithms directly on your argument graphs.
+        For instance, shortest paths and various distances can be computed.
+        [Documentation](https://networkx.org/documentation/stable/reference/index.html)
+
+        It is possible to add arbitrary attributes to the resulting graph and its elements.
+        For this, you need to pass a dictionary with the desired name of the attribute and a function that is used to compute the attribute's value.
+        The function will be passed the corresponding element as its only parameter.
+        For instance, you could pass `atom_attrs={"text": lambda node: node.plain_text}` to set a `text` attribute for atom nodes.
+
+        Args:
+            graph_attrs: Attribute functions for the whole graph.
+            atom_attrs: Attribute functions for the atom nodes.
+            scheme_attrs: Attribute functions for the scheme nodes.
+            edge_attrs: Attribute functions for the edges.
+
+        Returns:
+            Instance of the *directed* `NetworkX` graph.
 
         Examples:
             >>> g = Graph("Test")
@@ -1168,18 +1194,21 @@ class Graph:
             >>> gnx = g.to_nx()
             >>> gnx.number_of_nodes()
             2
-
         """
-        g = nx.DiGraph()
+
+        if graph_attrs is None:
+            graph_attrs = {}
+
+        g = nx.DiGraph(None, **{key: func(self) for key, func in graph_attrs.items()})
 
         for node in self._atom_nodes.values():
-            node.to_nx(g, atom_label)
+            node.to_nx(g, atom_attrs)
 
         for node in self._scheme_nodes.values():
-            node.to_nx(g, scheme_label)
+            node.to_nx(g, scheme_attrs)
 
         for edge in self._edges.values():
-            edge.to_nx(g)
+            edge.to_nx(g, edge_attrs)
 
         return g
 

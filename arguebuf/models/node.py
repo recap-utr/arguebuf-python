@@ -479,13 +479,18 @@ class AtomNode(Node):
         return obj
 
     def to_nx(
-        self, g: nx.DiGraph, label_func: t.Optional[t.Callable[[AtomNode], str]] = None
+        self,
+        g: nx.DiGraph,
+        attrs: t.Optional[t.MutableMapping[str, t.Callable[[AtomNode], t.Any]]] = None,
     ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
-        g.add_node(
-            self._id,
-            label=label_func(self) if label_func else self.plain_text,
-        )
+        if attrs is None:
+            attrs = {}
+
+        if "label" not in attrs:
+            attrs["label"] = lambda x: x.plain_text
+
+        g.add_node(self._id, **{key: func(self) for key, func in attrs.items()})
 
     def color(self, major_claim: bool) -> Color:
         """Get the color for rendering the node."""
@@ -685,23 +690,19 @@ class SchemeNode(Node):
     def to_nx(
         self,
         g: nx.DiGraph,
-        label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
+        attrs: t.Optional[
+            t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]]
+        ] = None,
     ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
-        if label_func:
-            label = label_func(self)
-        elif self.scheme:
-            label = type(self.scheme).__name__
 
-            if self.scheme.value != "Default":
-                label = f"{label}: {self.scheme.value}"
-        else:
-            label = NO_SCHEME_LABEL
+        if attrs is None:
+            attrs = {}
 
-        g.add_node(
-            self._id,
-            label=label,
-        )
+        if "label" not in attrs:
+            attrs["label"] = _scheme_label
+
+        g.add_node(self._id, **{key: func(self) for key, func in attrs.items()})
 
     def color(self, major_claim: bool) -> Color:
         """Get the color used in OVA based on `category`."""
@@ -720,17 +721,9 @@ class SchemeNode(Node):
         label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
     ) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
+
         color = self.color(major_claim)
-
-        if label_func:
-            label = label_func(self)
-        elif self.scheme:
-            label = type(self.scheme).__name__
-
-            if self.scheme.value != "Default":
-                label = f"{label}: {self.scheme.value}"
-        else:
-            label = NO_SCHEME_LABEL
+        label = label_func(self) if label_func else _scheme_label(self)
 
         g.node(
             self._id,
@@ -739,3 +732,15 @@ class SchemeNode(Node):
             fillcolor=color.bg,
             color=color.border,
         )
+
+
+def _scheme_label(obj: SchemeNode) -> str:
+    label = NO_SCHEME_LABEL
+
+    if obj.scheme:
+        label = type(obj.scheme).__name__
+
+        if obj.scheme.value != "Default":
+            label = f"{label}: {obj.scheme.value}"
+
+    return label
