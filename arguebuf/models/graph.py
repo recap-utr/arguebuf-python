@@ -17,8 +17,7 @@ from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import (AtomNode, Attack, Node, Rephrase, SchemeNode,
-                                  Support)
+from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
@@ -1123,18 +1122,35 @@ class Graph:
     def from_folder(
         cls,
         path: Path,
+        pattern: str,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-        suffixes: t.Iterable[str] = (".json"),
-    ) -> t.List[Graph]:
-        "Generate Graph structure from Folder."
-        return [
-            cls.from_file(file, atom_class, scheme_class, edge_class, nlp)
-            for suffix in suffixes
-            for file in sorted(path.rglob(f"*{suffix}"))
-        ]
+    ) -> t.Dict[Path, Graph]:
+        """Load all graphs matching the specified `pattern` in `path`.
+
+        Args:
+            path: Folder containing the graphs to be loaded.
+            pattern: Unix glob pattern to filter the available files.
+                Recursive matching can be achieved by prepending `**/` to any pattern.
+                For instance, all `json` files of a folder can be retrieved with `**/*.json`.
+                Supports the following wildcards: <https://docs.python.org/3/library/fnmatch.html#module-fnmatch>
+            atom_class: Allows to override the class used for atom nodes in case a specialized subclass has been created. Defaults to `AtomNode`.
+            scheme_class: Allows to override the class used for scheme nodes in case a specialized subclass has been created. Defaults to `SchemeNode`.
+            edge_class: Allows to override the class used for edges in case a specialized subclass has been created. Defaults to `Edge`.
+            nlp: Optionally pass a function to transforms all texts of atom nodes and resources to arbitrary Python objects.
+                Useful when using `spacy` to generate embeddings.
+                In this case, you can load a model with `spacy.load(...)` and pass the resulting `nlp` function via this parameter.
+
+        Returns:
+            Dictionary containing all found file paths as well as the loaded graphs.
+        """
+
+        return {
+            file: cls.from_file(file, atom_class, scheme_class, edge_class, nlp)
+            for file in sorted(path.glob(pattern))
+        }
 
     def to_nx(
         self,
