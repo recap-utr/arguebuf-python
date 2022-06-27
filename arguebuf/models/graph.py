@@ -694,11 +694,11 @@ class Graph:
             if edge := edge_class.from_sadface(sadface_edge, g._nodes):
                 g.add_edge(edge)
 
+        g.metadata = Userdata(obj["metadata"])
         analyst = Analyst(name=obj["metadata"]["analyst_name"],
                           email=obj["metadata"]["analyst_email"],
                           id=obj["metadata"]["id"])
         g.add_analyst(analyst)
-        g.metadata = Userdata(obj["metadata"])
 
         return g
 
