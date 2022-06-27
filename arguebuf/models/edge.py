@@ -9,7 +9,7 @@ from arg_services.graph.v1 import graph_pb2
 from arguebuf.models import Userdata
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
-from arguebuf.schema import aif, ova
+from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import dt, utils
 
 
@@ -122,6 +122,25 @@ class Edge:
         }
 
     @classmethod
+    def from_sadface(
+            cls,
+            obj: sadface.Edge,
+            nodes: t.Mapping[str, Node],
+    ) -> t.Optional[Edge]:
+        """Generate Edge object from SADFace Edge format."""
+        source_id = obj.get("source_id")
+        target_id = obj.get("target_id")
+
+        if source_id in nodes and target_id in nodes:
+            return cls(
+                id=obj["id"],
+                source=nodes[source_id],
+                target=nodes[target_id],
+            )
+
+        return None
+
+    @classmethod
     def from_protobuf(
         cls,
         id: str,
@@ -148,21 +167,9 @@ class Edge:
 
         return obj
 
-    def to_nx(
-        self,
-        g: nx.DiGraph,
-        attrs: t.Optional[t.MutableMapping[str, t.Callable[[Edge], t.Any]]] = None,
-    ) -> None:
+    def to_nx(self, g: nx.DiGraph) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
-
-        if attrs is None:
-            attrs = {}
-
-        g.add_edge(
-            self.source.id,
-            self.target.id,
-            **{key: func(self) for key, func in attrs.items()},
-        )
+        g.add_edge(self.source.id, self.target.id)
 
     def to_gv(self, g: gv.Digraph) -> None:
         """Submethod used to export Graph object g into GV Graph format."""

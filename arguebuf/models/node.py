@@ -5,6 +5,7 @@ import typing as t
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, Any, Type
 
 import graphviz as gv
 import networkx as nx
@@ -15,7 +16,7 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova
+from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
@@ -429,6 +430,31 @@ class AtomNode(Node):
         }
 
     @classmethod
+    def from_sadface(
+            cls,
+            obj: sadface.Node,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> AtomNode:
+        """Generate AtomNode object from SADFace Node object."""
+        timestamp = (pendulum.now())
+        return cls(
+            id=obj["id"],
+            text=utils.parse(obj["text"], nlp),
+            userdata=obj["metadata"],
+            metadata=Metadata(timestamp, timestamp)
+        )
+
+    def to_sadface(self) -> sadface.Node:
+        """Export AtomNode object into SADFace Node object."""
+        return {
+            "id": self._id,
+            "text": self.plain_text,
+            "type": "atom",
+            "metadata": self.userdata
+        }
+
+
+    @classmethod
     def from_ova(
         cls,
         obj: ova.Node,
@@ -479,18 +505,13 @@ class AtomNode(Node):
         return obj
 
     def to_nx(
-        self,
-        g: nx.DiGraph,
-        attrs: t.Optional[t.MutableMapping[str, t.Callable[[AtomNode], t.Any]]] = None,
+        self, g: nx.DiGraph, label_func: t.Optional[t.Callable[[AtomNode], str]] = None
     ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
-        if attrs is None:
-            attrs = {}
-
-        if "label" not in attrs:
-            attrs["label"] = lambda x: x.plain_text
-
-        g.add_node(self._id, **{key: func(self) for key, func in attrs.items()})
+        g.add_node(
+            self._id,
+            label=label_func(self) if label_func else self.plain_text,
+        )
 
     def color(self, major_claim: bool) -> Color:
         """Get the color for rendering the node."""
@@ -600,6 +621,30 @@ class SchemeNode(Node):
         }
 
     @classmethod
+    def from_sadface(
+            cls,
+            obj: sadface.Node,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> SchemeNode:
+        """Generate SchemeNode object from SADFace Node object."""
+        name = None
+        if obj["name"] == "Support":
+            name = Support
+        elif obj["name"] == "Attack":
+            name = Attack
+        elif obj["name"] == "Rephrase":
+            name = Rephrase
+        elif obj["name"] == "Preference":
+            name = Preference
+
+        return cls(
+            id=obj["id"],
+            userdata=obj["metadata"],
+            metadata=Metadata(pendulum.now(), pendulum.now()),
+            scheme=name
+        )
+
+    @classmethod
     def from_ova(
         cls,
         obj: ova.Node,
@@ -690,19 +735,23 @@ class SchemeNode(Node):
     def to_nx(
         self,
         g: nx.DiGraph,
-        attrs: t.Optional[
-            t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]]
-        ] = None,
+        label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
     ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
+        if label_func:
+            label = label_func(self)
+        elif self.scheme:
+            label = type(self.scheme).__name__
 
-        if attrs is None:
-            attrs = {}
+            if self.scheme.value != "Default":
+                label = f"{label}: {self.scheme.value}"
+        else:
+            label = NO_SCHEME_LABEL
 
-        if "label" not in attrs:
-            attrs["label"] = _scheme_label
-
-        g.add_node(self._id, **{key: func(self) for key, func in attrs.items()})
+        g.add_node(
+            self._id,
+            label=label,
+        )
 
     def color(self, major_claim: bool) -> Color:
         """Get the color used in OVA based on `category`."""
@@ -721,9 +770,17 @@ class SchemeNode(Node):
         label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
     ) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
-
         color = self.color(major_claim)
-        label = label_func(self) if label_func else _scheme_label(self)
+
+        if label_func:
+            label = label_func(self)
+        elif self.scheme:
+            label = type(self.scheme).__name__
+
+            if self.scheme.value != "Default":
+                label = f"{label}: {self.scheme.value}"
+        else:
+            label = NO_SCHEME_LABEL
 
         g.node(
             self._id,
@@ -732,15 +789,3 @@ class SchemeNode(Node):
             fillcolor=color.bg,
             color=color.border,
         )
-
-
-def _scheme_label(obj: SchemeNode) -> str:
-    label = NO_SCHEME_LABEL
-
-    if obj.scheme:
-        label = type(obj.scheme).__name__
-
-        if obj.scheme.value != "Default":
-            label = f"{label}: {obj.scheme.value}"
-
-    return label

@@ -94,6 +94,43 @@ ova_data = [
     )
 ]
 
+sadface_data = [
+    (
+        """
+        {
+            "id": "3df54ae1-fa41-4ac7-85d5-4badee39215b",
+            "source_id": "70447169-9264-41dc-b8e9-50523f8368c1",
+            "target_id": "ae3f0c7f-9f69-4cab-9db3-3b9c46f56e09"
+        }
+        """,
+        "3df54ae1-fa41-4ac7-85d5-4badee39215b",
+        "70447169-9264-41dc-b8e9-50523f8368c1",
+        "ae3f0c7f-9f69-4cab-9db3-3b9c46f56e09",
+    )
+]
+
+
+@pytest.mark.parametrize("data,id,start,end", sadface_data)
+def test_sadface_edge(data, id, start, end):
+    data_json = json.loads(data)
+    edge = ag.Edge.from_sadface(
+        data_json,
+        {
+            start: ag.AtomNode(id=start, text=""),
+            end: ag.AtomNode(id=end, text=""),
+        },
+    )
+
+    assert edge
+    assert edge.id == id
+    assert isinstance(edge.source, ag.AtomNode)
+    assert isinstance(edge.target, ag.AtomNode)
+    assert edge.source.id == start
+    assert edge.target.id == end
+    assert edge.metadata is not None
+    assert edge.userdata == {}
+    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
+
 
 @pytest.mark.parametrize("data,id,start,end", aif_data)
 def test_aif_edge(data, id, start, end):
