@@ -5,6 +5,7 @@ import arguebuf as ag
 import pendulum
 import pytest
 from arg_services.graph.v1 import graph_pb2
+from arguebuf.models.node import Support
 
 aif_data_AtomNode = [
     (
@@ -57,6 +58,37 @@ ova_data_AtomNode = [
     )
 ]
 
+sadface_data_AtomNode = [
+    (
+        """
+        {
+            "id": "6cd219cc-3203-4602-88bd-d3639f86fb37",
+            "metadata": {},
+            "sources": [],
+            "text": "The 'Hang Back' advert does not clearly express the intended message",
+            "type": "atom"
+        }
+        """,
+        "6cd219cc-3203-4602-88bd-d3639f86fb37",
+        "The 'Hang Back' advert does not clearly express the intended message",
+        ag.AtomNode
+    )
+]
+
+@pytest.mark.parametrize("data,id,text,type", sadface_data_AtomNode)
+def test_sadface_node_AN(data, id, text, type):
+    data_json = json.loads(data)
+    node = ag.AtomNode.from_sadface(data_json)
+
+    assert node.id == id
+    assert node.text == text
+    assert isinstance(node, type)
+    assert node.reference is None
+    assert node.userdata == {}
+    assert isinstance(node.to_sadface(), Dict)
+    assert isinstance(node.to_protobuf(), graph_pb2.Node)
+
+
 
 @pytest.mark.parametrize("data,id,text,type,date", aif_data_AtomNode)
 def test_aif_node_AN(data, id, text, type, date):
@@ -90,6 +122,36 @@ def test_ova_node_AN(data, id, text, type, date):
     assert node.metadata.updated == date
     assert node.reference is None
     assert node.userdata == {}
+
+
+sadface_data_SchemeNode = [
+    (
+        """
+        {
+            "id": "70447169-9264-41dc-b8e9-50523f8368c1",
+            "metadata": {},
+            "name": "Support",
+            "type": "scheme"
+        }
+        """,
+        "70447169-9264-41dc-b8e9-50523f8368c1",
+        ag.SchemeNode,
+        Support
+    )
+]
+
+
+@pytest.mark.parametrize("data,id,type,name", sadface_data_SchemeNode)
+def test_sadface_node_SN(data, id, type, name):
+    data_json = json.loads(data)
+    node = ag.SchemeNode.from_sadface(data_json)
+
+    assert node.id == id
+    assert isinstance(node, type)
+    assert node.scheme == name
+    assert isinstance(node.metadata, ag.Metadata)
+    assert isinstance(node.to_protobuf(), graph_pb2.Node)
+
 
 
 '''

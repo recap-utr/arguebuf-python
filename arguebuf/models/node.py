@@ -15,7 +15,7 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova
+from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
@@ -403,6 +403,30 @@ class AtomNode(Node):
         return utils.class_repr(self, [self._id, self.plain_text])
 
     @classmethod
+    def from_sadface(
+            cls,
+            obj: sadface.Node,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> AtomNode:
+        """Generate AtomNode object from SADFace Node object."""
+        timestamp = (pendulum.now())
+        return cls(
+            id=obj["id"],
+            text=utils.parse(obj["text"], nlp),
+            userdata=obj["metadata"],
+            metadata=Metadata(timestamp, timestamp)
+        )
+
+    def to_sadface(self) -> sadface.Node:
+        """Export AtomNode object into SADFace Node object."""
+        return {
+            "id": self._id,
+            "text": self.plain_text,
+            "type": "atom",
+            "metadata": self.userdata
+        }
+
+    @classmethod
     def from_aif(
         cls,
         obj: aif.Node,
@@ -555,6 +579,30 @@ class SchemeNode(Node):
                 type(self.scheme).__name__ if self.scheme else NO_SCHEME_LABEL,
                 self.scheme.value if self.scheme else "",
             ],
+        )
+
+    @classmethod
+    def from_sadface(
+            cls,
+            obj: sadface.Node,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> SchemeNode:
+        """Generate SchemeNode object from SADFace Node object."""
+        name = None
+        if obj["name"] == "Support":
+            name = Support
+        elif obj["name"] == "Attack":
+            name = Attack
+        elif obj["name"] == "Rephrase":
+            name = Rephrase
+        elif obj["name"] == "Preference":
+            name = Preference
+
+        return cls(
+            id=obj["id"],
+            userdata=obj["metadata"],
+            metadata=Metadata(pendulum.now(), pendulum.now()),
+            scheme=name
         )
 
     @classmethod

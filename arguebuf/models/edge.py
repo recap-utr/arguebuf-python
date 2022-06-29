@@ -9,7 +9,7 @@ from arg_services.graph.v1 import graph_pb2
 from arguebuf.models import Userdata
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
-from arguebuf.schema import aif, ova
+from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import dt, utils
 
 
@@ -71,6 +71,25 @@ class Edge:
     def target(self) -> Node:
         """Gives the 'To'-Node."""
         return self._target
+
+    @classmethod
+    def from_sadface(
+            cls,
+            obj: sadface.Edge,
+            nodes: t.Mapping[str, Node],
+    ) -> t.Optional[Edge]:
+        """Generate Edge object from SADFace Edge format."""
+        source_id = obj.get("source_id")
+        target_id = obj.get("target_id")
+
+        if source_id in nodes and target_id in nodes:
+            return cls(
+                id=obj["id"],
+                source=nodes[source_id],
+                target=nodes[target_id],
+            )
+
+        return None
 
     @classmethod
     def from_ova(

@@ -21,7 +21,7 @@ from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, S
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova
+from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
@@ -705,6 +705,43 @@ class Graph:
 
         if (analysis := obj.get("analysis")) and (raw_text := analysis.get("txt")):
             _inject_original_text(raw_text, g._atom_nodes, resource, nlp)
+
+        return g
+
+    @classmethod
+    def from_sadface(
+            cls,
+            obj: sadface.Graph,
+            name: t.Optional[str] = None,
+            atom_class: t.Type[AtomNode] = AtomNode,
+            scheme_class: t.Type[SchemeNode] = SchemeNode,
+            edge_class: t.Type[Edge] = Edge,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        """Generate Graph structure from SADFace argument graph file
+        (reference: https://github.com/Open-Argumentation/SADFace/blob/master/examples/hangback/data.json).
+        """
+        g = cls(name)
+
+        for sadface_node in obj["nodes"]:
+            node = (
+                atom_class.from_sadface(sadface_node, nlp)
+                if sadface_node["type"] == "atom"
+                else scheme_class.from_sadface(sadface_node, nlp)
+            )
+
+            if node:
+                g.add_node(node)
+
+        for sadface_edge in obj["edges"]:
+            if edge := edge_class.from_sadface(sadface_edge, g._nodes):
+                g.add_edge(edge)
+
+        g.metadata = Userdata(obj["metadata"])
+        analyst = Analyst(name=obj["metadata"]["analyst_name"],
+                          email=obj["metadata"]["analyst_email"],
+                          id=obj["metadata"]["id"])
+        g.add_analyst(analyst)
 
         return g
 
