@@ -2,7 +2,7 @@ import typing as t
 import arguebuf as ag
 
 NodeType = t.Literal["scheme", "atom"]
-DATE_FORMAT = "YYYY-MM-DD HH:mm:ss"
+DATE_FORMAT = "YYYY-MM-DDTHH:mm:ss"
 
 
 class Node(t.TypedDict):
@@ -32,7 +32,11 @@ class Core(t.TypedDict):
     version: str
 
 
+class Metadata(t.TypedDict):
+    core: Core
+
+
 class Graph(t.TypedDict):
     nodes: t.List[Node]
     edges: t.List[Edge]
-    metadata: Core
+    metadata: Metadata

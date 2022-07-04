@@ -22,7 +22,7 @@ from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
 from arguebuf.schema import aif, ova, sadface
-from arguebuf.services import utils
+from arguebuf.services import utils, dt
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
 from lxml import html
@@ -737,11 +737,27 @@ class Graph:
             if edge := edge_class.from_sadface(sadface_edge, g._nodes):
                 g.add_edge(edge)
 
-        g.metadata = Userdata(obj["metadata"])
-        analyst = Analyst(name=obj["metadata"]["analyst_name"],
-                          email=obj["metadata"]["analyst_email"],
-                          id=obj["metadata"]["id"])
+        # create Metadata object
+        created = dt.from_format(obj["metadata"]["core"]["created"], sadface.DATE_FORMAT)
+        updated = dt.from_format(obj["metadata"]["core"]["edited"], sadface.DATE_FORMAT)
+        metadata = Metadata(created, updated)
+        g.metadata = metadata
+
+        # create Analyst object
+        analyst = Analyst(name=obj["metadata"]["core"]["analyst_name"],
+                          email=obj["metadata"]["core"]["analyst_email"],
+                          id=obj["metadata"]["core"]["id"])
         g.add_analyst(analyst)
+
+        # create Userdata dict
+        userdata = {
+            "notes": obj["metadata"]["core"]["notes"],
+            "description": obj["metadata"]["core"]["description"],
+            "title": obj["metadata"]["core"]["title"],
+            "id": obj["metadata"]["core"]["id"],
+            "version": obj["metadata"]["core"]["version"]
+        }
+        g.userdata = userdata
 
         return g
 

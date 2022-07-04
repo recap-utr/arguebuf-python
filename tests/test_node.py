@@ -130,7 +130,7 @@ sadface_data_SchemeNode = [
         {
             "id": "70447169-9264-41dc-b8e9-50523f8368c1",
             "metadata": {},
-            "name": "Support",
+            "name": "support",
             "type": "scheme"
         }
         """,
