@@ -744,9 +744,10 @@ class Graph:
         g.metadata = metadata
 
         # create Analyst object
-        analyst = Analyst(name=obj["metadata"]["core"]["analyst_name"],
-                          email=obj["metadata"]["core"]["analyst_email"],
-                          id=obj["metadata"]["core"]["id"])
+        analyst = Analyst(
+            name=obj["metadata"]["core"]["analyst_name"],
+            email=obj["metadata"]["core"]["analyst_email"],
+        )
         g.add_analyst(analyst)
 
         # create Userdata dict
