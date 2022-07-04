@@ -22,7 +22,7 @@ from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
 from arguebuf.schema import aif, ova, sadface
-from arguebuf.services import utils, dt
+from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
 from lxml import html
@@ -710,13 +710,13 @@ class Graph:
 
     @classmethod
     def from_sadface(
-            cls,
-            obj: sadface.Graph,
-            name: t.Optional[str] = None,
-            atom_class: t.Type[AtomNode] = AtomNode,
-            scheme_class: t.Type[SchemeNode] = SchemeNode,
-            edge_class: t.Type[Edge] = Edge,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: sadface.Graph,
+        name: t.Optional[str] = None,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Generate Graph structure from SADFace argument graph file
         (reference: https://github.com/Open-Argumentation/SADFace/blob/master/examples/hangback/data.json).
@@ -738,7 +738,9 @@ class Graph:
                 g.add_edge(edge)
 
         # create Metadata object
-        created = dt.from_format(obj["metadata"]["core"]["created"], sadface.DATE_FORMAT)
+        created = dt.from_format(
+            obj["metadata"]["core"]["created"], sadface.DATE_FORMAT
+        )
         updated = dt.from_format(obj["metadata"]["core"]["edited"], sadface.DATE_FORMAT)
         metadata = Metadata(created, updated)
         g.metadata = metadata

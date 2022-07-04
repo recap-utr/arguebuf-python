@@ -284,10 +284,10 @@ class Node(ABC):
     userdata: Userdata
 
     def __init__(
-            self,
-            metadata: t.Optional[Metadata] = None,
-            userdata: t.Optional[Userdata] = None,
-            id: t.Optional[str] = None,
+        self,
+        metadata: t.Optional[Metadata] = None,
+        userdata: t.Optional[Userdata] = None,
+        id: t.Optional[str] = None,
     ):
         self._id = id or utils.uuid()
         self.metadata = metadata or Metadata()
@@ -312,27 +312,27 @@ class Node(ABC):
     @classmethod
     @abstractmethod
     def from_ova(
-            cls,
-            obj: ova.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: ova.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from OVA Node format."""
 
     @classmethod
     @abstractmethod
     def from_aif(
-            cls,
-            obj: aif.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: aif.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from AIF Node format."""
 
     @classmethod
     @abstractmethod
     def from_sadface(
-            cls,
-            obj: sadface.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from SADFace Node format."""
 
@@ -343,13 +343,13 @@ class Node(ABC):
     @classmethod
     @abstractmethod
     def from_protobuf(
-            cls,
-            id: str,
-            obj: graph_pb2.Node,
-            resources: t.Mapping[str, Resource],
-            participants: t.Mapping[str, Participant],
-            reference_class: t.Type[Reference],
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        id: str,
+        obj: graph_pb2.Node,
+        resources: t.Mapping[str, Resource],
+        participants: t.Mapping[str, Participant],
+        reference_class: t.Type[Reference],
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from PROTOBUF Node object."""
 
@@ -381,13 +381,13 @@ class AtomNode(Node):
     _participant: t.Optional[Participant]
 
     def __init__(
-            self,
-            text: t.Any,
-            resource: t.Optional[Reference] = None,
-            participant: t.Optional[Participant] = None,
-            metadata: t.Optional[Metadata] = None,
-            userdata: t.Optional[Userdata] = None,
-            id: t.Optional[str] = None,
+        self,
+        text: t.Any,
+        resource: t.Optional[Reference] = None,
+        participant: t.Optional[Participant] = None,
+        metadata: t.Optional[Metadata] = None,
+        userdata: t.Optional[Userdata] = None,
+        id: t.Optional[str] = None,
     ):
         super().__init__(metadata, userdata, id)
         self.text = text
@@ -413,28 +413,28 @@ class AtomNode(Node):
 
     @classmethod
     def from_sadface(
-            cls,
-            obj: sadface.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from SADFace Node object."""
-        timestamp = (pendulum.now())
+        timestamp = pendulum.now()
         return cls(
             id=obj["id"],
             text=utils.parse(obj["text"], nlp),
             userdata=obj["metadata"],
-            metadata=Metadata(timestamp, timestamp)
+            metadata=Metadata(timestamp, timestamp),
         )
 
     @classmethod
     def from_aif(
-            cls,
-            obj: aif.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: aif.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from AIF Node object."""
         timestamp = (
-                dt.from_format(obj.get("timestamp"), aif.DATE_FORMAT) or pendulum.now()
+            dt.from_format(obj.get("timestamp"), aif.DATE_FORMAT) or pendulum.now()
         )
 
         return cls(
@@ -454,9 +454,9 @@ class AtomNode(Node):
 
     @classmethod
     def from_ova(
-            cls,
-            obj: ova.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: ova.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from OVA Node object."""
         timestamp = dt.from_format(obj.get("date"), ova.DATE_FORMAT) or pendulum.now()
@@ -469,13 +469,13 @@ class AtomNode(Node):
 
     @classmethod
     def from_protobuf(
-            cls,
-            id: str,
-            obj: graph_pb2.Node,
-            resources: t.Mapping[str, Resource],
-            participants: t.Mapping[str, Participant],
-            reference_class: t.Type[Reference],
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        id: str,
+        obj: graph_pb2.Node,
+        resources: t.Mapping[str, Resource],
+        participants: t.Mapping[str, Participant],
+        reference_class: t.Type[Reference],
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from PROTOBUF Node object."""
         return cls(
@@ -503,9 +503,9 @@ class AtomNode(Node):
         return obj
 
     def to_nx(
-            self,
-            g: nx.DiGraph,
-            attrs: t.Optional[t.MutableMapping[str, t.Callable[[AtomNode], t.Any]]] = None,
+        self,
+        g: nx.DiGraph,
+        attrs: t.Optional[t.MutableMapping[str, t.Callable[[AtomNode], t.Any]]] = None,
     ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
         if attrs is None:
@@ -524,11 +524,11 @@ class AtomNode(Node):
         return Color(bg="#ddeef9", border="#3498db")
 
     def to_gv(
-            self,
-            g: gv.Digraph,
-            major_claim: bool,
-            wrap_col: int,
-            label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
+        self,
+        g: gv.Digraph,
+        major_claim: bool,
+        wrap_col: int,
+        label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
     ) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
@@ -560,12 +560,12 @@ class SchemeNode(Node):
     premise_descriptors: t.List[str]
 
     def __init__(
-            self,
-            scheme: t.Optional[Scheme] = None,
-            premise_descriptors: t.Optional[t.List[str]] = None,
-            metadata: t.Optional[Metadata] = None,
-            userdata: t.Optional[Userdata] = None,
-            id: t.Optional[str] = None,
+        self,
+        scheme: t.Optional[Scheme] = None,
+        premise_descriptors: t.Optional[t.List[str]] = None,
+        metadata: t.Optional[Metadata] = None,
+        userdata: t.Optional[Userdata] = None,
+        id: t.Optional[str] = None,
     ):
         super().__init__(metadata, userdata, id)
         self.scheme = scheme
@@ -583,9 +583,9 @@ class SchemeNode(Node):
 
     @classmethod
     def from_sadface(
-            cls,
-            obj: sadface.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
         """Generate SchemeNode object from SADFace Node object."""
         name = None
@@ -598,19 +598,19 @@ class SchemeNode(Node):
         elif obj["name"] == "preference":
             name = Preference
 
-        timestamp = (pendulum.now())
+        timestamp = pendulum.now()
         return cls(
             id=obj["id"],
             userdata=obj["metadata"],
             metadata=Metadata(timestamp, timestamp),
-            scheme=name
+            scheme=name,
         )
 
     @classmethod
     def from_aif(
-            cls,
-            obj: aif.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: aif.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> t.Optional[SchemeNode]:
         """Generate SchemeNode object from AIF Node object."""
 
@@ -627,7 +627,7 @@ class SchemeNode(Node):
                 scheme = found_scheme
 
             timestamp = (
-                    dt.from_format(obj.get("timestamp"), aif.DATE_FORMAT) or pendulum.now()
+                dt.from_format(obj.get("timestamp"), aif.DATE_FORMAT) or pendulum.now()
             )
 
             return cls(
@@ -650,9 +650,9 @@ class SchemeNode(Node):
 
     @classmethod
     def from_ova(
-            cls,
-            obj: ova.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: ova.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> t.Optional[SchemeNode]:
         """Generate SchemeNode object from OVA Node object."""
 
@@ -672,7 +672,7 @@ class SchemeNode(Node):
             ]
 
             timestamp = (
-                    dt.from_format(obj.get("date"), ova.DATE_FORMAT) or pendulum.now()
+                dt.from_format(obj.get("date"), ova.DATE_FORMAT) or pendulum.now()
             )
 
             return cls(
@@ -686,13 +686,13 @@ class SchemeNode(Node):
 
     @classmethod
     def from_protobuf(
-            cls,
-            id: str,
-            obj: graph_pb2.Node,
-            resources: t.Mapping[str, Resource],
-            participants: t.Mapping[str, Participant],
-            reference_class: t.Type[Reference],
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        id: str,
+        obj: graph_pb2.Node,
+        resources: t.Mapping[str, Resource],
+        participants: t.Mapping[str, Participant],
+        reference_class: t.Type[Reference],
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
         """Generate SchemeNode object from OVA Node object."""
 
@@ -737,11 +737,11 @@ class SchemeNode(Node):
         return obj
 
     def to_nx(
-            self,
-            g: nx.DiGraph,
-            attrs: t.Optional[
-                t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]]
-            ] = None,
+        self,
+        g: nx.DiGraph,
+        attrs: t.Optional[
+            t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]]
+        ] = None,
     ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
 
@@ -763,11 +763,11 @@ class SchemeNode(Node):
         )
 
     def to_gv(
-            self,
-            g: gv.Digraph,
-            major_claim: bool,
-            wrap_col: int,
-            label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
+        self,
+        g: gv.Digraph,
+        major_claim: bool,
+        wrap_col: int,
+        label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
     ) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
 

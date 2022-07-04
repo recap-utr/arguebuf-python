@@ -74,9 +74,9 @@ class Edge:
 
     @classmethod
     def from_sadface(
-            cls,
-            obj: sadface.Edge,
-            nodes: t.Mapping[str, Node],
+        cls,
+        obj: sadface.Edge,
+        nodes: t.Mapping[str, Node],
     ) -> t.Optional[Edge]:
         """Generate Edge object from SADFace Edge format."""
         source_id = obj.get("source_id")
