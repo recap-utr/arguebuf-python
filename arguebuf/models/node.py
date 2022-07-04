@@ -15,7 +15,7 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova
+from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
@@ -327,6 +327,15 @@ class Node(ABC):
     ) -> Node:
         """Generate Node object from AIF Node format."""
 
+    @classmethod
+    @abstractmethod
+    def from_sadface(
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Node:
+        """Generate Node object from SADFace Node format."""
+
     @abstractmethod
     def to_aif(self) -> aif.Node:
         """Export Node object into AIF Node format."""
@@ -401,6 +410,21 @@ class AtomNode(Node):
 
     def __repr__(self):
         return utils.class_repr(self, [self._id, self.plain_text])
+
+    @classmethod
+    def from_sadface(
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> AtomNode:
+        """Generate AtomNode object from SADFace Node object."""
+        timestamp = pendulum.now()
+        return cls(
+            id=obj["id"],
+            text=utils.parse(obj["text"], nlp),
+            userdata=obj["metadata"],
+            metadata=Metadata(timestamp, timestamp),
+        )
 
     @classmethod
     def from_aif(
@@ -555,6 +579,31 @@ class SchemeNode(Node):
                 type(self.scheme).__name__ if self.scheme else NO_SCHEME_LABEL,
                 self.scheme.value if self.scheme else "",
             ],
+        )
+
+    @classmethod
+    def from_sadface(
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> SchemeNode:
+        """Generate SchemeNode object from SADFace Node object."""
+        name = None
+        if obj["name"] == "support":
+            name = Support
+        elif obj["name"] == "attack":
+            name = Attack
+        elif obj["name"] == "rephrase":
+            name = Rephrase
+        elif obj["name"] == "preference":
+            name = Preference
+
+        timestamp = pendulum.now()
+        return cls(
+            id=obj["id"],
+            userdata=obj["metadata"],
+            metadata=Metadata(timestamp, timestamp),
+            scheme=name,
         )
 
     @classmethod
