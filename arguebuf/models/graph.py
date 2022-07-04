@@ -755,8 +755,7 @@ class Graph:
             "notes": obj["metadata"]["core"]["notes"],
             "description": obj["metadata"]["core"]["description"],
             "title": obj["metadata"]["core"]["title"],
-            "id": obj["metadata"]["core"]["id"],
-            "version": obj["metadata"]["core"]["version"]
+            "sadfaceVersion": obj["metadata"]["core"]["version"],
         }
         g.userdata = userdata
 
