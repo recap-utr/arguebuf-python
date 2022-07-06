@@ -1341,13 +1341,18 @@ class Graph:
 
         return g
 
-    def strip_snodes(self) -> None:
-        """Remove scheme nodes from graph and merge respective edges into singular edge"""
-        snodes = list(self._scheme_nodes.values())
+    def strip_scheme_nodes(self) -> None:
+        """Remove scheme nodes from graph to connect atom nodes directly
 
-        for snode in snodes:
+        Can be useful to analyze the structure of atom nodes
+        without considering their relation types (i.e., the scheme nodes between them).
+        """
+
+        schemes = list(self._scheme_nodes.values())
+
+        for scheme in schemes:
             for incoming, outgoing in itertools.product(
-                self._incoming_edges[snode], self._outgoing_edges[snode]
+                self._incoming_edges[scheme], self._outgoing_edges[scheme]
             ):
                 if isinstance(incoming.source, AtomNode) and isinstance(
                     outgoing.target, AtomNode
@@ -1356,11 +1361,10 @@ class Graph:
                         Edge(
                             incoming.source,
                             outgoing.target,
-                            id=f"{incoming.id}-{outgoing.id}",
                         )
                     )
 
-            self.remove_node(snode)
+            self.remove_node(scheme)
 
     def copy(
         self,
