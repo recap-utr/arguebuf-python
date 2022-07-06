@@ -17,7 +17,8 @@ from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
+from arguebuf.models.node import (AtomNode, Attack, Node, Rephrase, SchemeNode,
+                                  Support)
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
@@ -1146,13 +1147,16 @@ class Graph:
     @classmethod
     def from_file(
         cls,
-        path: Path,
+        path: t.Union[Path, str],
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Generate Graph structure from a File."""
+        if isinstance(path, str):
+            path = Path(path)
+
         with path.open("r", encoding="utf-8") as file:
             return cls.from_io(
                 file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp
@@ -1160,11 +1164,14 @@ class Graph:
 
     def to_file(
         self,
-        path: Path,
+        path: t.Union[Path, str],
         format: GraphFormat = GraphFormat.ARGUEBUF,
         pretty: bool = False,
     ) -> None:
         """Export strucure of Graph instance into structure of File/Folder format."""
+        if isinstance(path, str):
+            path = Path(path)
+
         if path.is_dir() or not path.suffix:
             path = path / f"{self.name}.json"
 
@@ -1176,7 +1183,7 @@ class Graph:
     @classmethod
     def from_folder(
         cls,
-        path: Path,
+        path: t.Union[Path, str],
         pattern: str,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
@@ -1201,6 +1208,9 @@ class Graph:
         Returns:
             Dictionary containing all found file paths as well as the loaded graphs.
         """
+
+        if isinstance(path, str):
+            path = Path(path)
 
         return {
             file: cls.from_file(file, atom_class, scheme_class, edge_class, nlp)
@@ -1429,10 +1439,13 @@ def _kialo_atom_node(
 
 def render(
     g: t.Union[gv.Graph, gv.Digraph],
-    path: Path,
+    path: t.Union[Path, str],
     view: bool = False,
 ) -> None:
     """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
+    if isinstance(path, str):
+        path = Path(path)
+
     filename = path.stem
     directory = path.parent
 
