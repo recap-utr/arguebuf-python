@@ -1,6 +1,13 @@
 # Arguebuf
 
-<!-- TODO: Introduction -->
+TODO: Introduction
+
+```{eval-rst}
+.. toctree::
+    :maxdepth: 1
+
+    api
+```
 
 ## Theoretical Foundations
 
