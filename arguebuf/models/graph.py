@@ -17,8 +17,7 @@ from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import (AtomNode, Attack, Node, Rephrase, SchemeNode,
-                                  Support)
+from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
@@ -1446,18 +1445,21 @@ def render(
     if isinstance(path, str):
         path = Path(path)
 
+    if not isinstance(g, (gv.Graph, gv.Digraph)):
+        raise ValueError(
+            "This method expects a graph in the 'DOT' format."
+            "Please use 'graph.to_gv()' to convert your argument graph to the 'DOT' format."
+        )
+
     filename = path.stem
     directory = path.parent
 
-    try:
-        g.render(
-            filename=filename,
-            directory=str(directory),
-            cleanup=True,
-            view=view,
-        )
-    except gv.ExecutableNotFound:
-        log.error("Rendering not possible. GraphViz might not be installed.")
+    g.render(
+        filename=filename,
+        directory=str(directory),
+        cleanup=True,
+        view=view,
+    )
 
 
 def _inject_original_text(
