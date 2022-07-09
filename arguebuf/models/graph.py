@@ -1384,15 +1384,24 @@ class Graph:
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
         edge_class: t.Type[Edge] = Edge,
+        participant_class: t.Type[Participant] = Participant,
+        analyst_class: t.Type[Analyst] = Analyst,
+        resource_class: t.Type[Resource] = Resource,
+        reference_class: t.Type[Reference] = Reference,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Contents of Graph instance are copied into new Graph object."""
-        return Graph.from_dict(
-            self.to_dict(format=GraphFormat.ARGUEBUF),
+
+        return Graph.from_protobuf(
+            self.to_protobuf(),
             self.name,
             atom_class,
             scheme_class,
             edge_class,
+            participant_class,
+            analyst_class,
+            resource_class,
+            reference_class,
             nlp,
         )
 
