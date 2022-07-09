@@ -1377,6 +1377,8 @@ class Graph:
 
             self.remove_node(scheme)
 
+        return self
+
     def copy(
         self,
         atom_class: t.Type[AtomNode] = AtomNode,
