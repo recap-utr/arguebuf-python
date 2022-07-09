@@ -1350,7 +1350,9 @@ class Graph:
 
         return g
 
-    def strip_scheme_nodes(self) -> None:
+    to_dot = to_gv
+
+    def strip_scheme_nodes(self) -> Graph:
         """Remove scheme nodes from graph to connect atom nodes directly
 
         Can be useful to analyze the structure of atom nodes
