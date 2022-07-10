@@ -1146,13 +1146,16 @@ class Graph:
     @classmethod
     def from_file(
         cls,
-        path: Path,
+        path: t.Union[Path, str],
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
         edge_class: t.Type[Edge] = Edge,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Generate Graph structure from a File."""
+        if isinstance(path, str):
+            path = Path(path)
+
         with path.open("r", encoding="utf-8") as file:
             return cls.from_io(
                 file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp
@@ -1160,11 +1163,14 @@ class Graph:
 
     def to_file(
         self,
-        path: Path,
+        path: t.Union[Path, str],
         format: GraphFormat = GraphFormat.ARGUEBUF,
         pretty: bool = False,
     ) -> None:
         """Export strucure of Graph instance into structure of File/Folder format."""
+        if isinstance(path, str):
+            path = Path(path)
+
         if path.is_dir() or not path.suffix:
             path = path / f"{self.name}.json"
 
@@ -1176,7 +1182,7 @@ class Graph:
     @classmethod
     def from_folder(
         cls,
-        path: Path,
+        path: t.Union[Path, str],
         pattern: str,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
@@ -1201,6 +1207,9 @@ class Graph:
         Returns:
             Dictionary containing all found file paths as well as the loaded graphs.
         """
+
+        if isinstance(path, str):
+            path = Path(path)
 
         return {
             file: cls.from_file(file, atom_class, scheme_class, edge_class, nlp)
@@ -1341,13 +1350,20 @@ class Graph:
 
         return g
 
-    def strip_snodes(self) -> None:
-        """Remove scheme nodes from graph and merge respective edges into singular edge"""
-        snodes = list(self._scheme_nodes.values())
+    to_dot = to_gv
 
-        for snode in snodes:
+    def strip_scheme_nodes(self) -> Graph:
+        """Remove scheme nodes from graph to connect atom nodes directly
+
+        Can be useful to analyze the structure of atom nodes
+        without considering their relation types (i.e., the scheme nodes between them).
+        """
+
+        schemes = list(self._scheme_nodes.values())
+
+        for scheme in schemes:
             for incoming, outgoing in itertools.product(
-                self._incoming_edges[snode], self._outgoing_edges[snode]
+                self._incoming_edges[scheme], self._outgoing_edges[scheme]
             ):
                 if isinstance(incoming.source, AtomNode) and isinstance(
                     outgoing.target, AtomNode
@@ -1356,26 +1372,36 @@ class Graph:
                         Edge(
                             incoming.source,
                             outgoing.target,
-                            id=f"{incoming.id}-{outgoing.id}",
                         )
                     )
 
-            self.remove_node(snode)
+            self.remove_node(scheme)
+
+        return self
 
     def copy(
         self,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
         edge_class: t.Type[Edge] = Edge,
+        participant_class: t.Type[Participant] = Participant,
+        analyst_class: t.Type[Analyst] = Analyst,
+        resource_class: t.Type[Resource] = Resource,
+        reference_class: t.Type[Reference] = Reference,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """Contents of Graph instance are copied into new Graph object."""
-        return Graph.from_dict(
-            self.to_dict(format=GraphFormat.ARGUEBUF),
+
+        return Graph.from_protobuf(
+            self.to_protobuf(),
             self.name,
             atom_class,
             scheme_class,
             edge_class,
+            participant_class,
+            analyst_class,
+            resource_class,
+            reference_class,
             nlp,
         )
 
@@ -1425,22 +1451,28 @@ def _kialo_atom_node(
 
 def render(
     g: t.Union[gv.Graph, gv.Digraph],
-    path: Path,
+    path: t.Union[Path, str],
     view: bool = False,
 ) -> None:
     """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
+    if isinstance(path, str):
+        path = Path(path)
+
+    if not isinstance(g, (gv.Graph, gv.Digraph)):
+        raise ValueError(
+            "This method expects a graph in the 'DOT' format."
+            "Please use 'graph.to_gv()' to convert your argument graph to the 'DOT' format."
+        )
+
     filename = path.stem
     directory = path.parent
 
-    try:
-        g.render(
-            filename=filename,
-            directory=str(directory),
-            cleanup=True,
-            view=view,
-        )
-    except gv.ExecutableNotFound:
-        log.error("Rendering not possible. GraphViz might not be installed.")
+    g.render(
+        filename=filename,
+        directory=str(directory),
+        cleanup=True,
+        view=view,
+    )
 
 
 def _inject_original_text(
