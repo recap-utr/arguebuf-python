@@ -1,116 +1,121 @@
 # Arguebuf
 
-Many resources dealing with argumentation are available, but the content is mostly unstructured.
-With its priority program _Robust Argumentation Machines_ ([RATIO](http://www.spp-ratio.de/)) the German Research Association aims at developing new methodologies to extract and process argumentative information from natural text through coherent argumentative structures rather than only considering individual facts.
-As part of the priority program, the [ReCAP](http://recap.uni-trier.de/) project targets the realization of an Argumentation Machine that primarily operates on the knowledge level by enabling argument-based reasoning.
-
-Argumentation, in a formal way, is described as a set of arguments in texts. An argument consists of a claim and at least one premise. A _claim_, which represents a controversial statement, can either be supported or attacked by one or multiple _premises_, which provide the actual evidence to a claim. Further, the _major claim_ is defined as the claim that describes the key concept in an argumentative text. Major claims, claims and premises are considered _Argumentative Discourse Units_ (ADUs) and represent the components of argumentation. Additionally, we can represent the stance between two ADUs as a supporting or attacking directed relation.
-
-Claims, premises and the major claim are represented as _information nodes_ (I-nodes) while relations between them are represented by _scheme nodes_ (S-nodes).
-The set of nodes $V = I \cup S$ is composed of _I_- and _S_-nodes.
-The supporting or attacking relations are encoded in a set of edges $E \subseteq V \times V$.
-Based on this, we define an argument graph $G$ as the triple $G = ( V , E , M )$.
-
-## User Guide
-
-First we need to import the core classes of the argument graph library: Graph, Edge, Node, NodeCategory. Additionally, our methods require Path objects as defined through the pathlib library as compared to path representation as strings.
-
-```python
-from arguebuf import Graph, Edge, Node, NodeCategory
-from pathlib import Path
-```
-
-Information nodes hold textual information as specific spacy objects, therefore we need to import [spacy](https://spacy.io/usage) and load a [language model](https://spacy.io/usage/models) respective to a task.
-
-```python
-import spacy
-nlp = spacy.load("en_core_web_lg")
-```
-
-### Case 1: Loading a pre-existing Graph
-
-Graphs are stored as JSON files in external formats (currently: [AIF](http://www.wi2.uni-trier.de/shared/publications/2019_Bergmann_FLAIRS.pdf?), [OVA](http://ova.uni-trier.de/)) or the internal library graph structure. A pre-built graph can be easily loaded into the environment with the following code snippet while the graph format is identified automatically.
-Here, nodeset6366.json is a case graph from the [ReCAP corpus](https://www.uni-trier.de/fileadmin/fb4/prof/INF/DBI/Publikationen/preprint_dumani_corpus.pdf) and located in the root directory of the project.
-
-```python
-full_graph = Graph.open(Path("nodeset6366.json"))
-```
-
-Using the [graphviz](https://graphviz.readthedocs.io/en/stable/manual.html/) library (install & add location to PATH) we can render our graph by running the following code which produces the next image.
-
-```python
-full_graph.render(Path("fullgraph"), format='png')
-```
-
-![Full Graph](img/full_graph.png)
-
-### Case 2: Creating a new graph
-
-We can generate graphs node by node using the argument graph library. Again, we first define a graph object.
-
-```python
-simple_graph = Graph("Covid19")
-```
-
-We create a Node object node_A and give it a list of initiating parameters key, text & category. Parameter key specifies the identifying number of a node to graph. By utilizing the keygen function of said graph we ensure that the key in unique and not already used by a different node or edge.
-Parameter text can take a text object or a spacy object with the String of the actual argument it should hold. The spacy object lets us instantly make use of additional linguistic features for analysis, research or model training.
-The last parameter category specifies the type of a Node object. Using the enum class NodeCategory we simply define the most common type of nodes: the information node (NodeCategory.I).
-
-```python
-node_A = Node(key = simple_graph.keygen(),
-          text = nlp("Wearing masks in public slows down viral spread and reduces the amount of fatal cases."),
-          category = NodeCategory.I)
-```
-
-The next Node object node_B represents a scheme node that connects two information nodes. For this simple case we define a "Attack" relation that can be represented in OVA graphs by the CA (Default Conflict) relation. We set its category accordingly (NodeCategory.CA).
-
-```python
-node_B = Node(key = simple_graph.keygen(),
-          text = "Attack",
-          category = NodeCategory.CA)
-```
-
-The last node node_C depicts our second information node and holds a different argument that attacks the argument defined in node_A.
-
-```python
-node_C = Node(key = simple_graph.keygen(),
-          text = nlp("Most masks do not actually protect yourself."),
-          category = NodeCategory.I)
-```
-
-As we can store additional information in edges of argument graphs, we need to define objects of the Edge classes that connect node C to B and B to A (direction of inference matters here).
-
-```python
-edge_CB = Edge(key = simple_graph.keygen(),
-          start = node_C,
-          end = node_B)
-
-edge_BA = Edge(key = simple_graph.keygen(),
-          start = node_B,
-          end = node_A)
-```
-
-Finally, we need to add nodes and edges to the graph.
-
-```python
-simple_graph.add_node(node_A)
-simple_graph.add_node(node_B)
-simple_graph.add_node(node_C)
-simple_graph.add_edge(edge_CB)
-simple_graph.add_edge(edge_BA)
-```
-
-This produces the following simple graph.
-
-```python
-simple_graph.render(Path("simplegraph"),format='png')
-```
-
-![Simple Graph](img/simple_graph.png)
+TODO: Introduction
 
 ```{eval-rst}
 .. toctree::
     :maxdepth: 1
 
     api
+```
+
+## Theoretical Foundations
+
+An argument graph is way to represent _structured_ argumentation.
+What sets it apart from _unstructured_ argumentation (e.g., in newspaper articles) is that only the essential/argumentative parts of a text art part of this representation.
+These _units_ of argumentation are also called ADUs (argumentative discourse units).
+The length of ADUs can differ dramatically (depending on various factors like the context), meaning they might contain only a few words, a sentence, or even a whole paragraph.
+The structure of an argument is then represented through _relations_ between these units.
+For this purpose, they can be further subdivided into _claims_ and _premises_:
+A claim is a statement that is supported or attacked by one or multiple premises.
+At the same time, a claim may also function as a premise for another claim, making it possible to construct even complex _argument graphs_.
+One of the claims is called _major claim_ and represents the overall claim of the whole argument.
+In many cases (but not all), this major claim is located right at the top of the graph
+Here is a rather simple example.
+
+TODO: Example
+
+Claims, premises and the major claim are represented as _atom nodes_ while relations between them are represented by _scheme nodes_.
+The set of nodes $V = A \cup S$ is composed of the set of atom nodes $A$ and the set of scheme nodes $S$.
+The supporting or attacking relations are encoded in a set of edges $E \subseteq V \times V \setminus A \times A$.
+Edges can be drawn between any type of nodes except for two atom nodes.
+For instance, it is possible to connect two scheme nodes to support or attack the _inference_ between two ADUs.
+Based on this, we define an argument graph $G$ as the triple $G = ( V , E , M )$.
+
+## User Guide
+
+When importing this library, we recommend using an abbreviation such as `ag` (for _argument graph_).
+
+```python
+import arguebuf as ag
+```
+
+In the following, we will introduce the most important features of `arguebuf`.
+For more examples, we encourage you to visit our [API documentation](./api.md) which contains examples for most of the methods.
+
+### Importing an Existing Graph
+
+We support multiple established formats to represent argument graphs: `AIF`, `OVA`, `SADFace`, `BRAT`, and `Kialo`.
+Given an input file, the library can automatically determine the correct format and convert it to a representation in the `arguebuf` format.
+One can either pass a string pointing to the file or a `pathlib.Path` object.
+
+```python
+graph = ag.Graph.from_file("graph.json")
+```
+
+It is also possible to load multiple graphs within a folder.
+Here, you need to pass the folder along with a [glob pattern](https://docs.python.org/3/library/fnmatch.html#module-fnmatch) for selecting the argument graphs.
+This also enables to recursively load all argument graphs from a common parent directory.
+
+```python
+graphs = ag.Graph.from_folder("./data", "**/*.json")
+```
+
+Since atom nodes contain textual information that may need to be analyzed using NLP techniques, we support passing a custom `nlp` function to these loader methods.
+This also makes it really easy to integrate the popular [`spacy` library](http://spacy.io) with `arguebuf` as all texts of atom nodes are automatically converted to a spacy `Doc`.
+
+```python
+import spacy
+nlp = spacy.load("en_core_web_lg")
+graph = ag.Graph.from_file("graph.json", nlp=nlp)
+```
+
+### Programmatically Create a New Graph
+
+Instead of importing an existing graph, you can also create a new one using an object-oriented API using our library.
+To illustrate this, we generate a graph with two premises that are connected to a major claim.
+**Please note:** In case edges with nodes not yet contained in the graph are added, the respective nodes are added automatically.
+
+```python
+graph = ag.Graph("TITLE")
+
+premise1 = ag.AtomNode("Text of premise 1")
+premise2 = ag.AtomNode("Text of premise 2")
+claim = ag.AtomNode("Text of claim")
+
+scheme1 = ag.SchemeNode(ag.Support.DEFAULT)
+scheme2 = ag.SchemeNode(ag.Attack.DEFAULT)
+
+graph.add_edge(ag.Edge(premise1, scheme1))
+graph.add_edge(ag.Edge(scheme1, claim))
+graph.add_edge(ag.Edge(premise2, scheme2))
+graph.add_edge(ag.Edge(scheme2, claim))
+
+graph.major_claim = claim
+```
+
+With this code, we get the following output
+
+![Output of programmatic graph creation](./img/programmatic.png)
+
+### Exporting Argument Graphs
+
+We support different output formats and integration with other libraries to ease the use of argument graphs.
+Have a look at the following code snippet to get an overview of the possibilities
+
+```python
+# Export to graphviz DOT format
+dot = graph.to_gv()
+
+# Export an image of this dot source to a file
+ag.render(dot, "./graph.pdf")
+
+# Convert to NetworkX graph
+nx = graph.to_nx()
+
+# Save the graph as Arguebuf
+graph.to_file("./graph.json")
+
+# Save the graph as AIF
+graph.to_file("./graph.json", ag.GraphFormat.AIF)
 ```
