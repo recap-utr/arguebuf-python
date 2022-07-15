@@ -607,16 +607,18 @@ class SchemeNode(Node):
     ) -> SchemeNode:
         """Generate SchemeNode object from SADFace Node object."""
         name = None
+
         if obj["name"] == "support":
-            name = Support
+            name = Support.DEFAULT
         elif obj["name"] == "attack":
-            name = Attack
+            name = Attack.DEFAULT
         elif obj["name"] == "rephrase":
-            name = Rephrase
+            name = Rephrase.DEFAULT
         elif obj["name"] == "preference":
-            name = Preference
+            name = Preference.DEFAULT
 
         timestamp = pendulum.now()
+
         return cls(
             id=obj["id"],
             userdata=obj["metadata"],
