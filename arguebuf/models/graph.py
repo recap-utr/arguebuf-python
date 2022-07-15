@@ -108,7 +108,7 @@ class Graph:
             node = self._nodes[node]
 
         incoming_nodes = list(self._incoming_nodes[node])
-        incoming_atom_nodes = set()
+        incoming_atom_nodes: set[AtomNode] = set()
 
         while incoming_nodes:
             incoming_node = incoming_nodes.pop()
@@ -131,7 +131,7 @@ class Graph:
             node = self._nodes[node]
 
         outgoing_nodes = list(self._outgoing_nodes[node])
-        outgoing_atom_nodes = set()
+        outgoing_atom_nodes: set[AtomNode] = set()
 
         while outgoing_nodes:
             outgoing_node = outgoing_nodes.pop()
@@ -947,7 +947,7 @@ class Graph:
     @classmethod
     def from_json(
         cls,
-        obj: t.IO,
+        obj: t.TextIO,
         name: t.Optional[str] = None,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
@@ -961,7 +961,7 @@ class Graph:
 
     def to_json(
         self,
-        obj: t.IO,
+        obj: t.TextIO,
         format: GraphFormat = GraphFormat.ARGUEBUF,
         pretty: bool = False,
     ) -> None:
@@ -973,7 +973,7 @@ class Graph:
     @classmethod
     def from_brat(
         cls,
-        obj: t.IO,
+        obj: t.TextIO,
         name: t.Optional[str] = None,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
@@ -1025,7 +1025,7 @@ class Graph:
     @classmethod
     def from_kialo(
         cls,
-        obj: t.IO,
+        obj: t.TextIO,
         name: t.Optional[str] = None,
         atom_class: t.Type[AtomNode] = AtomNode,
         scheme_class: t.Type[SchemeNode] = SchemeNode,
@@ -1116,7 +1116,7 @@ class Graph:
     @classmethod
     def from_io(
         cls,
-        obj: t.IO,
+        obj: t.TextIO,
         suffix: str,
         name: t.Optional[str] = None,
         atom_class: t.Type[AtomNode] = AtomNode,
@@ -1136,7 +1136,7 @@ class Graph:
 
     def to_io(
         self,
-        obj: t.IO,
+        obj: t.TextIO,
         format: GraphFormat = GraphFormat.ARGUEBUF,
         pretty: bool = False,
     ) -> None:
@@ -1293,7 +1293,7 @@ class Graph:
         edge_attr: t.Optional[t.Mapping[str, str]] = None,
     ) -> gv.Digraph:
         """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
-        gv_margin = lambda x: f"{x[0]},{x[1]}"
+        gv_margin: t.Callable[[t.Tuple[float, float]], str] = lambda x: f"{x[0]},{x[1]}"
 
         if not graph_attr:
             graph_attr = {}
@@ -1340,7 +1340,7 @@ class Graph:
         for node in self._scheme_nodes.values():
             node.to_gv(
                 g,
-                self.major_claim == node,
+                False,
                 label_func=scheme_label,
                 wrap_col=wrap_col or 36,
             )
