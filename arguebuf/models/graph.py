@@ -1374,10 +1374,7 @@ class Graph:
 
         for node in self._scheme_nodes.values():
             node.to_gv(
-                g,
-                False,
-                label_func=scheme_label,
-                wrap_col=wrap_col or 36,
+                g, False, label_func=scheme_label, wrap_col=wrap_col or 36,
             )
 
         for edge in self._edges.values():
