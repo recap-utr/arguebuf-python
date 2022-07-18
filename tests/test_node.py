@@ -71,9 +71,10 @@ sadface_data_AtomNode = [
         """,
         "6cd219cc-3203-4602-88bd-d3639f86fb37",
         "The 'Hang Back' advert does not clearly express the intended message",
-        ag.AtomNode
+        ag.AtomNode,
     )
 ]
+
 
 @pytest.mark.parametrize("data,id,text,type", sadface_data_AtomNode)
 def test_sadface_node_AN(data, id, text, type):
@@ -85,9 +86,7 @@ def test_sadface_node_AN(data, id, text, type):
     assert isinstance(node, type)
     assert node.reference is None
     assert node.userdata == {}
-    assert isinstance(node.to_sadface(), Dict)
     assert isinstance(node.to_protobuf(), graph_pb2.Node)
-
 
 
 @pytest.mark.parametrize("data,id,text,type,date", aif_data_AtomNode)
@@ -136,7 +135,7 @@ sadface_data_SchemeNode = [
         """,
         "70447169-9264-41dc-b8e9-50523f8368c1",
         ag.SchemeNode,
-        Support
+        Support.DEFAULT,
     )
 ]
 
@@ -151,7 +150,6 @@ def test_sadface_node_SN(data, id, type, name):
     assert node.scheme == name
     assert isinstance(node.metadata, ag.Metadata)
     assert isinstance(node.to_protobuf(), graph_pb2.Node)
-
 
 
 '''

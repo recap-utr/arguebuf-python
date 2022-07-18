@@ -24,7 +24,7 @@ NO_SCHEME_LABEL = "Unknown"
 class Support(Enum):
     """Enumeration of all available Argumentation Schemes (Walton et al.)
 
-    .. autoclasssumm:: Scheme
+    .. autoclasssumm:: Support
         :autosummary-sections: Methods
     """
 
@@ -100,14 +100,32 @@ class Support(Enum):
 
 
 class Attack(Enum):
+    """Enumeration of attacking schemes
+
+    .. autoclasssumm:: Attack
+        :autosummary-sections: Methods
+    """
+
     DEFAULT = "Default"
 
 
 class Preference(Enum):
+    """Enumeration of preference schemes
+
+    .. autoclasssumm:: Preference
+        :autosummary-sections: Methods
+    """
+
     DEFAULT = "Default"
 
 
 class Rephrase(Enum):
+    """Enumeration of rephrase schemes
+
+    .. autoclasssumm:: Rephrase
+        :autosummary-sections: Methods
+    """
+
     DEFAULT = "Default"
 
 
@@ -589,16 +607,18 @@ class SchemeNode(Node):
     ) -> SchemeNode:
         """Generate SchemeNode object from SADFace Node object."""
         name = None
+
         if obj["name"] == "support":
-            name = Support
+            name = Support.DEFAULT
         elif obj["name"] == "attack":
-            name = Attack
+            name = Attack.DEFAULT
         elif obj["name"] == "rephrase":
-            name = Rephrase
+            name = Rephrase.DEFAULT
         elif obj["name"] == "preference":
-            name = Preference
+            name = Preference.DEFAULT
 
         timestamp = pendulum.now()
+
         return cls(
             id=obj["id"],
             userdata=obj["metadata"],

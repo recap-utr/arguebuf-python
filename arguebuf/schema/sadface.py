@@ -1,5 +1,4 @@
 import typing as t
-import arguebuf as ag
 
 NodeType = t.Literal["scheme", "atom"]
 DATE_FORMAT = "YYYY-MM-DDTHH:mm:ss"
@@ -10,7 +9,7 @@ class Node(t.TypedDict):
     text: str
     type: NodeType
     name: str
-    sources: list
+    sources: t.List[str]
     metadata: t.Dict[str, t.Any]
 
 
