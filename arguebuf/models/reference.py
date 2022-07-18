@@ -54,16 +54,10 @@ class Reference:
         if obj.text:
             if obj.resource:
                 return cls(
-                    resources[obj.resource],
-                    obj.offset,
-                    utils.parse(obj.text, nlp),
+                    resources[obj.resource], obj.offset, utils.parse(obj.text, nlp),
                 )
 
             else:
-                return cls(
-                    None,
-                    None,
-                    utils.parse(obj.text, nlp),
-                )
+                return cls(None, None, utils.parse(obj.text, nlp),)
 
         return None
