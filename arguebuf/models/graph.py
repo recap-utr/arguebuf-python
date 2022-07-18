@@ -4,6 +4,7 @@ import csv
 import importlib.metadata
 import itertools
 import json
+import xml.etree.ElementTree as ET
 import logging
 import re
 import typing as t
@@ -21,7 +22,7 @@ from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, S
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova, sadface
+from arguebuf.schema import aif, ova, sadface, aml
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
@@ -737,7 +738,8 @@ class Graph:
             if edge := edge_class.from_sadface(sadface_edge, g._nodes):
                 g.add_edge(edge)
 
-        # create Metadata object
+        # create
+        # object
         created = dt.from_format(
             obj["metadata"]["core"]["created"], sadface.DATE_FORMAT
         )
@@ -1114,6 +1116,37 @@ class Graph:
         return g
 
     @classmethod
+    def from_aml(
+        cls,
+        obj: t.IO,
+        name: t.Optional[str] = None,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        """
+        Generate Graph structure from AML argument graph file
+        ElementTree XML API: https://docs.python.org/3/library/xml.etree.elementtree.html#
+        """
+
+        tree = ET.parse(obj)
+        root = tree.getroot()
+
+        # create nodes and edges from AU element
+        au = root.find("AU")
+        g = cls(name)
+        g = aml.read_au(au, g, nlp)
+
+        # create edge objects and add to g
+
+        # create Metadata object
+        # create Analyst object
+        # create Userdata
+
+        return g
+
+    @classmethod
     def from_io(
         cls,
         obj: t.TextIO,
@@ -1131,6 +1164,8 @@ class Graph:
             return cls.from_brat(*args)
         if suffix == ".txt":
             return cls.from_kialo(*args)
+        if suffix == ".aml":
+            return cls.from_aml(*args)
 
         return cls.from_json(*args)
 
@@ -1368,12 +1403,7 @@ class Graph:
                 if isinstance(incoming.source, AtomNode) and isinstance(
                     outgoing.target, AtomNode
                 ):
-                    self.add_edge(
-                        Edge(
-                            incoming.source,
-                            outgoing.target,
-                        )
-                    )
+                    self.add_edge(Edge(incoming.source, outgoing.target,))
 
             self.remove_node(scheme)
 
@@ -1437,11 +1467,7 @@ def _kialo_atom_node(
     text = re.sub(r"\\([\[\]\(\)])", r"\1", text)
 
     # Remove markdown links
-    text = re.sub(
-        r"\[(.*?)\]\(.*?\)",
-        r"\1",
-        text,
-    )
+    text = re.sub(r"\[(.*?)\]\(.*?\)", r"\1", text,)
 
     # Apply user-provided nlp function
     text = utils.parse(text, nlp)
@@ -1450,9 +1476,7 @@ def _kialo_atom_node(
 
 
 def render(
-    g: t.Union[gv.Graph, gv.Digraph],
-    path: t.Union[Path, str],
-    view: bool = False,
+    g: t.Union[gv.Graph, gv.Digraph], path: t.Union[Path, str], view: bool = False,
 ) -> None:
     """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
     if isinstance(path, str):
@@ -1468,10 +1492,7 @@ def render(
     directory = path.parent
 
     g.render(
-        filename=filename,
-        directory=str(directory),
-        cleanup=True,
-        view=view,
+        filename=filename, directory=str(directory), cleanup=True, view=view,
     )
 
 
