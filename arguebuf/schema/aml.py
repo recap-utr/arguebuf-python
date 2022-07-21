@@ -1,22 +1,9 @@
 import xml.etree.ElementTree as et
 from arguebuf.models.node import AtomNode, SchemeNode
 from arguebuf.models.edge import Edge
-from arguebuf.models.graph import Graph
 
 
-def render_graph(file):
-    tree = et.parse(file)
-    root = tree.getroot()
-    au = root.find("AU")
-    g = Graph(name="Test")
-    g = read_au(au, g, None)
-
-    # Export to graphviz DOT format
-    dot = g.to_gv()
-    dot.render(directory="doctest-output", view=True)
-
-
-def read_au(au: et.Element, g: Graph, nlp):
+def read_au(au: et.Element, g, nlp):
     # create the conclusion node
     prop = au.find("PROP")
     conclusion_node = AtomNode.from_aml(prop, nlp)
@@ -28,7 +15,6 @@ def read_au(au: et.Element, g: Graph, nlp):
         # handle refutation
         # consider, that refutations are argument units (AU's)
         read_refutation(conclusion_node, g, refutation, nlp)
-        print("TODO: Handle refutation")
 
     # read premises and store in a list (list of et.Element objects)
     premises = [elem for elem in au if elem.tag == "CA" or elem.tag == "LA"]
@@ -42,7 +28,7 @@ def read_au(au: et.Element, g: Graph, nlp):
     return g
 
 
-def read_refutation(conclusion: AtomNode, g: Graph, refutation: et.Element, nlp):
+def read_refutation(conclusion: AtomNode, g, refutation: et.Element, nlp):
     # consists of one AU
     # get refutation
     au = refutation.find("AU")
@@ -70,7 +56,7 @@ def read_refutation(conclusion: AtomNode, g: Graph, refutation: et.Element, nlp)
             read_la(premise_node, g, elem, nlp)
 
 
-def read_ca(conclusion: AtomNode, g: Graph, ca: et.Element, nlp):
+def read_ca(conclusion: AtomNode, g, ca: et.Element, nlp):
     # first read premises
     for au in ca:
         # get premise
@@ -92,7 +78,7 @@ def read_ca(conclusion: AtomNode, g: Graph, ca: et.Element, nlp):
         read_au(au, g, nlp)
 
 
-def read_la(conclusion: AtomNode, g: Graph, la: et.Element, nlp):
+def read_la(conclusion: AtomNode, g, la: et.Element, nlp):
     # first read premises
     for au in la:
         # get premise

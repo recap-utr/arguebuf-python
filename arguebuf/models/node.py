@@ -666,6 +666,12 @@ class SchemeNode(Node):
     ) -> SchemeNode:
         """Generate SchemeNode object from AML Node format. obj is a AML "PROP" element."""
 
+        # get id of PROP
+        if "identifier" in obj.attrib:
+            id = obj.get("identifier")
+        else:
+            id = None
+
         # read owners of PROP
         owner_list = obj.findall("OWNER")
         owners_lst = []
@@ -686,12 +692,14 @@ class SchemeNode(Node):
             scheme = Attack.DEFAULT
         else:
             inscheme = obj.find("INSCHEME")
-            if not inscheme:  # if INSCHEME element is available
+            if inscheme is not None:  # if INSCHEME element is available
                 # get scheme
                 aml_scheme = inscheme.attrib["scheme"]
                 contains_scheme = False
                 for supp_scheme in Support:
-                    if supp_scheme.value.lower() in aml_scheme.lower():
+                    if supp_scheme.value.lower().replace(
+                        " ", ""
+                    ) in aml_scheme.lower().replace(" ", ""):
                         scheme = supp_scheme
                         contains_scheme = True
                         break
@@ -701,7 +709,10 @@ class SchemeNode(Node):
                 scheme = Support.DEFAULT
 
         return cls(
-            metadata=Metadata(timestamp, timestamp), scheme=scheme, userdata=owners
+            metadata=Metadata(timestamp, timestamp),
+            scheme=scheme,
+            userdata=owners,
+            id=id,
         )
 
     @classmethod

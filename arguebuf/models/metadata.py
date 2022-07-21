@@ -14,7 +14,9 @@ class Metadata:
     # _analyst: t.Optional[Analyst] = None
 
     def __init__(
-        self, created: t.Optional[DateTime] = None, updated: t.Optional[DateTime] = None
+        self,
+        created: t.Optional[DateTime] = None,
+        updated: t.Optional[DateTime] = None,
     ) -> None:
         now = pendulum.now()
 

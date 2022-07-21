@@ -56,7 +56,7 @@ class Edge:
     def __repr__(self):
         return utils.class_repr(
             self,
-            [str(self._id), f"{self._source.__repr__()}->{self._target.__repr__()}"],
+            [str(self._id), f"{self._source.__repr__()}->{self._target.__repr__()}",],
         )
 
     @property
@@ -102,27 +102,6 @@ class Edge:
             )
 
         return None
-
-    @classmethod
-    def from_sadface(
-        cls, obj: sadface.Edge, nodes: t.Mapping[str, Node],
-    ) -> t.Optional[Edge]:
-        """Generate Edge object from SADFace Edge format."""
-        source_id = obj.get("source_id")
-        target_id = obj.get("target_id")
-
-        if source_id in nodes and target_id in nodes:
-            return cls(id=obj["id"], source=nodes[source_id], target=nodes[target_id],)
-
-        return None
-
-    @classmethod
-    def from_aml(
-        cls, obj: ET.Element, nodes: t.Mapping[str, Node],
-    ) -> t.Optional[Edge]:
-        """Generate Edge object from AML Edge format."""
-
-        return Edge()
 
     @classmethod
     def from_aif(cls, obj: aif.Edge, nodes: t.Mapping[str, Node],) -> t.Optional[Edge]:

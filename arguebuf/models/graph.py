@@ -18,7 +18,14 @@ from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
+from arguebuf.models.node import (
+    AtomNode,
+    Attack,
+    Node,
+    Rephrase,
+    SchemeNode,
+    Support,
+)
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
@@ -921,12 +928,12 @@ class Graph:
         """Generate Graph structure from DICT argument graph file(Link?)."""
         if "analysis" in obj:
             return cls.from_ova(
-                t.cast(ova.Graph, obj), name, atom_class, scheme_class, edge_class, nlp
+                t.cast(ova.Graph, obj), name, atom_class, scheme_class, edge_class, nlp,
             )
 
         if "locutions" in obj:
             return cls.from_aif(
-                t.cast(aif.Graph, obj), name, atom_class, scheme_class, edge_class, nlp
+                t.cast(aif.Graph, obj), name, atom_class, scheme_class, edge_class, nlp,
             )
 
         return cls.from_protobuf(
@@ -969,7 +976,7 @@ class Graph:
     ) -> None:
         """Export structure of Graph instance to JSON argument graph format."""
         json.dump(
-            self.to_dict(format), obj, ensure_ascii=False, indent=4 if pretty else None
+            self.to_dict(format), obj, ensure_ascii=False, indent=4 if pretty else None,
         )
 
     @classmethod
@@ -1193,7 +1200,7 @@ class Graph:
 
         with path.open("r", encoding="utf-8") as file:
             return cls.from_io(
-                file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp
+                file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp,
             )
 
     def to_file(
