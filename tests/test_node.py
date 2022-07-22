@@ -86,7 +86,7 @@ aml_data_AtomNode = [
         """,
         "B",
         "more flexibility for students",
-        ag.AtomNode
+        ag.AtomNode,
     )
 ]
 
