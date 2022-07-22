@@ -282,15 +282,15 @@ text2scheme: t.Dict[
 @dataclass
 class Color:
     bg: str = "#ffffff"
-    fg: str = "#000000"
+    fg: str = "#ffffff"
     border: str = "#000000"
 
 
 scheme2color: t.Dict[t.Type[Scheme], Color] = {
-    Support: Color(bg="#def8e9", border="#2ecc71"),
-    Attack: Color(bg="#fbdedb", border="#e74c3c"),
-    Rephrase: Color(bg="#fbeadb", border="#e67e22"),
-    Preference: Color(bg="#dcfaf4", border="#1abc9c"),
+    Support: Color(bg="#4CAF50", border="#4CAF50"),
+    Attack: Color(bg="#F44336", border="#F44336"),
+    Rephrase: Color(bg="#009688", border="#009688"),
+    Preference: Color(bg="#009688", border="#009688"),
 }
 
 
@@ -537,9 +537,9 @@ class AtomNode(Node):
     def color(self, major_claim: bool) -> Color:
         """Get the color for rendering the node."""
         if major_claim:
-            return Color(bg="#3498db", border="#3498db")
+            return Color(bg="#0D47A1", border="#0D47A1")
 
-        return Color(bg="#ddeef9", border="#3498db")
+        return Color(bg="#2196F3", border="#2196F3")
 
     def to_gv(
         self,
