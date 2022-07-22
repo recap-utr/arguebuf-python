@@ -1400,7 +1400,10 @@ class Graph:
 
         for node in self._scheme_nodes.values():
             node.to_gv(
-                g, False, label_func=scheme_label, wrap_col=wrap_col or 36,
+                g,
+                False,
+                label_func=scheme_label,
+                wrap_col=wrap_col or 36,
             )
 
         for edge in self._edges.values():
@@ -1426,7 +1429,12 @@ class Graph:
                 if isinstance(incoming.source, AtomNode) and isinstance(
                     outgoing.target, AtomNode
                 ):
-                    self.add_edge(Edge(incoming.source, outgoing.target,))
+                    self.add_edge(
+                        Edge(
+                            incoming.source,
+                            outgoing.target,
+                        )
+                    )
 
             self.remove_node(scheme)
 
@@ -1490,7 +1498,11 @@ def _kialo_atom_node(
     text = re.sub(r"\\([\[\]\(\)])", r"\1", text)
 
     # Remove markdown links
-    text = re.sub(r"\[(.*?)\]\(.*?\)", r"\1", text,)
+    text = re.sub(
+        r"\[(.*?)\]\(.*?\)",
+        r"\1",
+        text,
+    )
 
     # Apply user-provided nlp function
     text = utils.parse(text, nlp)
@@ -1499,7 +1511,9 @@ def _kialo_atom_node(
 
 
 def render(
-    g: t.Union[gv.Graph, gv.Digraph], path: t.Union[Path, str], view: bool = False,
+    g: t.Union[gv.Graph, gv.Digraph],
+    path: t.Union[Path, str],
+    view: bool = False,
 ) -> None:
     """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
     if isinstance(path, str):
@@ -1515,7 +1529,10 @@ def render(
     directory = path.parent
 
     g.render(
-        filename=filename, directory=str(directory), cleanup=True, view=view,
+        filename=filename,
+        directory=str(directory),
+        cleanup=True,
+        view=view,
     )
 
 

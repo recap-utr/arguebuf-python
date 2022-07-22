@@ -31,7 +31,10 @@ class Analyst:
 
     def to_protobuf(self) -> graph_pb2.Analyst:
         """Export Analyst object into a Graph's Analyst object in PROTOBUF format."""
-        obj = graph_pb2.Analyst(name=self.name or "", email=self.email or "",)
+        obj = graph_pb2.Analyst(
+            name=self.name or "",
+            email=self.email or "",
+        )
         obj.userdata.update(self.userdata)
 
         return obj
@@ -39,4 +42,9 @@ class Analyst:
     @classmethod
     def from_protobuf(cls, id: str, obj: graph_pb2.Analyst) -> Analyst:
         """Generate Analyst object from PROTOBUF format Graph's Analyst object."""
-        return cls(obj.name, obj.email, dict(obj.userdata.items()), id,)
+        return cls(
+            obj.name,
+            obj.email,
+            dict(obj.userdata.items()),
+            id,
+        )
