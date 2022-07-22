@@ -4,6 +4,7 @@ import csv
 import importlib.metadata
 import itertools
 import json
+import xml.etree.ElementTree as ET
 import logging
 import re
 import typing as t
@@ -17,11 +18,18 @@ from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
+from arguebuf.models.node import (
+    AtomNode,
+    Attack,
+    Node,
+    Rephrase,
+    SchemeNode,
+    Support,
+)
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova, sadface
+from arguebuf.schema import aif, ova, sadface, aml
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
@@ -737,7 +745,8 @@ class Graph:
             if edge := edge_class.from_sadface(sadface_edge, g._nodes):
                 g.add_edge(edge)
 
-        # create Metadata object
+        # create
+        # object
         created = dt.from_format(
             obj["metadata"]["core"]["created"], sadface.DATE_FORMAT
         )
@@ -919,12 +928,22 @@ class Graph:
         """Generate Graph structure from DICT argument graph file(Link?)."""
         if "analysis" in obj:
             return cls.from_ova(
-                t.cast(ova.Graph, obj), name, atom_class, scheme_class, edge_class, nlp
+                t.cast(ova.Graph, obj),
+                name,
+                atom_class,
+                scheme_class,
+                edge_class,
+                nlp,
             )
 
         if "locutions" in obj:
             return cls.from_aif(
-                t.cast(aif.Graph, obj), name, atom_class, scheme_class, edge_class, nlp
+                t.cast(aif.Graph, obj),
+                name,
+                atom_class,
+                scheme_class,
+                edge_class,
+                nlp,
             )
 
         return cls.from_protobuf(
@@ -967,7 +986,10 @@ class Graph:
     ) -> None:
         """Export structure of Graph instance to JSON argument graph format."""
         json.dump(
-            self.to_dict(format), obj, ensure_ascii=False, indent=4 if pretty else None
+            self.to_dict(format),
+            obj,
+            ensure_ascii=False,
+            indent=4 if pretty else None,
         )
 
     @classmethod
@@ -1114,6 +1136,37 @@ class Graph:
         return g
 
     @classmethod
+    def from_aml(
+        cls,
+        obj: t.IO,
+        name: t.Optional[str] = None,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        """
+        Generate Graph structure from AML argument graph file
+        ElementTree XML API: https://docs.python.org/3/library/xml.etree.elementtree.html#
+        """
+
+        tree = ET.parse(obj)
+        root = tree.getroot()
+
+        # create nodes and edges from AU element
+        au = root.find("AU")
+        g = cls(name)
+        g = aml.read_au(au, g, nlp)
+
+        # create edge objects and add to g
+
+        # create Metadata object
+        # create Analyst object
+        # create Userdata
+
+        return g
+
+    @classmethod
     def from_io(
         cls,
         obj: t.TextIO,
@@ -1131,6 +1184,8 @@ class Graph:
             return cls.from_brat(*args)
         if suffix == ".txt":
             return cls.from_kialo(*args)
+        if suffix == ".aml":
+            return cls.from_aml(*args)
 
         return cls.from_json(*args)
 
@@ -1158,7 +1213,13 @@ class Graph:
 
         with path.open("r", encoding="utf-8") as file:
             return cls.from_io(
-                file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp
+                file,
+                path.suffix,
+                path.stem,
+                atom_class,
+                scheme_class,
+                edge_class,
+                nlp,
             )
 
     def to_file(

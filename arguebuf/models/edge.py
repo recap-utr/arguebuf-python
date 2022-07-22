@@ -1,6 +1,7 @@
 from __future__ import absolute_import, annotations
 
 import typing as t
+import xml.etree.ElementTree as ET
 
 import graphviz as gv
 import networkx as nx

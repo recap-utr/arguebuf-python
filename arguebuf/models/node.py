@@ -17,6 +17,7 @@ from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
 from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import dt, utils
+import xml.etree.ElementTree as et
 
 NO_SCHEME_LABEL = "Unknown"
 
@@ -354,6 +355,15 @@ class Node(ABC):
     ) -> Node:
         """Generate Node object from SADFace Node format."""
 
+    @classmethod
+    @abstractmethod
+    def from_aml(
+        cls,
+        obj: et.Element,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Node:
+        """Generate Node object from AML Node format."""
+
     @abstractmethod
     def to_aif(self) -> aif.Node:
         """Export Node object into AIF Node format."""
@@ -442,6 +452,45 @@ class AtomNode(Node):
             text=utils.parse(obj["text"], nlp),
             userdata=obj["metadata"],
             metadata=Metadata(timestamp, timestamp),
+        )
+
+    @classmethod
+    def from_aml(
+        cls,
+        obj: et.Element,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> AtomNode:
+        """
+        Generate Node object from AML Node format. obj is a AML "PROP" element.
+        """
+        # get id of PROP
+        if "identifier" in obj.attrib:
+            id = obj.get("identifier")
+        else:
+            id = None
+
+        # read text of PROP
+        text = obj.find("PROPTEXT").text
+
+        # read owners of PROP
+        owner_list = obj.findall("OWNER")
+        owners_lst = []
+        if not owner_list:
+            # if not empty, do something
+            for owner in owner_list:
+                owners_lst.append(owner.get("name"))
+            owners = {"owners": ", ".join(owners_lst)}
+        else:
+            owners = {}
+
+        # create timestamp
+        timestamp = pendulum.now()
+
+        return cls(
+            id=id,
+            text=utils.parse(text, nlp),
+            metadata=Metadata(timestamp, timestamp),
+            userdata=owners,
         )
 
     @classmethod
@@ -624,6 +673,64 @@ class SchemeNode(Node):
             userdata=obj["metadata"],
             metadata=Metadata(timestamp, timestamp),
             scheme=name,
+        )
+
+    @classmethod
+    def from_aml(
+        cls,
+        obj: et.Element,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        refutation=False,
+    ) -> SchemeNode:
+        """Generate SchemeNode object from AML Node format. obj is a AML "PROP" element."""
+
+        # get id of PROP
+        if "identifier" in obj.attrib:
+            id = obj.get("identifier")
+        else:
+            id = None
+
+        # read owners of PROP
+        owner_list = obj.findall("OWNER")
+        owners_lst = []
+        if not owner_list:
+            # if not empty, do something
+            for owner in owner_list:
+                owners_lst.append(owner.get("name"))
+            owners = {"owners": ", ".join(owners_lst)}
+        else:
+            owners = {}
+
+        # create timestamp
+        timestamp = pendulum.now()
+
+        # get scheme name
+        scheme = None
+        if refutation:
+            scheme = Attack.DEFAULT
+        else:
+            inscheme = obj.find("INSCHEME")
+            if inscheme is not None:  # if INSCHEME element is available
+                # get scheme
+                aml_scheme = inscheme.attrib["scheme"]
+                contains_scheme = False
+                for supp_scheme in Support:
+                    if supp_scheme.value.lower().replace(
+                        " ", ""
+                    ) in aml_scheme.lower().replace(" ", ""):
+                        scheme = supp_scheme
+                        contains_scheme = True
+                        break
+                if not contains_scheme:
+                    scheme = Support.DEFAULT
+            else:  # if INSCHEME element is not available
+                scheme = Support.DEFAULT
+
+        return cls(
+            metadata=Metadata(timestamp, timestamp),
+            scheme=scheme,
+            userdata=owners,
+            id=id,
         )
 
     @classmethod

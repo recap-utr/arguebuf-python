@@ -6,6 +6,7 @@ import pendulum
 import pytest
 from arg_services.graph.v1 import graph_pb2
 from arguebuf.models.node import Support
+from xml.etree import ElementTree as ET
 
 aif_data_AtomNode = [
     (
@@ -74,6 +75,33 @@ sadface_data_AtomNode = [
         ag.AtomNode,
     )
 ]
+
+aml_data_AtomNode = [
+    (
+        """
+        <PROP identifier="B" missing="no">
+          <PROPTEXT offset="99">more flexibility for students</PROPTEXT>
+          <OWNER name="VCBrown" />
+        </PROP>
+        """,
+        "B",
+        "more flexibility for students",
+        ag.AtomNode,
+    )
+]
+
+
+@pytest.mark.parametrize("data,id,text,type", aml_data_AtomNode)
+def test_aml_node_AN(data, id, text, type):
+    tree = ET.fromstring(data)
+    node = ag.AtomNode.from_aml(tree)
+
+    assert node.id == id
+    assert node.text == text
+    assert isinstance(node, type)
+    assert node.reference is None
+    assert node.userdata == {}
+    assert isinstance(node.to_protobuf(), graph_pb2.Node)
 
 
 @pytest.mark.parametrize("data,id,text,type", sadface_data_AtomNode)
@@ -144,6 +172,33 @@ sadface_data_SchemeNode = [
 def test_sadface_node_SN(data, id, type, name):
     data_json = json.loads(data)
     node = ag.SchemeNode.from_sadface(data_json)
+
+    assert node.id == id
+    assert isinstance(node, type)
+    assert node.scheme == name
+    assert isinstance(node.metadata, ag.Metadata)
+    assert isinstance(node.to_protobuf(), graph_pb2.Node)
+
+
+aml_data_SchemeNode = [
+    (
+        """
+        <PROP identifier="A" missing="no">
+          <PROPTEXT offset="0">Here are some bear tracks in the snow</PROPTEXT>
+          <INSCHEME scheme=" Argument From Sign " schid="0" />
+        </PROP>
+        """,
+        "A",
+        ag.SchemeNode,
+        Support.SIGN,
+    )
+]
+
+
+@pytest.mark.parametrize("data,id,type,name", aml_data_SchemeNode)
+def test_aml_node_SN(data, id, type, name):
+    tree = ET.fromstring(data)
+    node = ag.SchemeNode.from_aml(tree)
 
     assert node.id == id
     assert isinstance(node, type)
