@@ -1,6 +1,7 @@
 from __future__ import absolute_import, annotations
 
 import typing as t
+import xml.etree.ElementTree as ET
 
 import graphviz as gv
 import networkx as nx
@@ -11,7 +12,6 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
 from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import dt, utils
-import xml.etree.ElementTree as ET
 
 
 class Edge:
@@ -56,10 +56,7 @@ class Edge:
     def __repr__(self):
         return utils.class_repr(
             self,
-            [
-                str(self._id),
-                f"{self._source.__repr__()}->{self._target.__repr__()}",
-            ],
+            [str(self._id), f"{self._source.__repr__()}->{self._target.__repr__()}"],
         )
 
     @property
