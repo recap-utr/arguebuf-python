@@ -3,7 +3,7 @@ from __future__ import absolute_import, annotations
 import textwrap
 import typing as t
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 import graphviz as gv
@@ -282,16 +282,25 @@ text2scheme: t.Dict[
 
 @dataclass
 class Color:
-    bg: str = "#ffffff"
-    fg: str = "#000000"
-    border: str = "#000000"
+    bg: str
+    fg: str
+    border: str
+
+    def __init__(
+        bg: t.Optional[str] = None,
+        fg: t.Optional[str] = None,
+        border: t.Optional[str] = None
+    ) -> None:
+        self.bg = bg or "#000000"
+        self.fg = fg or "#ffffff"
+        self.border = border or self.bg
 
 
 scheme2color: t.Dict[t.Type[Scheme], Color] = {
-    Support: Color(bg="#def8e9", border="#2ecc71"),
-    Attack: Color(bg="#fbdedb", border="#e74c3c"),
-    Rephrase: Color(bg="#fbeadb", border="#e67e22"),
-    Preference: Color(bg="#dcfaf4", border="#1abc9c"),
+    Support: Color(bg="#4CAF50"),
+    Attack: Color(bg="#F44336"),
+    Rephrase: Color(bg="#009688"),
+    Preference: Color(bg="#009688"),
 }
 
 
@@ -586,9 +595,9 @@ class AtomNode(Node):
     def color(self, major_claim: bool) -> Color:
         """Get the color for rendering the node."""
         if major_claim:
-            return Color(bg="#3498db", border="#3498db")
+            return Color(bg="#0D47A1")
 
-        return Color(bg="#ddeef9", border="#3498db")
+        return Color(bg="#2196F3")
 
     def to_gv(
         self,
@@ -886,7 +895,7 @@ class SchemeNode(Node):
         return (
             scheme2color[type(self.scheme)]
             if self.scheme
-            else Color(bg="#e9eded", border="#95a5a6")
+            else Color(bg="#e9eded")
         )
 
     def to_gv(
