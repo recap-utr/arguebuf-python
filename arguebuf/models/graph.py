@@ -137,8 +137,10 @@ class Graph:
         while outgoing_nodes:
             outgoing_node = outgoing_nodes.pop()
 
+            # If it is an Atom, just add it to our result set
             if isinstance(outgoing_node, AtomNode):
                 outgoing_atom_nodes.add(outgoing_node)
+            # Otherwise, add the outgoing nodes of the current node to the search path
             else:
                 outgoing_nodes.extend(self._outgoing_nodes[outgoing_node])
 
@@ -1418,17 +1420,14 @@ class Graph:
 
         for scheme in schemes:
             for incoming, outgoing in itertools.product(
-                self._incoming_edges[scheme], self._outgoing_edges[scheme]
+                self.incoming_atom_nodes(scheme), self.outgoing_atom_nodes(scheme)
             ):
-                if isinstance(incoming.source, AtomNode) and isinstance(
-                    outgoing.target, AtomNode
-                ):
-                    self.add_edge(
-                        Edge(
-                            incoming.source,
-                            outgoing.target,
-                        )
+                self.add_edge(
+                    Edge(
+                        incoming,
+                        outgoing,
                     )
+                )
 
             self.remove_node(scheme)
 
