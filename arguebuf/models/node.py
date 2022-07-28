@@ -2,6 +2,7 @@ from __future__ import absolute_import, annotations
 
 import textwrap
 import typing as t
+import xml.etree.ElementTree as et
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
@@ -17,7 +18,6 @@ from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
 from arguebuf.schema import aif, ova, sadface
 from arguebuf.services import dt, utils
-import xml.etree.ElementTree as et
 
 NO_SCHEME_LABEL = "Unknown"
 
@@ -395,7 +395,11 @@ class Node(ABC):
         """Export Node object into PROTOBUF Node object."""
 
     @abstractmethod
-    def to_nx(self, g: nx.DiGraph, label_attr: t.Optional[str] = None) -> None:
+    def to_nx(
+        self,
+        g: nx.DiGraph,
+        attrs: t.Optional[t.MutableMapping[str, t.Callable[[Node], t.Any]]] = None,
+    ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
 
     @abstractmethod
@@ -892,11 +896,7 @@ class SchemeNode(Node):
     def color(self, major_claim: bool) -> Color:
         """Get the color used in OVA based on `category`."""
 
-        return (
-            scheme2color[type(self.scheme)]
-            if self.scheme
-            else Color(bg="#e9eded")
-        )
+        return scheme2color[type(self.scheme)] if self.scheme else Color(bg="#e9eded")
 
     def to_gv(
         self,

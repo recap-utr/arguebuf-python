@@ -4,10 +4,10 @@ import csv
 import importlib.metadata
 import itertools
 import json
-import xml.etree.ElementTree as ET
 import logging
 import re
 import typing as t
+import xml.etree.ElementTree as ET
 from enum import Enum
 from pathlib import Path
 
@@ -18,18 +18,11 @@ from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import (
-    AtomNode,
-    Attack,
-    Node,
-    Rephrase,
-    SchemeNode,
-    Support,
-)
+from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova, sadface, aml
+from arguebuf.schema import aif, aml, ova, sadface
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
