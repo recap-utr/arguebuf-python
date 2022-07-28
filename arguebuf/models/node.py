@@ -287,9 +287,10 @@ class Color:
     border: str
 
     def __init__(
+        self,
         bg: t.Optional[str] = None,
         fg: t.Optional[str] = None,
-        border: t.Optional[str] = None
+        border: t.Optional[str] = None,
     ) -> None:
         self.bg = bg or "#000000"
         self.fg = fg or "#ffffff"
