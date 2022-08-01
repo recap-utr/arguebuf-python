@@ -897,7 +897,7 @@ class SchemeNode(Node):
     def color(self, major_claim: bool) -> Color:
         """Get the color used in OVA based on `category`."""
 
-        return scheme2color[type(self.scheme)] if self.scheme else Color(bg="#e9eded")
+        return scheme2color[type(self.scheme)] if self.scheme else Color(bg="#009688")
 
     def to_gv(
         self,
