@@ -4,10 +4,10 @@ import csv
 import importlib.metadata
 import itertools
 import json
-import xml.etree.ElementTree as ET
 import logging
 import re
 import typing as t
+import xml.etree.ElementTree as ET
 from enum import Enum
 from pathlib import Path
 
@@ -18,18 +18,12 @@ from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import (
-    AtomNode,
-    Attack,
-    Node,
-    Rephrase,
-    SchemeNode,
-    Support,
-)
+from arguebuf.models.node import (AtomNode, Attack, Node, Rephrase, SchemeNode,
+                                  Support)
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova, sadface, aml
+from arguebuf.schema import aif, aml, ova, sadface
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
@@ -144,8 +138,10 @@ class Graph:
         while outgoing_nodes:
             outgoing_node = outgoing_nodes.pop()
 
+            # If it is an Atom, just add it to our result set
             if isinstance(outgoing_node, AtomNode):
                 outgoing_atom_nodes.add(outgoing_node)
+            # Otherwise, add the outgoing nodes of the current node to the search path
             else:
                 outgoing_nodes.extend(self._outgoing_nodes[outgoing_node])
 
@@ -1374,14 +1370,15 @@ class Graph:
                 "fontname": font_name or "Arial",
                 "fontsize": str(font_size or 11),
                 "margin": gv_margin(margin or (0.15, 0.1)),
-                "style": "filled",
+                "style": "rounded,filled",
                 "shape": "box",
                 "width": "0",
                 "height": "0",
                 **node_attr,
             },
-            edge_attr={"color": "#666666", **edge_attr},
+            edge_attr={"color": "#9E9E9E", **edge_attr},
             graph_attr={
+                # "bgcolor": "#000000",
                 "rankdir": "BT",
                 "margin": "0",
                 "nodesep": str(nodesep or 0.25),
@@ -1424,17 +1421,14 @@ class Graph:
 
         for scheme in schemes:
             for incoming, outgoing in itertools.product(
-                self._incoming_edges[scheme], self._outgoing_edges[scheme]
+                self.incoming_atom_nodes(scheme), self.outgoing_atom_nodes(scheme)
             ):
-                if isinstance(incoming.source, AtomNode) and isinstance(
-                    outgoing.target, AtomNode
-                ):
-                    self.add_edge(
-                        Edge(
-                            incoming.source,
-                            outgoing.target,
-                        )
+                self.add_edge(
+                    Edge(
+                        incoming,
+                        outgoing,
                     )
+                )
 
             self.remove_node(scheme)
 
