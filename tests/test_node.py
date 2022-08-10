@@ -90,6 +90,14 @@ aml_data_AtomNode = [
     )
 ]
 
+argdown_json_data_AtomNode = [
+    (
+        """
+        
+        """
+    )
+]
+
 
 @pytest.mark.parametrize("data,id,text,type", aml_data_AtomNode)
 def test_aml_node_AN(data, id, text, type):

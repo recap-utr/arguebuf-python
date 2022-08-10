@@ -487,8 +487,7 @@ class AtomNode(Node):
         timestamp = pendulum.now()
         return cls(
             id=obj["id"],
-            text=utils.parse(obj["text"], nlp),
-            userdata=obj["metadata"],
+            text=utils.parse(obj["labelText"], nlp),
             metadata=Metadata(timestamp, timestamp),
         )
 
@@ -693,33 +692,6 @@ class SchemeNode(Node):
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
         """Generate SchemeNode object from SADFace Node object."""
-        name = None
-
-        if obj["name"] == "support":
-            name = Support.DEFAULT
-        elif obj["name"] == "attack":
-            name = Attack.DEFAULT
-        elif obj["name"] == "rephrase":
-            name = Rephrase.DEFAULT
-        elif obj["name"] == "preference":
-            name = Preference.DEFAULT
-
-        timestamp = pendulum.now()
-
-        return cls(
-            id=obj["id"],
-            userdata=obj["metadata"],
-            metadata=Metadata(timestamp, timestamp),
-            scheme=name,
-        )
-
-    @classmethod
-    def from_argdown_json(
-            cls,
-            obj: argdown_json.Node,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> SchemeNode:
-        """Generate SchemeNode object from Argdown JSON Node object."""
         name = None
 
         if obj["name"] == "support":

@@ -13,6 +13,7 @@ from pathlib import Path
 
 import graphviz as gv
 import networkx as nx
+import pendulum
 from arg_services.graph.v1 import graph_pb2
 from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
@@ -783,8 +784,10 @@ class Graph:
         """
         g = cls(name)
 
+        timestamp = pendulum.now()
+
         # Every node in obj["nodes"] is a atom node
-        for argdown_node in obj["nodes"]:
+        for argdown_node in obj["map"]["nodes"]:
             node = (
                 atom_class.from_argdown_json(argdown_node, nlp)
             )
@@ -792,34 +795,34 @@ class Graph:
             if node:
                 g.add_node(node)
 
-        for sadface_edge in obj["edges"]:
-            if edge := edge_class.from_sadface(sadface_edge, g._nodes):
+        for argdown_edge in obj["map"]["edges"]:
+            if edge := edge_class.from_argdown_json(argdown_edge, g._nodes):
                 g.add_edge(edge)
+                scheme = None
+                if argdown_edge["relationType"] == "support":
+                    scheme = Support.DEFAULT
+                elif argdown_edge["relationType"] == "attack":
+                    scheme = Attack.DEFAULT
+                elif argdown_edge["relationType"] == "contradictory":
+                    scheme = Attack.DEFAULT
+                elif argdown_edge["relationType"] == "undercut":
+                    scheme = Support.DEFAULT
+                else:
+                    scheme = Support.DEFAULT
+                # add other scheme types
+                # create scheme_node for edge
+                scheme_node = SchemeNode(
+                    metadata=Metadata(timestamp, timestamp),
+                    scheme=scheme,
+                )
+                g.add_node(scheme_node)
 
-        # create
-        # object
-        created = dt.from_format(
-            obj["metadata"]["core"]["created"], sadface.DATE_FORMAT
-        )
-        updated = dt.from_format(obj["metadata"]["core"]["edited"], sadface.DATE_FORMAT)
-        metadata = Metadata(created, updated)
+                # create edge from source to scheme_node and edge from scheme_node to target
+                g.add_edge(Edge(edge.source, scheme_node))
+                g.add_edge(Edge(scheme_node, edge.target))
+
+        metadata = Metadata(timestamp, timestamp)
         g.metadata = metadata
-
-        # create Analyst object
-        analyst = Analyst(
-            name=obj["metadata"]["core"]["analyst_name"],
-            email=obj["metadata"]["core"]["analyst_email"],
-        )
-        g.add_analyst(analyst)
-
-        # create Userdata dict
-        userdata = {
-            "notes": obj["metadata"]["core"]["notes"],
-            "description": obj["metadata"]["core"]["description"],
-            "title": obj["metadata"]["core"]["title"],
-            "sadfaceVersion": obj["metadata"]["core"]["version"],
-        }
-        g.userdata = userdata
 
         return g
 
@@ -995,6 +998,16 @@ class Graph:
                 scheme_class,
                 edge_class,
                 nlp,
+            )
+
+        if "map" in obj:
+            return cls.from_argdown_json(
+                t.cast(argdown_json.Graph, obj),
+                name,
+                atom_class,
+                scheme_class,
+                edge_class,
+                nlp
             )
 
         return cls.from_protobuf(
