@@ -16,7 +16,7 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova, sadface
+from arguebuf.schema import aif, ova, sadface, argdown_json
 from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
@@ -367,6 +367,15 @@ class Node(ABC):
 
     @classmethod
     @abstractmethod
+    def from_argdown_json(
+        cls,
+        obj: argdown_json.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Node:
+        """Generate Node object from Argdon JSON Node format"""
+
+    @classmethod
+    @abstractmethod
     def from_aml(
         cls,
         obj: et.Element,
@@ -460,6 +469,21 @@ class AtomNode(Node):
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from SADFace Node object."""
+        timestamp = pendulum.now()
+        return cls(
+            id=obj["id"],
+            text=utils.parse(obj["text"], nlp),
+            userdata=obj["metadata"],
+            metadata=Metadata(timestamp, timestamp),
+        )
+
+    @classmethod
+    def from_argdown_json(
+        cls,
+        obj: argdown_json.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> AtomNode:
+        """Generate AtomNode object from Argdown JSON Node object."""
         timestamp = pendulum.now()
         return cls(
             id=obj["id"],
@@ -669,6 +693,33 @@ class SchemeNode(Node):
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
         """Generate SchemeNode object from SADFace Node object."""
+        name = None
+
+        if obj["name"] == "support":
+            name = Support.DEFAULT
+        elif obj["name"] == "attack":
+            name = Attack.DEFAULT
+        elif obj["name"] == "rephrase":
+            name = Rephrase.DEFAULT
+        elif obj["name"] == "preference":
+            name = Preference.DEFAULT
+
+        timestamp = pendulum.now()
+
+        return cls(
+            id=obj["id"],
+            userdata=obj["metadata"],
+            metadata=Metadata(timestamp, timestamp),
+            scheme=name,
+        )
+
+    @classmethod
+    def from_argdown_json(
+            cls,
+            obj: argdown_json.Node,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> SchemeNode:
+        """Generate SchemeNode object from Argdown JSON Node object."""
         name = None
 
         if obj["name"] == "support":

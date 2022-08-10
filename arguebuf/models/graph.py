@@ -23,7 +23,7 @@ from arguebuf.models.node import (AtomNode, Attack, Node, Rephrase, SchemeNode,
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, aml, ova, sadface
+from arguebuf.schema import aif, aml, ova, sadface, argdown_json
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
@@ -732,6 +732,61 @@ class Graph:
                 atom_class.from_sadface(sadface_node, nlp)
                 if sadface_node["type"] == "atom"
                 else scheme_class.from_sadface(sadface_node, nlp)
+            )
+
+            if node:
+                g.add_node(node)
+
+        for sadface_edge in obj["edges"]:
+            if edge := edge_class.from_sadface(sadface_edge, g._nodes):
+                g.add_edge(edge)
+
+        # create
+        # object
+        created = dt.from_format(
+            obj["metadata"]["core"]["created"], sadface.DATE_FORMAT
+        )
+        updated = dt.from_format(obj["metadata"]["core"]["edited"], sadface.DATE_FORMAT)
+        metadata = Metadata(created, updated)
+        g.metadata = metadata
+
+        # create Analyst object
+        analyst = Analyst(
+            name=obj["metadata"]["core"]["analyst_name"],
+            email=obj["metadata"]["core"]["analyst_email"],
+        )
+        g.add_analyst(analyst)
+
+        # create Userdata dict
+        userdata = {
+            "notes": obj["metadata"]["core"]["notes"],
+            "description": obj["metadata"]["core"]["description"],
+            "title": obj["metadata"]["core"]["title"],
+            "sadfaceVersion": obj["metadata"]["core"]["version"],
+        }
+        g.userdata = userdata
+
+        return g
+
+    @classmethod
+    def from_argdown_json(
+        cls,
+        obj: argdown_json.Graph,
+        name: t.Optional[str] = None,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        """Generate Graph structure from JSON Argdown argument graph file
+        (reference: https://argdown.org/).
+        """
+        g = cls(name)
+
+        # Every node in obj["nodes"] is a atom node
+        for argdown_node in obj["nodes"]:
+            node = (
+                atom_class.from_argdown_json(argdown_node, nlp)
             )
 
             if node:
