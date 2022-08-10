@@ -73,28 +73,20 @@ class Edge:
 
     @classmethod
     def from_sadface(
-        cls,
-        obj: sadface.Edge,
-        nodes: t.Mapping[str, Node],
+        cls, obj: sadface.Edge, nodes: t.Mapping[str, Node],
     ) -> t.Optional[Edge]:
         """Generate Edge object from SADFace Edge format."""
         source_id = obj.get("source_id")
         target_id = obj.get("target_id")
 
         if source_id in nodes and target_id in nodes:
-            return cls(
-                id=obj["id"],
-                source=nodes[source_id],
-                target=nodes[target_id],
-            )
+            return cls(id=obj["id"], source=nodes[source_id], target=nodes[target_id],)
 
         return None
 
     @classmethod
     def from_argdown_json(
-            cls,
-            obj: argdown_json.Edge,
-            nodes: t.Mapping[str, Node],
+        cls, obj: argdown_json.Edge, nodes: t.Mapping[str, Node],
     ) -> t.Optional[Edge]:
         """Generate Edge object from Argdown JSON Edge format."""
         if "from" in obj:
@@ -110,20 +102,12 @@ class Edge:
         edge_id = obj["id"]
 
         if source_id in nodes and target_id in nodes:
-            return cls(
-                id=edge_id,
-                source=nodes[source_id],
-                target=nodes[target_id],
-            )
+            return cls(id=edge_id, source=nodes[source_id], target=nodes[target_id],)
 
         return None
 
     @classmethod
-    def from_ova(
-        cls,
-        obj: ova.Edge,
-        nodes: t.Mapping[str, Node],
-    ) -> t.Optional[Edge]:
+    def from_ova(cls, obj: ova.Edge, nodes: t.Mapping[str, Node],) -> t.Optional[Edge]:
         """Generate Edge object from OVA Edge format."""
         source_id = str(obj["from"]["id"])
         target_id = str(obj["to"]["id"])
@@ -140,20 +124,14 @@ class Edge:
         return None
 
     @classmethod
-    def from_aif(
-        cls,
-        obj: aif.Edge,
-        nodes: t.Mapping[str, Node],
-    ) -> t.Optional[Edge]:
+    def from_aif(cls, obj: aif.Edge, nodes: t.Mapping[str, Node],) -> t.Optional[Edge]:
         """Generate Edge object from AIF Edge format."""
         source_id = obj.get("fromID")
         target_id = obj.get("toID")
 
         if source_id in nodes and target_id in nodes:
             return cls(
-                id=obj["edgeID"],
-                source=nodes[source_id],
-                target=nodes[target_id],
+                id=obj["edgeID"], source=nodes[source_id], target=nodes[target_id],
             )
 
         return None
@@ -169,10 +147,7 @@ class Edge:
 
     @classmethod
     def from_protobuf(
-        cls,
-        id: str,
-        obj: graph_pb2.Edge,
-        nodes: t.Mapping[str, Node],
+        cls, id: str, obj: graph_pb2.Edge, nodes: t.Mapping[str, Node],
     ) -> Edge:
         """Generate Edge object from PROTOBUF Edge format."""
         return cls(
@@ -213,6 +188,5 @@ class Edge:
     def to_gv(self, g: gv.Digraph) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
         g.edge(
-            self.source._id,
-            self.target._id,
+            self.source._id, self.target._id,
         )

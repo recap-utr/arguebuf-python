@@ -3,10 +3,10 @@ import typing as t
 
 class Node(t.TypedDict):
     id: str
-    title: str                  # title of argument/statement
-    type: str                   # check if "argument-map-node", or "statment-map-node"
-    labelTitle: str             # title of argument/statement
-    labelText: str              # text of argument/statement
+    title: str  # title of argument/statement
+    type: str  # check if "argument-map-node", or "statment-map-node"
+    labelTitle: str  # title of argument/statement
+    labelText: str  # text of argument/statement
 
 
 class Edge(t.TypedDict):
