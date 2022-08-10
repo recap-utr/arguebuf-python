@@ -1,10 +1,8 @@
-# Created by Leon kamke
 notes.txt
 package.json
 package-lock.json
 tests/argdown_test
 tests/doctest-output
-# -----------------------
 
 .vscode/
 .idea/
