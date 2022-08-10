@@ -365,6 +365,7 @@ class Node(ABC):
     ) -> Node:
         """Generate Node object from SADFace Node format."""
 
+    """
     @classmethod
     @abstractmethod
     def from_argdown_json(
@@ -372,7 +373,7 @@ class Node(ABC):
         obj: argdown_json.Node,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
-        """Generate Node object from Argdon JSON Node format"""
+    """
 
     @classmethod
     @abstractmethod

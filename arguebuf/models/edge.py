@@ -97,8 +97,16 @@ class Edge:
             nodes: t.Mapping[str, Node],
     ) -> t.Optional[Edge]:
         """Generate Edge object from Argdown JSON Edge format."""
-        source_id = obj["source"]
-        target_id = obj["target"]
+        if "from" in obj:
+            source_id = obj["from"]
+        else:
+            source_id = obj["source"]
+
+        if "to" in obj:
+            target_id = obj["to"]
+        else:
+            target_id = obj["target"]
+
         edge_id = obj["id"]
 
         if source_id in nodes and target_id in nodes:

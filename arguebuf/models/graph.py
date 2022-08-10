@@ -809,7 +809,6 @@ class Graph:
                     scheme = Support.DEFAULT
                 else:
                     scheme = Support.DEFAULT
-                # add other scheme types
                 # create scheme_node for edge
                 scheme_node = SchemeNode(
                     metadata=Metadata(timestamp, timestamp),
@@ -817,7 +816,7 @@ class Graph:
                 )
                 g.add_node(scheme_node)
 
-                # create edge from source to scheme_node and edge from scheme_node to target
+                # create edge from source to scheme_node and an edge from scheme_node to target
                 g.add_edge(Edge(edge.source, scheme_node))
                 g.add_edge(Edge(scheme_node, edge.target))
 
@@ -998,16 +997,6 @@ class Graph:
                 scheme_class,
                 edge_class,
                 nlp,
-            )
-
-        if "map" in obj:
-            return cls.from_argdown_json(
-                t.cast(argdown_json.Graph, obj),
-                name,
-                atom_class,
-                scheme_class,
-                edge_class,
-                nlp
             )
 
         return cls.from_protobuf(
