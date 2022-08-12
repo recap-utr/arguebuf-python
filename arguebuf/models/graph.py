@@ -807,7 +807,8 @@ class Graph:
                     scheme = Support.DEFAULT
                 # create scheme_node for edge
                 scheme_node = SchemeNode(
-                    metadata=Metadata(timestamp, timestamp), scheme=scheme,
+                    metadata=Metadata(timestamp, timestamp),
+                    scheme=scheme,
                 )
                 g.add_node(scheme_node)
 
@@ -976,12 +977,22 @@ class Graph:
         """Generate Graph structure from DICT argument graph file(Link?)."""
         if "analysis" in obj:
             return cls.from_ova(
-                t.cast(ova.Graph, obj), name, atom_class, scheme_class, edge_class, nlp,
+                t.cast(ova.Graph, obj),
+                name,
+                atom_class,
+                scheme_class,
+                edge_class,
+                nlp,
             )
 
         if "locutions" in obj:
             return cls.from_aif(
-                t.cast(aif.Graph, obj), name, atom_class, scheme_class, edge_class, nlp,
+                t.cast(aif.Graph, obj),
+                name,
+                atom_class,
+                scheme_class,
+                edge_class,
+                nlp,
             )
 
         return cls.from_protobuf(
@@ -1024,7 +1035,10 @@ class Graph:
     ) -> None:
         """Export structure of Graph instance to JSON argument graph format."""
         json.dump(
-            self.to_dict(format), obj, ensure_ascii=False, indent=4 if pretty else None,
+            self.to_dict(format),
+            obj,
+            ensure_ascii=False,
+            indent=4 if pretty else None,
         )
 
     @classmethod
@@ -1248,7 +1262,13 @@ class Graph:
 
         with path.open("r", encoding="utf-8") as file:
             return cls.from_io(
-                file, path.suffix, path.stem, atom_class, scheme_class, edge_class, nlp,
+                file,
+                path.suffix,
+                path.stem,
+                atom_class,
+                scheme_class,
+                edge_class,
+                nlp,
             )
 
     def to_file(
@@ -1430,7 +1450,10 @@ class Graph:
 
         for node in self._scheme_nodes.values():
             node.to_gv(
-                g, False, label_func=scheme_label, wrap_col=wrap_col or 36,
+                g,
+                False,
+                label_func=scheme_label,
+                wrap_col=wrap_col or 36,
             )
 
         for edge in self._edges.values():
@@ -1453,7 +1476,12 @@ class Graph:
             for incoming, outgoing in itertools.product(
                 self.incoming_atom_nodes(scheme), self.outgoing_atom_nodes(scheme)
             ):
-                self.add_edge(Edge(incoming, outgoing,))
+                self.add_edge(
+                    Edge(
+                        incoming,
+                        outgoing,
+                    )
+                )
 
             self.remove_node(scheme)
 
@@ -1517,7 +1545,11 @@ def _kialo_atom_node(
     text = re.sub(r"\\([\[\]\(\)])", r"\1", text)
 
     # Remove markdown links
-    text = re.sub(r"\[(.*?)\]\(.*?\)", r"\1", text,)
+    text = re.sub(
+        r"\[(.*?)\]\(.*?\)",
+        r"\1",
+        text,
+    )
 
     # Apply user-provided nlp function
     text = utils.parse(text, nlp)
@@ -1526,7 +1558,9 @@ def _kialo_atom_node(
 
 
 def render(
-    g: t.Union[gv.Graph, gv.Digraph], path: t.Union[Path, str], view: bool = False,
+    g: t.Union[gv.Graph, gv.Digraph],
+    path: t.Union[Path, str],
+    view: bool = False,
 ) -> None:
     """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
     if isinstance(path, str):
@@ -1542,7 +1576,10 @@ def render(
     directory = path.parent
 
     g.render(
-        filename=filename, directory=str(directory), cleanup=True, view=view,
+        filename=filename,
+        directory=str(directory),
+        cleanup=True,
+        view=view,
     )
 
 

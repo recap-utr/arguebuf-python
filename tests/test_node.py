@@ -104,7 +104,7 @@ argdown_json_data_AtomNode = [
         """,
         "n1",
         "Attacking argument",
-        ag.AtomNode
+        ag.AtomNode,
     )
 ]
 

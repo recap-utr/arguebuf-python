@@ -341,21 +341,27 @@ class Node(ABC):
     @classmethod
     @abstractmethod
     def from_ova(
-        cls, obj: ova.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: ova.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from OVA Node format."""
 
     @classmethod
     @abstractmethod
     def from_aif(
-        cls, obj: aif.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: aif.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from AIF Node format."""
 
     @classmethod
     @abstractmethod
     def from_sadface(
-        cls, obj: sadface.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from SADFace Node format."""
 
@@ -372,7 +378,9 @@ class Node(ABC):
     @classmethod
     @abstractmethod
     def from_aml(
-        cls, obj: et.Element, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: et.Element,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from AML Node format."""
 
@@ -457,7 +465,9 @@ class AtomNode(Node):
 
     @classmethod
     def from_sadface(
-        cls, obj: sadface.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from SADFace Node object."""
         timestamp = pendulum.now()
@@ -470,7 +480,9 @@ class AtomNode(Node):
 
     @classmethod
     def from_argdown_json(
-        cls, obj: argdown_json.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: argdown_json.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from Argdown JSON Node object."""
         timestamp = pendulum.now()
@@ -482,7 +494,9 @@ class AtomNode(Node):
 
     @classmethod
     def from_aml(
-        cls, obj: et.Element, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: et.Element,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """
         Generate Node object from AML Node format. obj is a AML "PROP" element.
@@ -519,7 +533,9 @@ class AtomNode(Node):
 
     @classmethod
     def from_aif(
-        cls, obj: aif.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: aif.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from AIF Node object."""
         timestamp = (
@@ -543,7 +559,9 @@ class AtomNode(Node):
 
     @classmethod
     def from_ova(
-        cls, obj: ova.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: ova.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from OVA Node object."""
         timestamp = dt.from_format(obj.get("date"), ova.DATE_FORMAT) or pendulum.now()
@@ -670,7 +688,9 @@ class SchemeNode(Node):
 
     @classmethod
     def from_sadface(
-        cls, obj: sadface.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: sadface.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
         """Generate SchemeNode object from SADFace Node object."""
         name = None
@@ -753,7 +773,9 @@ class SchemeNode(Node):
 
     @classmethod
     def from_aif(
-        cls, obj: aif.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: aif.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> t.Optional[SchemeNode]:
         """Generate SchemeNode object from AIF Node object."""
 
@@ -793,7 +815,9 @@ class SchemeNode(Node):
 
     @classmethod
     def from_ova(
-        cls, obj: ova.Node, nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: ova.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> t.Optional[SchemeNode]:
         """Generate SchemeNode object from OVA Node object."""
 
