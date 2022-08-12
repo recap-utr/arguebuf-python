@@ -16,7 +16,7 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova, sadface
+from arguebuf.schema import aif, ova, sadface, argdown_json
 from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
@@ -367,6 +367,15 @@ class Node(ABC):
 
     @classmethod
     @abstractmethod
+    def from_argdown_json(
+        cls,
+        obj: argdown_json.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Node:
+        """Import argdown"""
+
+    @classmethod
+    @abstractmethod
     def from_aml(
         cls,
         obj: et.Element,
@@ -465,6 +474,20 @@ class AtomNode(Node):
             id=obj["id"],
             text=utils.parse(obj["text"], nlp),
             userdata=obj["metadata"],
+            metadata=Metadata(timestamp, timestamp),
+        )
+
+    @classmethod
+    def from_argdown_json(
+        cls,
+        obj: argdown_json.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> AtomNode:
+        """Generate AtomNode object from Argdown JSON Node object."""
+        timestamp = pendulum.now()
+        return cls(
+            id=obj["id"],
+            text=utils.parse(obj["labelText"], nlp),
             metadata=Metadata(timestamp, timestamp),
         )
 

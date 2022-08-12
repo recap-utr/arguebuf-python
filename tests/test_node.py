@@ -90,6 +90,37 @@ aml_data_AtomNode = [
     )
 ]
 
+argdown_json_data_AtomNode = [
+    (
+        """
+        {
+            "id": "n1",
+            "title": "Untitled 1",
+            "type": "statement-map-node",
+            "labelText": "Attacking argument",
+            "color": "#1b9e77",
+            "fontColor": "#000000"
+        }
+        """,
+        "n1",
+        "Attacking argument",
+        ag.AtomNode,
+    )
+]
+
+
+@pytest.mark.parametrize("data,id,text,type", argdown_json_data_AtomNode)
+def test_argdown_json_node_AN(data, id, text, type):
+    data_json = json.loads(data)
+    node = ag.AtomNode.from_argdown_json(data_json)
+
+    assert node.id == id
+    assert node.text == text
+    assert isinstance(node, type)
+    assert node.reference is None
+    assert node.userdata == {}
+    assert isinstance(node.to_protobuf(), graph_pb2.Node)
+
 
 @pytest.mark.parametrize("data,id,text,type", aml_data_AtomNode)
 def test_aml_node_AN(data, id, text, type):

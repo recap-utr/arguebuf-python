@@ -1,8 +1,6 @@
 from __future__ import absolute_import, annotations
 
 import typing as t
-import xml.etree.ElementTree as ET
-
 import graphviz as gv
 import networkx as nx
 import pendulum
@@ -10,7 +8,7 @@ from arg_services.graph.v1 import graph_pb2
 from arguebuf.models import Userdata
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
-from arguebuf.schema import aif, ova, sadface
+from arguebuf.schema import aif, ova, sadface, argdown_json
 from arguebuf.services import dt, utils
 
 
@@ -86,6 +84,34 @@ class Edge:
         if source_id in nodes and target_id in nodes:
             return cls(
                 id=obj["id"],
+                source=nodes[source_id],
+                target=nodes[target_id],
+            )
+
+        return None
+
+    @classmethod
+    def from_argdown_json(
+        cls,
+        obj: argdown_json.Edge,
+        nodes: t.Mapping[str, Node],
+    ) -> t.Optional[Edge]:
+        """Generate Edge object from Argdown JSON Edge format."""
+        if "from" in obj:
+            source_id = obj["from"]
+        else:
+            source_id = obj["source"]
+
+        if "to" in obj:
+            target_id = obj["to"]
+        else:
+            target_id = obj["target"]
+
+        edge_id = obj["id"]
+
+        if source_id in nodes and target_id in nodes:
+            return cls(
+                id=edge_id,
                 source=nodes[source_id],
                 target=nodes[target_id],
             )

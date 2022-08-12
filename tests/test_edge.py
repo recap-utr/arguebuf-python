@@ -109,6 +109,46 @@ sadface_data = [
     )
 ]
 
+argdown_json_data = [
+    (
+        """
+        {
+            "id": "e1",
+            "type": "map-edge",
+            "relationType": "support",
+            "from": "n2",
+            "to": "n0",
+            "toEquivalenceClass": "Statement 1"
+        }
+        """,
+        "e1",
+        "n2",
+        "n0",
+    )
+]
+
+
+@pytest.mark.parametrize("data,id,start,end", argdown_json_data)
+def test_argdown_json_edge(data, id, start, end):
+    data_json = json.loads(data)
+    edge = ag.Edge.from_argdown_json(
+        data_json,
+        {
+            start: ag.AtomNode(id=start, text=""),
+            end: ag.AtomNode(id=end, text=""),
+        },
+    )
+
+    assert edge
+    assert edge.id == id
+    assert isinstance(edge.source, ag.AtomNode)
+    assert isinstance(edge.target, ag.AtomNode)
+    assert edge.source.id == start
+    assert edge.target.id == end
+    assert edge.metadata is not None
+    assert edge.userdata == {}
+    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
+
 
 @pytest.mark.parametrize("data,id,start,end", sadface_data)
 def test_sadface_edge(data, id, start, end):
