@@ -1,0 +1,22 @@
+name: Format code with black
+
+# https://github.com/stefanzweifel/git-auto-commit-action#workflow-should-run-in-base-repository
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+
+jobs:
+  php-cs-fixer:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: ${{ github.event.pull_request.head.repo.full_name }}
+        ref: ${{ github.head_ref }}
+    - uses: psf/black@stable
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Enforce black code style
