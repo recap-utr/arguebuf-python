@@ -1,11 +1,9 @@
 name: Format code with black
 
 # https://github.com/stefanzweifel/git-auto-commit-action#workflow-should-run-in-base-repository
+# https://github.com/stefanzweifel/git-auto-commit-action/issues/211
 
 on:
-  push:
-    branches:
-      - main
   pull_request_target:
 
 jobs:
