@@ -16,7 +16,7 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, ova, sadface, argdown_json
+from arguebuf.schema import aif, argdown_json, ova, sadface
 from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
@@ -334,6 +334,11 @@ class Node(ABC):
     def id(self) -> str:
         return self._id
 
+    @property
+    @abstractmethod
+    def label(self) -> str:
+        """Generate a matching node label (e.g., for graphviz)"""
+
     @abstractmethod
     def color(self, major_claim: bool) -> Color:
         """Get the color used in OVA based on `category`."""
@@ -450,6 +455,10 @@ class AtomNode(Node):
         """Get the standard `text` as string."""
 
         return utils.xstr(self.text)
+
+    @property
+    def label(self) -> str:
+        return self.plain_text
 
     @property
     def reference(self) -> t.Optional[Reference]:
@@ -616,7 +625,7 @@ class AtomNode(Node):
             attrs = {}
 
         if "label" not in attrs:
-            attrs["label"] = lambda x: x.plain_text
+            attrs["label"] = lambda x: x.label
 
         g.add_node(self._id, **{key: func(self) for key, func in attrs.items()})
 
@@ -636,7 +645,7 @@ class AtomNode(Node):
     ) -> None:
         """Submethod used to export Graph object g into GV Graph format."""
         color = self.color(major_claim)
-        label = label_func(self) if label_func else self.plain_text
+        label = label_func(self) if label_func else self.label
 
         # TODO: Improve wrapping
         # https://stackoverflow.com/a/26538082/7626878
@@ -684,6 +693,18 @@ class SchemeNode(Node):
                 self.scheme.value if self.scheme else "",
             ],
         )
+
+    @property
+    def label(self) -> str:
+        label = NO_SCHEME_LABEL
+
+        if self.scheme:
+            label = type(self.scheme).__name__
+
+            if self.scheme.value != "Default":
+                label = f"{label}: {self.scheme.value}"
+
+        return label
 
     @classmethod
     def from_sadface(
@@ -913,7 +934,7 @@ class SchemeNode(Node):
             attrs = {}
 
         if "label" not in attrs:
-            attrs["label"] = _scheme_label
+            attrs["label"] = lambda x: x.label
 
         g.add_node(self._id, **{key: func(self) for key, func in attrs.items()})
 
@@ -932,7 +953,7 @@ class SchemeNode(Node):
         """Submethod used to export Graph object g into GV Graph format."""
 
         color = self.color(major_claim)
-        label = label_func(self) if label_func else _scheme_label(self)
+        label = label_func(self) if label_func else self.label
 
         g.node(
             self._id,
@@ -941,15 +962,3 @@ class SchemeNode(Node):
             fillcolor=color.bg,
             color=color.border,
         )
-
-
-def _scheme_label(obj: SchemeNode) -> str:
-    label = NO_SCHEME_LABEL
-
-    if obj.scheme:
-        label = type(obj.scheme).__name__
-
-        if obj.scheme.value != "Default":
-            label = f"{label}: {obj.scheme.value}"
-
-    return label
