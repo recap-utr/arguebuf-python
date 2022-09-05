@@ -870,6 +870,15 @@ class SchemeNode(Node):
         return None
 
     @classmethod
+    def from_argdown_json(
+        cls,
+        obj: argdown_json.Node,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> SchemeNode:
+        # Currently not used
+        return SchemeNode()
+
+    @classmethod
     def from_protobuf(
         cls,
         id: str,
