@@ -1437,7 +1437,7 @@ class Graph:
                 "margin": "0",
                 "nodesep": str(nodesep or 0.25),
                 "ranksep": str(ranksep or 0.5),
-                "overlap": False,
+                "overlap": "false",
                 "splines": edge_style.value if edge_style else EdgeStyle.STEP.value,
                 **graph_attr,
             },
