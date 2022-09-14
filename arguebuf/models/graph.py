@@ -17,13 +17,13 @@ import pendulum
 from arg_services.graph.v1 import graph_pb2
 from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
-from arguebuf.models.edge import Edge
+from arguebuf.models.edge import Edge, EdgeStyle
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, aml, ova, sadface, argdown_json
+from arguebuf.schema import aif, aml, argdown_json, ova, sadface
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 from google.protobuf.json_format import MessageToDict, ParseDict
@@ -1401,6 +1401,7 @@ class Graph:
         graph_attr: t.Optional[t.Mapping[str, str]] = None,
         node_attr: t.Optional[t.Mapping[str, str]] = None,
         edge_attr: t.Optional[t.Mapping[str, str]] = None,
+        edge_style: t.Optional[EdgeStyle] = None,
     ) -> gv.Digraph:
         """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
         gv_margin: t.Callable[[t.Tuple[float, float]], str] = lambda x: f"{x[0]},{x[1]}"
@@ -1436,6 +1437,8 @@ class Graph:
                 "margin": "0",
                 "nodesep": str(nodesep or 0.25),
                 "ranksep": str(ranksep or 0.5),
+                "overlap": False,
+                "splines": edge_style or EdgeStyle.STEP,
                 **graph_attr,
             },
         )

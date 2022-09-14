@@ -1,6 +1,8 @@
 from __future__ import absolute_import, annotations
 
 import typing as t
+from enum import Enum
+
 import graphviz as gv
 import networkx as nx
 import pendulum
@@ -8,8 +10,14 @@ from arg_services.graph.v1 import graph_pb2
 from arguebuf.models import Userdata
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
-from arguebuf.schema import aif, ova, sadface, argdown_json
+from arguebuf.schema import aif, argdown_json, ova, sadface
 from arguebuf.services import dt, utils
+
+
+class EdgeStyle(Enum):
+    BEZIER = "curved"
+    STRAIGHT = "line"
+    STEP = "ortho"
 
 
 class Edge:
