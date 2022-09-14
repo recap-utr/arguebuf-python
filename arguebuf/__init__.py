@@ -3,6 +3,7 @@ import logging
 from arguebuf.models import Userdata as Userdata
 from arguebuf.models.analyst import Analyst as Analyst
 from arguebuf.models.edge import Edge as Edge
+from arguebuf.models.edge import EdgeStyle as EdgeStyle
 from arguebuf.models.graph import Graph as Graph
 from arguebuf.models.graph import GraphFormat as GraphFormat
 from arguebuf.models.graph import render as render
