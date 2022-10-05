@@ -4,9 +4,10 @@ from pathlib import Path
 
 import arguebuf as ag
 import typer
+from arguebuf.cli.translator import Translator
 from arguebuf.models.edge import EdgeStyle
 
-from . import graph_translator, model
+from . import model
 
 cli = typer.Typer()
 
@@ -22,7 +23,6 @@ def translate(
     output_format: ag.GraphFormat = ag.GraphFormat.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
-    parallel: bool = True,
     start: int = 1,
 ) -> None:
     if not output_folder:
@@ -33,7 +33,7 @@ def translate(
         output_folder.mkdir()
 
     path_pairs = model.PathPair.create(input_folder, output_folder, input_glob, ".json")
-    translator = graph_translator.Translator(auth_key, source_lang, target_lang)
+    translator = Translator(auth_key, source_lang, target_lang)
     bar: t.Iterable[model.PathPair]
 
     with typer.progressbar(
@@ -44,7 +44,7 @@ def translate(
         for path_pair in bar:
             if overwrite or not path_pair.target.exists():
                 graph = ag.Graph.from_file(path_pair.source)
-                translator.translate_graph(graph, parallel)
+                translator.translate(graph)
                 graph.to_file(path_pair.target, output_format)
 
 

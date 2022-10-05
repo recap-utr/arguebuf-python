@@ -2,8 +2,9 @@ import shutil
 import typing as t
 from pathlib import Path
 
-import deepl_pro as dl
+import deepl
 import typer
+from arguebuf.cli.translator import Translator
 
 from . import model
 
@@ -33,9 +34,7 @@ def translate(
     paths = model.PathPair.create(
         input_folder, output_folder, input_glob, output_suffix
     )
-    translator = dl.Translator(
-        auth_key, dl.Language(source_lang), dl.Language(target_lang)
-    )
+    translator = Translator(auth_key, source_lang, target_lang)
     bar: t.Iterable[model.PathPair]
 
     with typer.progressbar(
@@ -48,7 +47,7 @@ def translate(
                 with path_pair.source.open("r") as file:
                     source_text = file.read()
 
-                target_text = translator.translate_text(source_text)
+                translation = translator.translate(source_text)
 
                 with path_pair.target.open("w") as file:
-                    file.write(target_text)
+                    file.write(translation)
