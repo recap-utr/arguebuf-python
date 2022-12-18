@@ -14,19 +14,19 @@ files = [
 
 [[package]]
 name = "arg-services"
-version = "0.3.10"
+version = "0.4.1"
 description = "gRPC definitions for microservice-based argumentation machines"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "arg-services-0.3.10.tar.gz", hash = "sha256:6ac40af727629503b0669cf542c931775208f70b519052970c0859042e588162"},
-    {file = "arg_services-0.3.10-py3-none-any.whl", hash = "sha256:e98b134ba543956cd98edada398d5f691971d749a0541d6b6b26374c34190834"},
+    {file = "arg_services-0.4.1-py3-none-any.whl", hash = "sha256:825309636ad5e910f94d3c6be95d054196594581fd2cb5e95073fc002797abc2"},
+    {file = "arg_services-0.4.1.tar.gz", hash = "sha256:ef29482c070f11e3b651114e2b805e71b95ad85fea816e9f62dd95a884950fcd"},
 ]
 
 [package.dependencies]
-grpcio = ">=1.46.3,<2.0.0"
-grpcio-reflection = ">=1.46.3,<2.0.0"
+grpcio = ">=1.51.1,<2.0.0"
+grpcio-reflection = ">=1.51.1,<2.0.0"
 protobuf = ">=4.21.1,<5.0.0"
 
 [[package]]
@@ -1463,4 +1463,4 @@ docs = ["sphinx", "furo", "myst-parser", "sphinx-autoapi", "autodocsumm"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "1a09b5767dbbe883440bc33411b52aa35e85228085c9e9302d9acec26abe79d0"
+content-hash = "8791584f06ba3efdb3fd8015ac656d2ec519dcf826c5c83d05523e0c1f4adc76"

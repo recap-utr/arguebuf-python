@@ -14,7 +14,7 @@ arguebuf = "arguebuf.cli.app:cli"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-arg-services = "^0.3.8"
+arg-services = "^0.4.0"
 networkx = "^2.8.4"
 pendulum = "^2.1.2"
 graphviz = "^0.20"
