@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/recap-utr/arguebuf-python/compare/v1.2.1...v1.2.2) (2022-12-19)
+
+
+### Bug Fixes
+
+* bump version ([9dc224c](https://github.com/recap-utr/arguebuf-python/commit/9dc224c81d8ebee477da7628712b4a0e3b5bd832))
+
 ## [1.2.1](https://github.com/recap-utr/arguebuf-python/compare/v1.2.0...v1.2.1) (2022-12-13)
 
 
