@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/recap-utr/arguebuf-python/compare/v1.2.2...v1.2.3) (2022-12-20)
+
+
+### Bug Fixes
+
+* solve cli translator issue ([6c7b1ab](https://github.com/recap-utr/arguebuf-python/commit/6c7b1ab63cc9ee2c2e667670c10a189c96d801e1))
+
 ## [1.2.2](https://github.com/recap-utr/arguebuf-python/compare/v1.2.1...v1.2.2) (2022-12-19)
 
 
