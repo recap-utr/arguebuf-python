@@ -1,9 +1,10 @@
 import logging
 import typing as t
-from functools import singledispatchmethod
+
+import deepl
+from multimethod import multimethod
 
 import arguebuf as ag
-import deepl
 
 log = logging.getLogger(__name__)
 
@@ -32,42 +33,23 @@ class Translator:
         else:
             return result.text
 
-    @t.overload
-    def translate(self, text: str) -> str:
-        ...
-
-    @t.overload
-    def translate(self, texts: t.Iterable[str]) -> t.List[str]:
-        ...
-
-    @t.overload
-    def translate(self, graph: ag.Graph) -> None:
-        ...
-
-    @t.overload
-    def translate(self, graphs: t.Iterable[ag.Graph]) -> None:
-        ...
-
-    def translate(self, *args, **kwargs) -> t.Any:
-        self._translate(*args, **kwargs)
-
-    @singledispatchmethod
-    def _translate(self):
+    @multimethod
+    def translate(self):
         raise NotImplementedError()
 
-    @_translate.register
+    @translate.register
     def _(self, text: str) -> str:
         trans = self._deepl_translate(text)
         assert isinstance(trans, str)
         return trans
 
-    @_translate.register
+    @translate.register
     def _(self, texts: t.Iterable[str]) -> t.List[str]:
         trans = self._deepl_translate(texts)
         assert isinstance(trans, list)
         return trans
 
-    @_translate.register
+    @translate.register
     def _(self, graph: ag.Graph) -> None:
         original_resources = [
             resource.plain_text for resource in graph.resources.values()
@@ -92,7 +74,7 @@ class Translator:
         for atom, translation in zip(graph.atom_nodes.values(), self.translate(atoms)):
             atom.text = translation
 
-    @_translate.register
+    @translate.register
     def _(self, graphs: t.Iterable[ag.Graph]) -> None:
         for graph in graphs:
             self.translate(graph)

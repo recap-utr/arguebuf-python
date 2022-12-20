@@ -27,6 +27,7 @@ autodocsumm = { version = "^0.2.8", optional = true }
 typer = { version = "^0.7.0", extras = ["all"], optional = true }
 deepl = { version = "^1.11.0", optional = true }
 pygraphviz = { version = "^1.10", optional = true }
+multimethod = { version = "^1.9", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.2"
@@ -36,7 +37,7 @@ deepdiff = { extras = ["murmur"], version = "^6.0.0" }
 
 [tool.poetry.extras]
 docs = ["sphinx", "furo", "myst-parser", "sphinx-autoapi", "autodocsumm"]
-cli = ["typer", "deepl"]
+cli = ["typer", "deepl", "multimethod"]
 graphviz = ["pygraphviz"]
 
 [build-system]
