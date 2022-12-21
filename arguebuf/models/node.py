@@ -7,10 +7,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 
-import graphviz as gv
 import networkx as nx
 import pendulum
+import pygraphviz as gv
 from arg_services.graph.v1 import graph_pb2
+
 from arguebuf.models import Userdata
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
@@ -417,10 +418,6 @@ class Node(ABC):
     ) -> None:
         """Submethod used to export Graph object g into NX Graph format."""
 
-    @abstractmethod
-    def to_gv(self, g: gv.Digraph, major_claim: bool, wrap_col: int) -> None:
-        """Submethod used to export Graph object g into GV Graph format."""
-
 
 class AtomNode(Node):
     __slots__ = (
@@ -635,28 +632,6 @@ class AtomNode(Node):
             return Color(bg="#0D47A1")
 
         return Color(bg="#2196F3")
-
-    def to_gv(
-        self,
-        g: gv.Digraph,
-        major_claim: bool,
-        wrap_col: int,
-        label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
-    ) -> None:
-        """Submethod used to export Graph object g into GV Graph format."""
-        color = self.color(major_claim)
-        label = label_func(self) if label_func else self.label
-
-        # TODO: Improve wrapping
-        # https://stackoverflow.com/a/26538082/7626878
-        g.node(
-            self._id,
-            label=textwrap.fill(label, wrap_col).strip(),
-            fontcolor=color.fg,
-            fillcolor=color.bg,
-            color=color.border,
-            root=str(major_claim),
-        )
 
 
 class SchemeNode(Node):
@@ -951,23 +926,3 @@ class SchemeNode(Node):
         """Get the color used in OVA based on `category`."""
 
         return scheme2color[type(self.scheme)] if self.scheme else Color(bg="#009688")
-
-    def to_gv(
-        self,
-        g: gv.Digraph,
-        major_claim: bool,
-        wrap_col: int,
-        label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
-    ) -> None:
-        """Submethod used to export Graph object g into GV Graph format."""
-
-        color = self.color(major_claim)
-        label = label_func(self) if label_func else self.label
-
-        g.node(
-            self._id,
-            label=label,
-            fontcolor=color.fg,
-            fillcolor=color.bg,
-            color=color.border,
-        )

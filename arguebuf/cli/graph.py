@@ -2,10 +2,12 @@ import shutil
 import typing as t
 from pathlib import Path
 
-import arguebuf as ag
 import typer
+
+import arguebuf as ag
 from arguebuf.cli.translator import Translator
-from arguebuf.models.edge import EdgeStyle
+from arguebuf.schema.graphviz import EdgeStyle
+from arguebuf.schema.graphviz import export as to_gv
 
 from . import model
 
@@ -78,6 +80,7 @@ def render(
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
+    max_nodes: t.Optional[int] = None,
 ) -> None:
     if not output_folder:
         output_folder = input_folder
@@ -103,8 +106,8 @@ def render(
                 if strip_scheme_nodes:
                     g.strip_scheme_nodes()
 
-                gv = g.to_gv(
-                    format=output_format.replace(".", ""),
+                gv = to_gv(
+                    g,
                     nodesep=nodesep,
                     ranksep=ranksep,
                     wrap_col=node_wrap_col,
@@ -116,6 +119,7 @@ def render(
                     atom_label=_strip_node_labels if strip_node_labels else None,
                     scheme_label=_strip_node_labels if strip_node_labels else None,
                     edge_style=edge_style,
+                    max_nodes=max_nodes,
                 )
                 ag.render(gv, path_pair.target)
 

@@ -14,20 +14,20 @@ files = [
 
 [[package]]
 name = "arg-services"
-version = "1.0.0"
+version = "1.0.2"
 description = "gRPC definitions for microservice-based argumentation machines"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "arg_services-1.0.0-py3-none-any.whl", hash = "sha256:eace5ea67db9fd3e77599675137c6cc87814621c2a31d5d7e205958ac99b3326"},
-    {file = "arg_services-1.0.0.tar.gz", hash = "sha256:3d910b1474cf5c61210e376c01cd72d7f5c1af6c373a5dbc9ee3b4269d031c77"},
+    {file = "arg_services-1.0.2-py3-none-any.whl", hash = "sha256:cbd57faf45cd2b48955b2f8264f9bbaa2c3e037ba9aed085bc4b04d72765c2d1"},
+    {file = "arg_services-1.0.2.tar.gz", hash = "sha256:8d9fe7da3764b0d8bde9718c537c499263e2a47b8ee46c7b1d39fbf8297d2113"},
 ]
 
 [package.dependencies]
 grpcio = ">=1.51.1,<2.0.0"
 grpcio-reflection = ">=1.51.1,<2.0.0"
-protobuf = ">=4.21.1,<5.0.0"
+protobuf = ">=4.21.12,<5.0.0"
 
 [[package]]
 name = "astroid"
@@ -1493,4 +1493,4 @@ graphviz = ["pygraphviz"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "0c744c0a1e40600d51531b7105300ffa131c4b2fd52470c55a10f4295de163d9"
+content-hash = "549aaa66a5ec2e4a4036b9113f796773c27063e3563f23144cc0f62bf4d8d120"

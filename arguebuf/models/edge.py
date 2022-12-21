@@ -3,21 +3,16 @@ from __future__ import absolute_import, annotations
 import typing as t
 from enum import Enum
 
-import graphviz as gv
 import networkx as nx
 import pendulum
+import pygraphviz as gv
 from arg_services.graph.v1 import graph_pb2
+
 from arguebuf.models import Userdata
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
 from arguebuf.schema import aif, argdown_json, ova, sadface
 from arguebuf.services import dt, utils
-
-
-class EdgeStyle(Enum):
-    BEZIER = "curved"
-    STRAIGHT = "line"
-    STEP = "ortho"
 
 
 class Edge:
@@ -216,11 +211,4 @@ class Edge:
             self.source.id,
             self.target.id,
             **{key: func(self) for key, func in attrs.items()},
-        )
-
-    def to_gv(self, g: gv.Digraph) -> None:
-        """Submethod used to export Graph object g into GV Graph format."""
-        g.edge(
-            self.source._id,
-            self.target._id,
         )

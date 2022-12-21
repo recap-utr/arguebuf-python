@@ -11,13 +11,16 @@ import xml.etree.ElementTree as ET
 from enum import Enum
 from pathlib import Path
 
-import graphviz as gv
 import networkx as nx
 import pendulum
+import pygraphviz as gv
 from arg_services.graph.v1 import graph_pb2
+from google.protobuf.json_format import MessageToDict, ParseDict
+from lxml import html
+
 from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
-from arguebuf.models.edge import Edge, EdgeStyle
+from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
 from arguebuf.models.participant import Participant
@@ -26,8 +29,6 @@ from arguebuf.models.resource import Resource
 from arguebuf.schema import aif, aml, argdown_json, ova, sadface
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
-from google.protobuf.json_format import MessageToDict, ParseDict
-from lxml import html
 
 log = logging.getLogger(__name__)
 
@@ -1386,86 +1387,6 @@ class Graph:
 
         return g
 
-    def to_gv(
-        self,
-        format: t.Optional[str] = None,
-        engine: t.Optional[str] = None,
-        nodesep: t.Optional[float] = None,
-        ranksep: t.Optional[float] = None,
-        wrap_col: t.Optional[int] = None,
-        margin: t.Optional[t.Tuple[float, float]] = None,
-        font_name: t.Optional[str] = None,
-        font_size: t.Optional[float] = None,
-        atom_label: t.Optional[t.Callable[[AtomNode], str]] = None,
-        scheme_label: t.Optional[t.Callable[[SchemeNode], str]] = None,
-        graph_attr: t.Optional[t.Mapping[str, str]] = None,
-        node_attr: t.Optional[t.Mapping[str, str]] = None,
-        edge_attr: t.Optional[t.Mapping[str, str]] = None,
-        edge_style: t.Optional[EdgeStyle] = None,
-    ) -> gv.Digraph:
-        """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
-        gv_margin: t.Callable[[t.Tuple[float, float]], str] = lambda x: f"{x[0]},{x[1]}"
-
-        if not graph_attr:
-            graph_attr = {}
-
-        if not node_attr:
-            node_attr = {}
-
-        if not edge_attr:
-            edge_attr = {}
-
-        g = gv.Digraph(
-            name=str(self.name),
-            strict=True,
-            format=format or "pdf",
-            engine=engine or "dot",
-            node_attr={
-                "fontname": font_name or "Arial",
-                "fontsize": str(font_size or 11),
-                "margin": gv_margin(margin or (0.15, 0.1)),
-                "style": "rounded,filled",
-                "shape": "box",
-                "width": "0",
-                "height": "0",
-                **node_attr,
-            },
-            edge_attr={"color": "#9E9E9E", **edge_attr},
-            graph_attr={
-                # "bgcolor": "#000000",
-                "rankdir": "BT",
-                "margin": "0",
-                "nodesep": str(nodesep or 0.25),
-                "ranksep": str(ranksep or 0.5),
-                "overlap": "false",
-                "splines": edge_style.value if edge_style else EdgeStyle.STEP.value,
-                **graph_attr,
-            },
-        )
-
-        for node in self._atom_nodes.values():
-            node.to_gv(
-                g,
-                self.major_claim == node,
-                label_func=atom_label,
-                wrap_col=wrap_col or 36,
-            )
-
-        for node in self._scheme_nodes.values():
-            node.to_gv(
-                g,
-                False,
-                label_func=scheme_label,
-                wrap_col=wrap_col or 36,
-            )
-
-        for edge in self._edges.values():
-            edge.to_gv(g)
-
-        return g
-
-    to_dot = to_gv
-
     def strip_scheme_nodes(self) -> Graph:
         """Remove scheme nodes from graph to connect atom nodes directly
 
@@ -1558,32 +1479,6 @@ def _kialo_atom_node(
     text = utils.parse(text, nlp)
 
     return atom_class(text, id=id)
-
-
-def render(
-    g: t.Union[gv.Graph, gv.Digraph],
-    path: t.Union[Path, str],
-    view: bool = False,
-) -> None:
-    """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
-    if isinstance(path, str):
-        path = Path(path)
-
-    if not isinstance(g, (gv.Graph, gv.Digraph)):
-        raise ValueError(
-            "This method expects a graph in the 'DOT' format."
-            "Please use 'graph.to_gv()' to convert your argument graph to the 'DOT' format."
-        )
-
-    filename = path.stem
-    directory = path.parent
-
-    g.render(
-        filename=filename,
-        directory=str(directory),
-        cleanup=True,
-        view=view,
-    )
 
 
 def _inject_original_text(
