@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.2](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.1...v2.0.0-beta.2) (2022-12-21)
+
+
+### Bug Fixes
+
+* add to_gv to init ([dab7859](https://github.com/recap-utr/arguebuf-python/commit/dab78590615d3ccb241b758d7cf7da7e78a5585a))
+
 ## [2.0.0-beta.1](https://github.com/recap-utr/arguebuf-python/compare/v1.2.2...v2.0.0-beta.1) (2022-12-21)
 
 
