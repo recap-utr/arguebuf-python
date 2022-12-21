@@ -16,6 +16,7 @@ from arguebuf.models.node import Support as Support
 from arguebuf.models.participant import Participant as Participant
 from arguebuf.models.reference import Reference as Reference
 from arguebuf.models.resource import Resource as Resource
+from arguebuf.schema.graphviz import export as to_gv
 from arguebuf.schema.graphviz import render as render
 from arguebuf.services.utils import uuid as uuid
 
