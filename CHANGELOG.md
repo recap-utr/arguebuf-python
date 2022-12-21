@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0-beta.1](https://github.com/recap-utr/arguebuf-python/compare/v1.2.2...v2.0.0-beta.1) (2022-12-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* improve graphviz interface
+
+### Features
+
+* improve graphviz interface ([6e594da](https://github.com/recap-utr/arguebuf-python/commit/6e594da5b52dc6cdfb781a4f4d504ce7c179eff5))
+
 ## [1.2.3](https://github.com/recap-utr/arguebuf-python/compare/v1.2.2...v1.2.3) (2022-12-20)
 
 
