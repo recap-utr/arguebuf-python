@@ -1,5 +1,6 @@
 from __future__ import absolute_import, annotations
 
+import logging
 import typing as t
 from enum import Enum
 
@@ -13,6 +14,16 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
 from arguebuf.schema import aif, argdown_json, ova, sadface
 from arguebuf.services import dt, utils
+
+log = logging.getLogger(__name__)
+
+
+def _warn_missing_nodes(
+    edge_id: t.Optional[str], source_id: t.Optional[str], target_id: t.Optional[str]
+) -> None:
+    log.warning(
+        f"Skipping edge '{edge_id}': Source '{source_id}' or target '{target_id}' not found."
+    )
 
 
 class Edge:
@@ -90,6 +101,8 @@ class Edge:
                 source=nodes[source_id],
                 target=nodes[target_id],
             )
+        else:
+            _warn_missing_nodes(obj["id"], source_id, target_id)
 
         return None
 
@@ -118,6 +131,8 @@ class Edge:
                 source=nodes[source_id],
                 target=nodes[target_id],
             )
+        else:
+            _warn_missing_nodes(edge_id, source_id, target_id)
 
         return None
 
@@ -139,6 +154,8 @@ class Edge:
                 target=nodes[target_id],
                 metadata=Metadata(date, date),
             )
+        else:
+            _warn_missing_nodes(None, source_id, target_id)
 
         return None
 
@@ -158,6 +175,8 @@ class Edge:
                 source=nodes[source_id],
                 target=nodes[target_id],
             )
+        else:
+            _warn_missing_nodes(obj["edgeID"], source_id, target_id)
 
         return None
 
@@ -176,15 +195,20 @@ class Edge:
         id: str,
         obj: graph_pb2.Edge,
         nodes: t.Mapping[str, Node],
-    ) -> Edge:
+    ) -> t.Optional[Edge]:
         """Generate Edge object from PROTOBUF Edge format."""
-        return cls(
-            nodes[obj.source],
-            nodes[obj.target],
-            Metadata.from_protobuf(obj.metadata),
-            dict(obj.userdata.items()),
-            id=id,
-        )
+        if obj.source in nodes and obj.target in nodes:
+            return cls(
+                nodes[obj.source],
+                nodes[obj.target],
+                Metadata.from_protobuf(obj.metadata),
+                dict(obj.userdata.items()),
+                id=id,
+            )
+        else:
+            _warn_missing_nodes(id, obj.source, obj.target)
+
+        return None
 
     def to_protobuf(self) -> graph_pb2.Edge:
         """Export Edge object into PROTOBUF Edge format."""

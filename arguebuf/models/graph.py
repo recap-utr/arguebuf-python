@@ -950,8 +950,9 @@ class Graph:
                 )
             # TODO: Raise error if node is neither scheme nor atom
 
-        for edge_id, edge in obj.edges.items():
-            g.add_edge(edge_class.from_protobuf(edge_id, edge, g._nodes))
+        for edge_id, proto_edge in obj.edges.items():
+            if edge := edge_class.from_protobuf(edge_id, proto_edge, g._nodes):
+                g.add_edge(edge)
 
         major_claim = g._nodes[obj.major_claim] if obj.major_claim else None
 
