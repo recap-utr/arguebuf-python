@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.3](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.2...v2.0.0-beta.3) (2022-12-22)
+
+
+### Bug Fixes
+
+* handling missing edge source/target at import ([899a34f](https://github.com/recap-utr/arguebuf-python/commit/899a34f866c41527d8aeb3827b072426b5f1fcc2))
+
 ## [1.2.4](https://github.com/recap-utr/arguebuf-python/compare/v1.2.3...v1.2.4) (2022-12-22)
 
 
