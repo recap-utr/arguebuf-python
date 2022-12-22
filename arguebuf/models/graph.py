@@ -15,6 +15,9 @@ import graphviz as gv
 import networkx as nx
 import pendulum
 from arg_services.graph.v1 import graph_pb2
+from google.protobuf.json_format import MessageToDict, ParseDict
+from lxml import html
+
 from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge, EdgeStyle
@@ -26,8 +29,6 @@ from arguebuf.models.resource import Resource
 from arguebuf.schema import aif, aml, argdown_json, ova, sadface
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
-from google.protobuf.json_format import MessageToDict, ParseDict
-from lxml import html
 
 log = logging.getLogger(__name__)
 
@@ -949,8 +950,9 @@ class Graph:
                 )
             # TODO: Raise error if node is neither scheme nor atom
 
-        for edge_id, edge in obj.edges.items():
-            g.add_edge(edge_class.from_protobuf(edge_id, edge, g._nodes))
+        for edge_id, proto_edge in obj.edges.items():
+            if edge := edge_class.from_protobuf(edge_id, proto_edge, g._nodes):
+                g.add_edge(edge)
 
         major_claim = g._nodes[obj.major_claim] if obj.major_claim else None
 
