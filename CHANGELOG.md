@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0-beta.3](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.2...v2.0.0-beta.3) (2022-12-22)
+## [1.2.4](https://github.com/recap-utr/arguebuf-python/compare/v1.2.3...v1.2.4) (2022-12-22)
 
 
 ### Bug Fixes
