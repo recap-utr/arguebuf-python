@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.4](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.3...v2.0.0-beta.4) (2023-01-04)
+
+
+### Bug Fixes
+
+* use __all__ to define the arguebuf interface ([a3d434e](https://github.com/recap-utr/arguebuf-python/commit/a3d434e58e7d8ad65bf7a5876aa6badfd597df99))
+
 ## [2.0.0-beta.3](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.2...v2.0.0-beta.3) (2022-12-22)
 
 
