@@ -507,13 +507,13 @@ class AtomNode(Node):
         Generate Node object from AML Node format. obj is a AML "PROP" element.
         """
         # get id of PROP
-        if "identifier" in obj.attrib:
-            id = obj.get("identifier")
-        else:
-            id = None
+        id = obj.get("identifier")
 
         # read text of PROP
-        text = obj.find("PROPTEXT").text
+        text = None
+
+        if text_element := obj.find("PROPTEXT"):
+            text = text_element.text
 
         # read owners of PROP
         owner_list = obj.findall("OWNER")
