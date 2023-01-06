@@ -11,6 +11,7 @@ from .models.node import (
     Node,
     Preference,
     Rephrase,
+    Scheme,
     SchemeNode,
     Support,
 )
@@ -34,6 +35,7 @@ __all__ = (
     "Preference",
     "Rephrase",
     "SchemeNode",
+    "Scheme",
     "Support",
     "Participant",
     "Reference",
