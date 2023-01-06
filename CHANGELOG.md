@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.0-beta.5](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.4...v2.0.0-beta.5) (2023-01-06)
+
+
+### Features
+
+* add dfs/bfs traversal methods ([03ea313](https://github.com/recap-utr/arguebuf-python/commit/03ea3132f3f3f1db8fd40596cf0da3642bcbcf73))
+* add root_nodes function ([e75ef75](https://github.com/recap-utr/arguebuf-python/commit/e75ef756e9c4c195323e21508e4858560ac740a8))
+
+
+### Bug Fixes
+
+* aml node import typing ([c13fb88](https://github.com/recap-utr/arguebuf-python/commit/c13fb88c8ab93e9d99537781c0f02e7116c690bf))
+* export Scheme from init ([3c036ca](https://github.com/recap-utr/arguebuf-python/commit/3c036ca7de2c8f165d3b096a1a582145a558b1f1))
+
 ## [2.0.0-beta.4](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.3...v2.0.0-beta.4) (2023-01-04)
 
 
