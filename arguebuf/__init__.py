@@ -20,6 +20,7 @@ from .models.reference import Reference
 from .models.resource import Resource
 from .schema.graphviz import export as to_gv
 from .schema.graphviz import render
+from .services import traversal
 from .services.utils import uuid
 
 __all__ = (
@@ -43,6 +44,7 @@ __all__ = (
     "to_gv",
     "render",
     "uuid",
+    "traversal",
 )
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
