@@ -184,22 +184,6 @@ class Graph:
         if self._major_claim:
             return self._major_claim
 
-    @property
-    def root_node(self) -> t.Optional[AtomNode]:
-        # If no major claim explicitly set, try to find one node with no outgoing edges.
-        # It is only returned if there exists exactly one node without connections.
-        # Otherwise, nothing is returned.
-        nodes = {
-            node
-            for node in self._atom_nodes.values()
-            if len(self._outgoing_nodes[node]) == 0
-        }
-
-        if len(nodes) == 1:
-            return next(iter(nodes))
-
-        return None
-
     @major_claim.setter
     def major_claim(self, value: t.Union[str, AtomNode, None]) -> None:
         if isinstance(value, str):
@@ -211,24 +195,30 @@ class Graph:
         # self._metadata.update()
 
     @property
-    def leaf_nodes(self) -> t.Set[Node]:
-        return {
-            node for node in self.nodes.values() if len(self.incoming_nodes(node)) == 0
-        }
+    def root_node(self) -> t.Optional[AtomNode]:
+        """If there is a single node with no outgoing edges, return it, otherwise None"""
+        candidates = self.root_nodes
+
+        if len(candidates) == 1:
+            return next(iter(candidates))
+
+        return None
 
     @property
-    def leaf_atom_nodes(self) -> t.Set[AtomNode]:
+    def root_nodes(self) -> t.Set[AtomNode]:
+        """Find all nodes with no outgoing edges"""
         return {
             node
             for node in self.atom_nodes.values()
-            if len(self.incoming_nodes(node)) == 0
+            if len(self.outgoing_nodes(node)) == 0
         }
 
     @property
-    def leaf_scheme_nodes(self) -> t.Set[SchemeNode]:
+    def leaf_nodes(self) -> t.Set[AtomNode]:
+        """Find all nodes with no incoming edges"""
         return {
             node
-            for node in self.scheme_nodes.values()
+            for node in self.atom_nodes.values()
             if len(self.incoming_nodes(node)) == 0
         }
 
