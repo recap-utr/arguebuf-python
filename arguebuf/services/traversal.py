@@ -6,7 +6,9 @@ _Node = t.TypeVar("_Node", AtomNode, SchemeNode, Node)
 
 # https://eddmann.com/posts/depth-first-search-and-breadth-first-search-in-python/
 def dfs(
-    start: _Node, connections: t.Callable[[Node], t.AbstractSet[_Node]]
+    start: _Node,
+    connections: t.Callable[[Node], t.AbstractSet[_Node]],
+    include_start: bool = True,
 ) -> t.List[_Node]:
     # Need to use a dict since a set does not preserve order
     visited: dict[_Node, None] = {}
@@ -19,11 +21,16 @@ def dfs(
             visited[node] = None
             stack.extend(connections(node) - visited.keys())
 
-    return list(visited.keys())
+    if include_start:
+        return list(visited.keys())
+
+    return [node for node in visited if node != start]
 
 
 def bfs(
-    start: _Node, connections: t.Callable[[Node], t.AbstractSet[_Node]]
+    start: _Node,
+    connections: t.Callable[[Node], t.AbstractSet[_Node]],
+    include_start: bool = True,
 ) -> t.List[_Node]:
     # Need to use a dict since a set does not preserve order
     visited: dict[_Node, None] = {}
@@ -36,7 +43,10 @@ def bfs(
             visited[node] = None
             queue.extend(connections(node) - visited.keys())
 
-    return list(visited.keys())
+    if include_start:
+        return list(visited.keys())
+
+    return [node for node in visited if node != start]
 
 
 def node_distance(
