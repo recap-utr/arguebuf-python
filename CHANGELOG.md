@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.6](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.5...v2.0.0-beta.6) (2023-01-09)
+
+
+### Features
+
+* **traversal:** add option to remove start node ([2cdb412](https://github.com/recap-utr/arguebuf-python/commit/2cdb412886be253593a6ad5e13fdd0e294f04a55))
+
 ## [2.0.0-beta.5](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.4...v2.0.0-beta.5) (2023-01-06)
 
 
