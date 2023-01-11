@@ -1,7 +1,7 @@
 from __future__ import absolute_import, annotations
 
-import collections
 import typing as t
+from collections import abc
 from uuid import uuid1
 
 
@@ -52,14 +52,14 @@ T = t.TypeVar("T")
 U = t.TypeVar("U")
 
 
-class ImmutableList(t.Sequence[T]):
+class ImmutableList(abc.Sequence[T]):
     """Read-only view."""
 
     __slots__ = "_store"
 
-    _store: t.Sequence[T]
+    _store: t.MutableSequence[T]
 
-    def __init__(self, items: t.Optional[t.Sequence[T]] = None):
+    def __init__(self, items: t.Optional[t.MutableSequence[T]] = None):
         self._store = items or list()
 
     def __len__(self) -> int:
@@ -83,14 +83,14 @@ class ImmutableList(t.Sequence[T]):
         return self._store.__str__()
 
 
-class ImmutableSet(t.AbstractSet[T]):
+class ImmutableSet(abc.Set[T]):
     """Read-only view."""
 
     __slots__ = "_store"
 
-    _store: t.Set[T]
+    _store: t.MutableSet[T]
 
-    def __init__(self, items: t.Optional[t.Set[T]] = None):
+    def __init__(self, items: t.Optional[t.MutableSet[T]] = None):
         self._store = items or set()
 
     def __len__(self) -> int:
@@ -114,10 +114,10 @@ class ImmutableDict(t.Mapping[T, U]):
 
     __slots__ = "_store"
 
-    _store: t.Dict[T, U]
+    _store: t.MutableMapping[T, U]
 
-    def __init__(self, items: t.Optional[t.Dict[T, U]] = None):
-        self._store = items or collections.OrderedDict()
+    def __init__(self, items: t.Optional[t.MutableMapping[T, U]] = None):
+        self._store = items or dict()
 
     def __len__(self) -> int:
         return self._store.__len__()
