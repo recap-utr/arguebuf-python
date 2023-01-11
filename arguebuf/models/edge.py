@@ -2,11 +2,9 @@ from __future__ import absolute_import, annotations
 
 import logging
 import typing as t
-from enum import Enum
 
 import networkx as nx
 import pendulum
-import pygraphviz as gv
 from arg_services.graph.v1 import graph_pb2
 
 from arguebuf.models import Userdata

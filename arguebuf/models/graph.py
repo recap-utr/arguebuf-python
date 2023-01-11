@@ -13,7 +13,6 @@ from pathlib import Path
 
 import networkx as nx
 import pendulum
-import pygraphviz as gv
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf.json_format import MessageToDict, ParseDict
 from lxml import html
