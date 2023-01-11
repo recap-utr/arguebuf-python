@@ -13,7 +13,7 @@ documentation = "https://arguebuf.readthedocs.io/en/latest"
 arguebuf = "arguebuf.cli.app:cli"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 arg-services = "^1.0.4"
 networkx = ">=2.8.8, <4.0"
 pendulum = "^2.1.2"
