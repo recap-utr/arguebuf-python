@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0-beta.8](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.7...v2.0.0-beta.8) (2023-01-11)
+
+
+### Features
+
+* drop support for Python 3.8 ([9e423c6](https://github.com/recap-utr/arguebuf-python/commit/9e423c657175aef810037a06db3ee3883eb125b2))
+* use collections.abc instead of typing ([c0ced56](https://github.com/recap-utr/arguebuf-python/commit/c0ced565600b3adc613f52b98b1d38f19d22944d))
+
 ## [2.0.0-beta.7](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.6...v2.0.0-beta.7) (2023-01-11)
 
 
