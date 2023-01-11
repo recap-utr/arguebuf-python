@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.7](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.6...v2.0.0-beta.7) (2023-01-11)
+
+
+### Bug Fixes
+
+* remove unused pygraphviz import ([a0e6726](https://github.com/recap-utr/arguebuf-python/commit/a0e67267f2014ca5b865ddcc3af67bd9f6787255))
+
 ## [2.0.0-beta.6](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.5...v2.0.0-beta.6) (2023-01-09)
 
 
