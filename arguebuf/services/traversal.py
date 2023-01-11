@@ -19,7 +19,7 @@ def dfs(
 
         if node not in visited:
             visited[node] = None
-            stack.extend(connections(node) - visited.keys())
+            stack.extend(set(connections(node)) - visited.keys())
 
     if include_start:
         return list(visited.keys())
@@ -41,7 +41,7 @@ def bfs(
 
         if node not in visited:
             visited[node] = None
-            queue.extend(connections(node) - visited.keys())
+            queue.extend(set(connections(node)) - visited.keys())
 
     if include_start:
         return list(visited.keys())
