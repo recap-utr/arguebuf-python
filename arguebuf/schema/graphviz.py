@@ -29,7 +29,7 @@ class EdgeStyle(Enum):
     STEP = "ortho"
 
 
-def export(
+def to_gv(
     graph: Graph,
     nodesep: t.Optional[float] = None,
     ranksep: t.Optional[float] = None,

@@ -18,8 +18,7 @@ from .models.node import (
 from .models.participant import Participant
 from .models.reference import Reference
 from .models.resource import Resource
-from .schema.graphviz import export as to_gv
-from .schema.graphviz import render
+from .schema.graphviz import render, to_gv
 from .services import traversal
 from .services.utils import uuid
 
