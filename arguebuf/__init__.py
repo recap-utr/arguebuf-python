@@ -19,6 +19,7 @@ from .models.participant import Participant
 from .models.reference import Reference
 from .models.resource import Resource
 from .schema.graphviz import render, to_gv
+from .schema.microtexts import from_microtexts
 from .services import traversal
 from .services.utils import uuid
 
@@ -44,6 +45,7 @@ __all__ = (
     "render",
     "uuid",
     "traversal",
+    "from_microtexts",
 )
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
