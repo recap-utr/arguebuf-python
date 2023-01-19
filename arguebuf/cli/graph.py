@@ -6,8 +6,7 @@ import typer
 
 import arguebuf as ag
 from arguebuf.cli.translator import Translator
-from arguebuf.schema.graphviz import EdgeStyle
-from arguebuf.schema.graphviz import export as to_gv
+from arguebuf.schema.graphviz import EdgeStyle, to_gv
 
 from . import model
 
