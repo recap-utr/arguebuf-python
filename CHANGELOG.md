@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.9](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.8...v2.0.0-beta.9) (2023-01-19)
+
+
+### Features
+
+* add microtexts parser ([99252a5](https://github.com/recap-utr/arguebuf-python/commit/99252a5be4718aec05b318a84210d41ad1313d14))
+
 ## [2.0.0-beta.8](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.7...v2.0.0-beta.8) (2023-01-11)
 
 
