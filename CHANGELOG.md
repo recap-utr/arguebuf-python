@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.10](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.9...v2.0.0-beta.10) (2023-01-19)
+
+
+### Bug Fixes
+
+* **cli:** wrong import ([d94f62a](https://github.com/recap-utr/arguebuf-python/commit/d94f62abc6e46f2556a4cc886cc77be276c42633))
+
 ## [2.0.0-beta.9](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.8...v2.0.0-beta.9) (2023-01-19)
 
 
