@@ -15,7 +15,7 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, argdown_json, ova, sadface
+from arguebuf.schema import aif, argdown, ova, sadface
 from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
@@ -373,7 +373,7 @@ class Node(ABC):
     @abstractmethod
     def from_argdown_json(
         cls,
-        obj: argdown_json.Node,
+        obj: argdown.Node,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Import argdown"""
@@ -434,7 +434,7 @@ class AtomNode(Node):
     def __init__(
         self,
         text: t.Any,
-        resource: t.Optional[Reference] = None,
+        reference: t.Optional[Reference] = None,
         participant: t.Optional[Participant] = None,
         metadata: t.Optional[Metadata] = None,
         userdata: t.Optional[Userdata] = None,
@@ -442,7 +442,7 @@ class AtomNode(Node):
     ):
         super().__init__(metadata, userdata, id)
         self.text = text
-        self._reference = resource
+        self._reference = reference
         self._participant = participant
 
     @property
@@ -484,7 +484,7 @@ class AtomNode(Node):
     @classmethod
     def from_argdown_json(
         cls,
-        obj: argdown_json.Node,
+        obj: argdown.Node,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from Argdown JSON Node object."""
@@ -845,7 +845,7 @@ class SchemeNode(Node):
     @classmethod
     def from_argdown_json(
         cls,
-        obj: argdown_json.Node,
+        obj: argdown.Node,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> SchemeNode:
         # Currently not used

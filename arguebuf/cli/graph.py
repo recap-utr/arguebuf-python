@@ -6,7 +6,8 @@ import typer
 
 import arguebuf as ag
 from arguebuf.cli.translator import Translator
-from arguebuf.schema.graphviz import EdgeStyle, to_gv
+from arguebuf.converters.graphviz import to_graphviz
+from arguebuf.schema.graphviz import EdgeStyle
 
 from . import model
 
@@ -105,7 +106,7 @@ def render(
                 if strip_scheme_nodes:
                     g.strip_scheme_nodes()
 
-                gv = to_gv(
+                gv = to_graphviz(
                     g,
                     nodesep=nodesep,
                     ranksep=ranksep,

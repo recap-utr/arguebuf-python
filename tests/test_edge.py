@@ -1,9 +1,11 @@
 import json
 
-import arguebuf as ag
 import pendulum
 import pytest
 from arg_services.graph.v1 import graph_pb2
+
+import arguebuf as ag
+from arguebuf.converters.argdown import edge_from_argdown
 
 aif_data = [
     (
@@ -131,7 +133,7 @@ argdown_json_data = [
 @pytest.mark.parametrize("data,id,start,end", argdown_json_data)
 def test_argdown_json_edge(data, id, start, end):
     data_json = json.loads(data)
-    edge = ag.Edge.from_argdown_json(
+    edge = edge_from_argdown(
         data_json,
         {
             start: ag.AtomNode(id=start, text=""),

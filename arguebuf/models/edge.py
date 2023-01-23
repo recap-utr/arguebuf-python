@@ -10,13 +10,13 @@ from arg_services.graph.v1 import graph_pb2
 from arguebuf.models import Userdata
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
-from arguebuf.schema import aif, argdown_json, ova, sadface
+from arguebuf.schema import aif, argdown, ova, sadface
 from arguebuf.services import dt, utils
 
 log = logging.getLogger(__name__)
 
 
-def _warn_missing_nodes(
+def warn_missing_nodes(
     edge_id: t.Optional[str], source_id: t.Optional[str], target_id: t.Optional[str]
 ) -> None:
     log.warning(
@@ -100,37 +100,7 @@ class Edge:
                 target=nodes[target_id],
             )
         else:
-            _warn_missing_nodes(obj["id"], source_id, target_id)
-
-        return None
-
-    @classmethod
-    def from_argdown_json(
-        cls,
-        obj: argdown_json.Edge,
-        nodes: t.Mapping[str, Node],
-    ) -> t.Optional[Edge]:
-        """Generate Edge object from Argdown JSON Edge format."""
-        if "from" in obj:
-            source_id = obj["from"]
-        else:
-            source_id = obj["source"]
-
-        if "to" in obj:
-            target_id = obj["to"]
-        else:
-            target_id = obj["target"]
-
-        edge_id = obj["id"]
-
-        if source_id in nodes and target_id in nodes:
-            return cls(
-                id=edge_id,
-                source=nodes[source_id],
-                target=nodes[target_id],
-            )
-        else:
-            _warn_missing_nodes(edge_id, source_id, target_id)
+            warn_missing_nodes(obj["id"], source_id, target_id)
 
         return None
 
@@ -153,7 +123,7 @@ class Edge:
                 metadata=Metadata(date, date),
             )
         else:
-            _warn_missing_nodes(None, source_id, target_id)
+            warn_missing_nodes(None, source_id, target_id)
 
         return None
 
@@ -174,7 +144,7 @@ class Edge:
                 target=nodes[target_id],
             )
         else:
-            _warn_missing_nodes(obj["edgeID"], source_id, target_id)
+            warn_missing_nodes(obj["edgeID"], source_id, target_id)
 
         return None
 
@@ -204,7 +174,7 @@ class Edge:
                 id=id,
             )
         else:
-            _warn_missing_nodes(id, obj.source, obj.target)
+            warn_missing_nodes(id, obj.source, obj.target)
 
         return None
 

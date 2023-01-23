@@ -1,5 +1,8 @@
 import logging
 
+from .converters.argdown import from_argdown
+from .converters.graphviz import render, to_graphviz
+from .converters.microtexts import from_microtexts
 from .models import Userdata
 from .models.analyst import Analyst
 from .models.edge import Edge
@@ -18,8 +21,6 @@ from .models.node import (
 from .models.participant import Participant
 from .models.reference import Reference
 from .models.resource import Resource
-from .schema.graphviz import render, to_gv
-from .schema.microtexts import from_microtexts
 from .services import traversal
 from .services.utils import uuid
 
@@ -41,11 +42,12 @@ __all__ = (
     "Participant",
     "Reference",
     "Resource",
-    "to_gv",
+    "to_graphviz",
     "render",
     "uuid",
     "traversal",
     "from_microtexts",
+    "from_argdown",
 )
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

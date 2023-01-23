@@ -25,7 +25,7 @@ from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, S
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, aml, argdown_json, ova, sadface
+from arguebuf.schema import aif, aml, argdown, ova, sadface
 from arguebuf.services import dt, traversal, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 
@@ -759,59 +759,6 @@ class Graph:
             "sadfaceVersion": obj["metadata"]["core"]["version"],
         }
         g.userdata = userdata
-
-        return g
-
-    @classmethod
-    def from_argdown_json(
-        cls,
-        obj: argdown_json.Graph,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from JSON Argdown argument graph file
-        (reference: https://argdown.org/).
-        """
-        g = cls(name)
-
-        timestamp = pendulum.now()
-
-        # Every node in obj["nodes"] is a atom node
-        for argdown_node in obj["map"]["nodes"]:
-            node = atom_class.from_argdown_json(argdown_node, nlp)
-
-            if node:
-                g.add_node(node)
-
-        for argdown_edge in obj["map"]["edges"]:
-            if edge := edge_class.from_argdown_json(argdown_edge, g._nodes):
-                g.add_edge(edge)
-                if argdown_edge["relationType"] == "support":
-                    scheme = Support.DEFAULT
-                elif argdown_edge["relationType"] == "attack":
-                    scheme = Attack.DEFAULT
-                elif argdown_edge["relationType"] == "contradictory":
-                    scheme = Attack.DEFAULT
-                elif argdown_edge["relationType"] == "undercut":
-                    scheme = Support.DEFAULT
-                else:
-                    scheme = Support.DEFAULT
-                # create scheme_node for edge
-                scheme_node = SchemeNode(
-                    metadata=Metadata(timestamp, timestamp),
-                    scheme=scheme,
-                )
-                g.add_node(scheme_node)
-
-                # create edge from source to scheme_node and an edge from scheme_node to target
-                g.add_edge(Edge(edge.source, scheme_node))
-                g.add_edge(Edge(scheme_node, edge.target))
-
-        metadata = Metadata(timestamp, timestamp)
-        g.metadata = metadata
 
         return g
 

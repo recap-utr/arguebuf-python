@@ -2,10 +2,11 @@ import json
 import multiprocessing
 import typing as t
 
-import arguebuf as ag
 import pytest
 from arg_services.graph.v1 import graph_pb2
 from deepdiff import DeepDiff
+
+import arguebuf as ag
 
 
 def test_strip_scheme_nodes(shared_datadir):
@@ -230,8 +231,6 @@ def _import_generic_graph(file):
 
     assert graph.to_dict(ag.GraphFormat.AIF) != {}
     assert graph.to_dict(ag.GraphFormat.ARGUEBUF) != {}
-    assert graph.to_gv() is not None
-    assert graph.to_nx() is not None
 
 
 def _clean_raw_aif(g: t.MutableMapping[str, t.Any]) -> None:
@@ -278,14 +277,14 @@ def _import_aif_graph(file):
     export = graph.to_dict(ag.GraphFormat.AIF)
     _clean_exported_aif(export)
 
-    # assert export == raw, file # for debugging
-    diff = DeepDiff(raw, export, ignore_order=True)
+    assert export == raw, file  # for debugging
+    # diff = DeepDiff(raw, export, ignore_order=True)
 
-    if diff != {}:
-        print("RAW:")
-        print(json.dumps(raw))
-        print("EXPORT:")
-        print(json.dumps(export))
-        print()
+    # if diff != {}:
+    #     print("RAW:")
+    #     print(json.dumps(raw))
+    #     print("EXPORT:")
+    #     print(json.dumps(export))
+    #     print()
 
-    assert diff == {}, file
+    # assert diff == {}, file
