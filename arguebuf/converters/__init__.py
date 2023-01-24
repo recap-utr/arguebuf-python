@@ -5,6 +5,8 @@ from .from_aif import from_aif as from_aif
 from .from_aml import from_aml as from_aml
 from .from_argdown import from_argdown as from_argdown
 from .from_brat import from_brat as from_brat
+from .from_casebase import CasebaseFilter as CasebaseFilter
+from .from_casebase import from_casebase as from_casebase
 from .from_dict import from_dict as from_dict
 from .from_io import from_io as from_io
 from .from_json import from_json as from_json
