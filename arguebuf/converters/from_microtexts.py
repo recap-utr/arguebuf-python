@@ -3,9 +3,10 @@ from dataclasses import dataclass
 
 from lxml import etree
 
-import arguebuf as ag
-from arguebuf import AtomNode, Edge, Graph, SchemeNode
-from arguebuf.schema.microtexts import EdgeType
+from arguebuf.converters.config import ConverterConfig, DefaultConverter
+from arguebuf.models.graph import Graph
+from arguebuf.models.node import Attack, Support
+from arguebuf.schemas.microtexts import EdgeType
 from arguebuf.services import utils
 
 
@@ -29,13 +30,7 @@ def transform_edges(elems: t.Iterable[t.Any]) -> dict[str, _Edge]:
 
 
 def from_microtexts(
-    obj: t.IO,
-    name: t.Optional[str] = None,
-    graph_class: t.Type[Graph] = Graph,
-    atom_class: t.Type[AtomNode] = AtomNode,
-    scheme_class: t.Type[SchemeNode] = SchemeNode,
-    edge_class: t.Type[Edge] = Edge,
-    nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    obj: t.IO, name: t.Optional[str] = None, config: ConverterConfig = DefaultConverter
 ) -> Graph:
     """
     Generate Graph structure from AML argument graph file
@@ -45,7 +40,7 @@ def from_microtexts(
     tree = etree.parse(obj)
     root = tree.getroot()
     id = root.get("id")
-    g = graph_class(name or id)
+    g = config.GraphClass(name or id)
     g.userdata = {"stance": root.get("stance"), "topic": root.get("topic_id")}
 
     segmentation_edge_tags = root.xpath("//edge[@type='seg']")
@@ -84,41 +79,46 @@ def from_microtexts(
             adu_source = source_tags[adu_source_id]
 
             if adu_source.text is not None:
-                atom = atom_class(utils.parse(adu_source.text, nlp), id=adu_id)
+                atom = config.AtomNodeClass(
+                    utils.parse(adu_source.text, config.nlp), id=adu_id
+                )
 
                 if type := adu.get("type"):
                     atom.userdata["type"] = type
 
                 g.add_node(atom)
 
+                if adu_source.get("implicit"):
+                    g.major_claim = atom
+
     for edge_id, edge in atom_edges.items():
-        scheme_node = scheme_class(id=edge_id)
+        scheme_node = config.SchemeNodeClass(id=edge_id)
 
         if edge.type == EdgeType.SUPPORT_DEFAULT:
-            scheme_node.scheme = ag.Support.DEFAULT
+            scheme_node.scheme = Support.DEFAULT
         elif edge.type == EdgeType.SUPPORT_EXAMPLE:
-            scheme_node.scheme = ag.Support.EXAMPLE
+            scheme_node.scheme = Support.EXAMPLE
         elif edge.type == EdgeType.ATTACK_ATOM:
-            scheme_node.scheme = ag.Attack.DEFAULT
+            scheme_node.scheme = Attack.DEFAULT
 
         if (source_atom := g.atom_nodes.get(edge.source)) and (
             target_atom := g.atom_nodes.get(edge.target)
         ):
-            g.add_edge(edge_class(source_atom, scheme_node))
-            g.add_edge(edge_class(scheme_node, target_atom))
+            g.add_edge(config.EdgeClass(source_atom, scheme_node))
+            g.add_edge(config.EdgeClass(scheme_node, target_atom))
 
     for edge in scheme_edges.values():
         if (scheme_node := g.scheme_nodes.get(edge.target)) and (
             atom_node := g.atom_nodes.get(edge.source)
         ):
-            g.add_edge(edge_class(atom_node, scheme_node))
+            g.add_edge(config.EdgeClass(atom_node, scheme_node))
 
     for edge_id, edge in edge_edges.items():
         if (target_scheme := g.scheme_nodes.get(edge.target)) and (
             atom_node := g.atom_nodes.get(edge.source)
         ):
-            source_scheme = scheme_class(id=edge_id)
-            g.add_edge(edge_class(atom_node, source_scheme))
-            g.add_edge(edge_class(source_scheme, target_scheme))
+            source_scheme = config.SchemeNodeClass(id=edge_id)
+            g.add_edge(config.EdgeClass(atom_node, source_scheme))
+            g.add_edge(config.EdgeClass(source_scheme, target_scheme))
 
     return g

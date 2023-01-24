@@ -1,12 +1,18 @@
 import json
 from typing import Dict
+from xml.etree import ElementTree as ET
 
-import arguebuf as ag
 import pendulum
 import pytest
 from arg_services.graph.v1 import graph_pb2
+
+import arguebuf as ag
+from arguebuf.converters.config import DefaultConverter
+from arguebuf.converters.from_aif import atom_from_aif
+from arguebuf.converters.from_aml import atom_from_aml, scheme_from_aml
+from arguebuf.converters.from_ova import atom_from_ova
+from arguebuf.converters.from_sadface import atom_from_sadface, scheme_from_sadface
 from arguebuf.models.node import Support
-from xml.etree import ElementTree as ET
 
 aif_data_AtomNode = [
     (
@@ -119,39 +125,36 @@ def test_argdown_json_node_AN(data, id, text, type):
     assert isinstance(node, type)
     assert node.reference is None
     assert node.userdata == {}
-    assert isinstance(node.to_protobuf(), graph_pb2.Node)
 
 
 @pytest.mark.parametrize("data,id,text,type", aml_data_AtomNode)
 def test_aml_node_AN(data, id, text, type):
     tree = ET.fromstring(data)
-    node = ag.AtomNode.from_aml(tree)
+    node = atom_from_aml(tree, DefaultConverter)
 
     assert node.id == id
     assert node.text == text
     assert isinstance(node, type)
     assert node.reference is None
     assert node.userdata == {}
-    assert isinstance(node.to_protobuf(), graph_pb2.Node)
 
 
 @pytest.mark.parametrize("data,id,text,type", sadface_data_AtomNode)
 def test_sadface_node_AN(data, id, text, type):
     data_json = json.loads(data)
-    node = ag.AtomNode.from_sadface(data_json)
+    node = atom_from_sadface(data_json, DefaultConverter)
 
     assert node.id == id
     assert node.text == text
     assert isinstance(node, type)
     assert node.reference is None
     assert node.userdata == {}
-    assert isinstance(node.to_protobuf(), graph_pb2.Node)
 
 
 @pytest.mark.parametrize("data,id,text,type,date", aif_data_AtomNode)
 def test_aif_node_AN(data, id, text, type, date):
     data_json = json.loads(data)
-    node = ag.AtomNode.from_aif(data_json)
+    node = atom_from_aif(data_json, DefaultConverter)
 
     assert node.id == id
     assert node.text == text
@@ -160,9 +163,6 @@ def test_aif_node_AN(data, id, text, type, date):
     assert node.metadata.updated == date
     assert node.reference is None
     assert node.userdata == {}
-    assert isinstance(node.to_aif(), Dict)
-    assert isinstance(node.to_protobuf(), graph_pb2.Node)
-    # node3 = ag.AtomNode.from_protobuf("123",node.to_protobuf(),{},{}, )
 
 
 @pytest.mark.parametrize(
@@ -171,7 +171,7 @@ def test_aif_node_AN(data, id, text, type, date):
 )
 def test_ova_node_AN(data, id, text, type, date):
     data_json = json.loads(data)
-    node = ag.AtomNode.from_ova(data_json)
+    node = atom_from_ova(data_json, DefaultConverter)
 
     assert node.id == id
     assert node.text == text
@@ -202,13 +202,12 @@ sadface_data_SchemeNode = [
 @pytest.mark.parametrize("data,id,type,name", sadface_data_SchemeNode)
 def test_sadface_node_SN(data, id, type, name):
     data_json = json.loads(data)
-    node = ag.SchemeNode.from_sadface(data_json)
+    node = scheme_from_sadface(data_json, DefaultConverter)
 
     assert node.id == id
     assert isinstance(node, type)
     assert node.scheme == name
     assert isinstance(node.metadata, ag.Metadata)
-    assert isinstance(node.to_protobuf(), graph_pb2.Node)
 
 
 aml_data_SchemeNode = [
@@ -229,13 +228,12 @@ aml_data_SchemeNode = [
 @pytest.mark.parametrize("data,id,type,name", aml_data_SchemeNode)
 def test_aml_node_SN(data, id, type, name):
     tree = ET.fromstring(data)
-    node = ag.SchemeNode.from_aml(tree)
+    node = scheme_from_aml(tree, DefaultConverter)
 
     assert node.id == id
     assert isinstance(node, type)
     assert node.scheme == name
     assert isinstance(node.metadata, ag.Metadata)
-    assert isinstance(node.to_protobuf(), graph_pb2.Node)
 
 
 '''

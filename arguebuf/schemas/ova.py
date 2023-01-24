@@ -1,6 +1,6 @@
 import typing as t
 
-from arguebuf.schema.aif import NodeType
+from arguebuf.schemas.aif import NodeType
 
 DATE_FORMAT = "DD/MM/YYYY - HH:mm:ss"
 DATE_FORMAT_ANALYSIS = "DD/MM/YYYY"

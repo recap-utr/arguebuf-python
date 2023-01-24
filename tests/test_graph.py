@@ -1,6 +1,7 @@
 import json
 import multiprocessing
 import typing as t
+from pathlib import Path
 
 import pytest
 from arg_services.graph.v1 import graph_pb2
@@ -9,7 +10,7 @@ from deepdiff import DeepDiff
 import arguebuf as ag
 
 
-def test_strip_scheme_nodes(shared_datadir):
+def test_strip_scheme_nodes():
     g = ag.Graph()
     a1 = ag.AtomNode("")
     a2 = ag.AtomNode("")
@@ -31,33 +32,23 @@ def test_strip_scheme_nodes(shared_datadir):
     assert len(g.edges) == 3
 
 
-def test_create_graph(shared_datadir):
+def test_create_graph(tmp_path: Path):
     g = ag.Graph("Test")
 
-    # agdt.to_ova("10/04/1998 - 07:07:07")
-    # agdt.to_aif("10/04/1998 - 07:07:07")
-    # agdt.from_analysis("10/04/1998")
-    # agdt.to_analysis("10/04/1998 - 07:07:07")
-
-    p1 = ag.Participant.from_protobuf(
-        "Participant 1",
-        graph_pb2.Participant(
-            name="Participant 1",
-            username="Parti 1",
-            email="Parti1@gmail.com",
-            url="thesenuts",
-            location="Trier",
-            description="Hallo Welt!",
-        ),
+    p1 = ag.Participant(
+        name="Participant 1",
+        username="Parti 1",
+        email="Parti1@gmail.com",
+        url="thesenuts",
+        location="Trier",
+        description="Hallo Welt!",
     )
-    r1 = ag.Resource.from_protobuf(
-        "Resource234", graph_pb2.Resource(text="Resource234")
-    )
-
-    assert isinstance(p1.to_protobuf(), graph_pb2.Participant)
+    g.add_participant(p1)
+    r1 = ag.Resource("Resource234")
+    g.add_resource(r1)
     n1 = ag.AtomNode(
         text="Node 1",
-        resource=ag.Reference(r1, 0, "Resource234"),
+        reference=ag.Reference(r1, 0, "Resource234"),
         participant=p1,
     )
     n2 = ag.SchemeNode(ag.Support.DEFAULT)
@@ -83,10 +74,6 @@ def test_create_graph(shared_datadir):
     assert e34.target == n4
     assert e45.source == n4
     assert e45.target == n5
-    e12.to_aif()
-    e12 = ag.Edge.from_protobuf(
-        "Edge 1", e12.to_protobuf(), nodes={n1.id: n1, n2.id: n2}
-    )
 
     assert len(g.incoming_nodes(n1)) == 0
     assert len(g.incoming_edges(n1)) == 0
@@ -109,22 +96,21 @@ def test_create_graph(shared_datadir):
 
     assert set(g.nodes.values()) == {n1, n2, n3, n4, n5}
 
-    assert g.node_distance(n1, n1) == 0
-    assert g.node_distance(n1, n2) == 1
-    assert g.node_distance(n1, n3) == 2
-    assert g.node_distance(n1, n4) == 3
-    assert g.node_distance(n1, n5) == 4
-    assert g.node_distance(n2, n2) == 0
-    assert g.node_distance(n3, n3) == 0
-    assert g.node_distance(n4, n4) == 0
-    assert g.node_distance(n5, n5) == 0
+    assert ag.node_distance(n1, n1, g.outgoing_nodes) == 0
+    assert ag.node_distance(n1, n2, g.outgoing_nodes) == 1
+    assert ag.node_distance(n1, n3, g.outgoing_nodes) == 2
+    assert ag.node_distance(n1, n4, g.outgoing_nodes) == 3
+    assert ag.node_distance(n1, n5, g.outgoing_nodes) == 4
+    assert ag.node_distance(n2, n2, g.outgoing_nodes) == 0
+    assert ag.node_distance(n3, n3, g.outgoing_nodes) == 0
+    assert ag.node_distance(n4, n4, g.outgoing_nodes) == 0
+    assert ag.node_distance(n5, n5, g.outgoing_nodes) == 0
     assert g.scheme_between(n1, n3) == n2
     assert g.outgoing_atom_nodes(n1) == {n3}
 
     assert len(g.resources) == 1
     r2 = ag.Resource(text="Resource", title="Resourca", source="Wikipedia")
     assert r2.plain_text == "Resource"
-    assert isinstance(r2.to_protobuf(), graph_pb2.Resource)
     g.add_resource(r2)
     g.add_resource(ag.Resource("Resource2"))
     assert len(g.resources) == 3
@@ -143,7 +129,8 @@ def test_create_graph(shared_datadir):
     # e4 = "Hallo ich bin keine Kante"
     # g.add_edge(e4)
 
-    g.add_edge(e12)
+    with pytest.raises(Exception):
+        g.add_edge(e12)
 
     # r10 = "Hallo ich bin keine Quelle"
     # g.add_resource(r10)
@@ -170,48 +157,21 @@ def test_create_graph(shared_datadir):
 
     assert len(g.participants) == 0
 
-    # g.strip_snodes()
+    assert isinstance(ag.to_protobuf(g), graph_pb2.Graph)
 
-    # ref1 = ag.Reference(resource=r2, offset=1, text="Reference")
-    # assert ref1.plain_text == "Reference"
-    # assert isinstance(ref1.to_protobuf(), graph_pb2.Reference)
-    # # ref2 = ag.data.Reference.from_protobuf(obj = ref1.to_protobuf(), resources= [["Node 1",n1],["Node 2", n2]])
+    gc = ag.copy(g)
 
-    # assert len(g.atom_nodes) == 3
-    # assert len(g.scheme_nodes) == 0
-    # assert len(g.nodes) == 3
-    # assert len(g.edges) == 2
-    # ag.render(g.to_gv(), shared_datadir / "output" / "test_create_graph.pdf")
-    # g.remove_node(n1)
-    # assert len(g.nodes) == 2
-    # g.to_protobuf()
-    # assert isinstance(g.to_protobuf(), graph_pb2.Graph)
+    assert len(g.nodes) == len(gc.nodes)
+
+    ag.render(ag.to_graphviz(g), tmp_path)
 
 
-#     # Nachfolgende Änderungen konnte ich aufgrund mangelnden Kenntnisse nicht durchführen in der nötigen Komplexität:
-#     # für Test muss jede Eigenschaft mit sinnvollem Argument gefüllt sein, weil sonst scheinbar manche Aktivierung nicht gemacht wird...
-#     # from_ova() einfügen
-#     # from_aif() einfügen
-#     # from_protobuf() einfügen
-#     # from_dict() einfügen
-#     # from_json() einfügen
-#     # to_json() einfügen
-#     # from_brat() einfügen
-#     # from_io() einfügen
-#     # to_io() einfügen
-#     # from_file() einfügen
-#     # to_file() einfügen
-#     # from_folder() einfügen
-#     # to_gv() einfügen
-#     # copy() einfügen
-#     # render() einfügen
-
-
-def test_import_graphs(shared_datadir):
-    brat_folder = shared_datadir / "brat"
-    aif_folder = shared_datadir / "aif"
-    ova_folder = shared_datadir / "ova"
-    kialo_folder = shared_datadir / "kialo"
+def test_import_graphs():
+    data_path = Path(__package__, "data")
+    brat_folder = data_path / "brat"
+    aif_folder = data_path / "aif"
+    ova_folder = data_path / "ova"
+    kialo_folder = data_path / "kialo"
 
     with multiprocessing.Pool() as pool:
         pool.map(_import_generic_graph, sorted(aif_folder.rglob("*.json")))
@@ -227,10 +187,10 @@ def test_import_graphs(shared_datadir):
 
 
 def _import_generic_graph(file):
-    graph = ag.Graph.from_file(file)
+    graph = ag.from_file(file)
 
-    assert graph.to_dict(ag.GraphFormat.AIF) != {}
-    assert graph.to_dict(ag.GraphFormat.ARGUEBUF) != {}
+    assert ag.to_dict(graph, ag.GraphFormat.AIF) != {}
+    assert ag.to_dict(graph, ag.GraphFormat.ARGUEBUF) != {}
 
 
 def _clean_raw_aif(g: t.MutableMapping[str, t.Any]) -> None:
@@ -273,12 +233,12 @@ def _import_aif_graph(file):
 
     _clean_raw_aif(raw)
 
-    graph = ag.Graph.from_file(file)
-    export = graph.to_dict(ag.GraphFormat.AIF)
+    graph = ag.from_file(file)
+    export = ag.to_dict(graph, ag.GraphFormat.AIF)
     _clean_exported_aif(export)
 
     assert export == raw, file  # for debugging
-    # diff = DeepDiff(raw, export, ignore_order=True)
+    diff = DeepDiff(raw, export, ignore_order=True)
 
     # if diff != {}:
     #     print("RAW:")
@@ -287,4 +247,4 @@ def _import_aif_graph(file):
     #     print(json.dumps(export))
     #     print()
 
-    # assert diff == {}, file
+    assert diff == {}, file

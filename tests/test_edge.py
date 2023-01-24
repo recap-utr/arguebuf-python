@@ -5,7 +5,11 @@ import pytest
 from arg_services.graph.v1 import graph_pb2
 
 import arguebuf as ag
-from arguebuf.converters.argdown import edge_from_argdown
+from arguebuf.converters.config import DefaultConverter
+from arguebuf.converters.from_aif import edge_from_aif
+from arguebuf.converters.from_argdown import edge_from_argdown
+from arguebuf.converters.from_ova import edge_from_ova
+from arguebuf.converters.from_sadface import edge_from_sadface
 
 aif_data = [
     (
@@ -149,18 +153,18 @@ def test_argdown_json_edge(data, id, start, end):
     assert edge.target.id == end
     assert edge.metadata is not None
     assert edge.userdata == {}
-    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
 
 
 @pytest.mark.parametrize("data,id,start,end", sadface_data)
 def test_sadface_edge(data, id, start, end):
     data_json = json.loads(data)
-    edge = ag.Edge.from_sadface(
+    edge = edge_from_sadface(
         data_json,
         {
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
+        DefaultConverter,
     )
 
     assert edge
@@ -171,18 +175,18 @@ def test_sadface_edge(data, id, start, end):
     assert edge.target.id == end
     assert edge.metadata is not None
     assert edge.userdata == {}
-    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
 
 
 @pytest.mark.parametrize("data,id,start,end", aif_data)
 def test_aif_edge(data, id, start, end):
     data_json = json.loads(data)
-    edge = ag.Edge.from_aif(
+    edge = edge_from_aif(
         data_json,
         {
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
+        DefaultConverter,
     )
 
     assert edge
@@ -193,18 +197,18 @@ def test_aif_edge(data, id, start, end):
     assert edge.target.id == end
     assert edge.metadata is not None
     assert edge.userdata == {}
-    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
 
 
 @pytest.mark.parametrize("data,start,end,date", ova_data)
 def test_ova_edge(data, start, end, date):
     data_json = json.loads(data)
-    edge = ag.Edge.from_ova(
+    edge = edge_from_ova(
         data_json,
         {
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
+        DefaultConverter,
     )
 
     assert edge
@@ -216,4 +220,3 @@ def test_ova_edge(data, start, end, date):
     assert edge.metadata.created == date
     assert edge.metadata.updated == date
     assert edge.userdata == {}
-    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)

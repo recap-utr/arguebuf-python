@@ -6,8 +6,8 @@ import typer
 
 import arguebuf as ag
 from arguebuf.cli.translator import Translator
-from arguebuf.converters.graphviz import to_graphviz
-from arguebuf.schema.graphviz import EdgeStyle
+from arguebuf.converters.to_graphviz import to_graphviz
+from arguebuf.schemas.graphviz import EdgeStyle
 
 from . import model
 
@@ -45,12 +45,12 @@ def translate(
     ) as bar:
         for path_pair in bar:
             if overwrite or not path_pair.target.exists():
-                graph = ag.Graph.from_file(path_pair.source)
+                graph = ag.from_file(path_pair.source)
                 translator.translate(graph)
-                graph.to_file(path_pair.target, output_format)
+                ag.to_file(graph, path_pair.target, output_format)
 
 
-def _strip_node_labels(node: ag.Node) -> str:
+def _strip_node_labels(node: ag.AbstractNode) -> str:
     label: str = ""
 
     for char in node.label:
@@ -101,7 +101,7 @@ def render(
     ) as bar:
         for path_pair in bar:
             if overwrite or not path_pair.target.exists():
-                g = ag.Graph.from_file(path_pair.source)
+                g = ag.from_file(path_pair.source)
 
                 if strip_scheme_nodes:
                     g.strip_scheme_nodes()
@@ -134,18 +134,10 @@ def convert(
     overwrite: bool = False,
     start: int = 1,
     text_folder: t.Optional[Path] = None,
-    text_glob: t.Optional[str] = None,
+    text_suffix: str = ".txt",
 ) -> None:
     if not output_folder:
         output_folder = input_folder
-
-    texts: dict[str, str] = {}
-
-    if text_folder and text_glob:
-        for file in text_folder.glob(text_glob):
-            with file.open("r") as f:
-                filename = str(file.relative_to(text_folder).with_suffix(""))
-                texts[filename] = f.read()
 
     if clean:
         shutil.rmtree(output_folder)
@@ -161,15 +153,16 @@ def convert(
     ) as bar:
         for path_pair in bar:
             if overwrite or not path_pair.target.exists():
-                graph = ag.Graph.from_file(path_pair.source)
-                relative_source = str(
-                    path_pair.source.relative_to(input_folder).with_suffix("")
-                )
+                text_file = None
 
-                if text := texts.get(relative_source):
-                    graph.add_resource(ag.Resource(text))
+                if text_folder:
+                    text_file = text_folder / path_pair.source.relative_to(
+                        input_folder
+                    ).with_suffix(text_suffix)
 
-                graph.to_file(path_pair.target, output_format)
+                graph = ag.from_file(path_pair.source, text_file=text_file)
+
+                ag.to_file(graph, path_pair.target, output_format)
 
 
 @cli.command()
@@ -179,7 +172,7 @@ def statistics(
 ):
     files = sorted(input_folder.glob(input_glob))
 
-    graphs = [ag.Graph.from_file(file) for file in files]
+    graphs = [ag.from_file(file) for file in files]
     atom_nodes = [len(graph.atom_nodes) for graph in graphs]
     scheme_nodes = [len(graph.scheme_nodes) for graph in graphs]
     edges = [len(graph.edges) for graph in graphs]

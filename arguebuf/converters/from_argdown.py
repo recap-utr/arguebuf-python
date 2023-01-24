@@ -2,38 +2,35 @@ import typing as t
 
 import pendulum
 
+from arguebuf.converters.config import ConverterConfig, DefaultConverter
 from arguebuf.models.edge import Edge, warn_missing_nodes
 from arguebuf.models.graph import Graph
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import AtomNode, Attack, Node, SchemeNode, Support
-from arguebuf.schema import argdown
+from arguebuf.models.node import AbstractNode, Attack, Support
+from arguebuf.schemas import argdown
 
 
 def from_argdown(
     obj: argdown.Graph,
     name: t.Optional[str] = None,
-    atom_class: t.Type[AtomNode] = AtomNode,
-    scheme_class: t.Type[SchemeNode] = SchemeNode,
-    edge_class: t.Type[Edge] = Edge,
-    graph_class: t.Type[Graph] = Graph,
-    nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    config: ConverterConfig = DefaultConverter,
 ) -> Graph:
     """Generate Graph structure from JSON Argdown argument graph file
     (reference: https://argdown.org/).
     """
-    g = graph_class(name)
+    g = config.GraphClass(name)
 
     timestamp = pendulum.now()
 
     # Every node in obj["nodes"] is a atom node
     for argdown_node in obj["map"]["nodes"]:
-        node = atom_class.from_argdown_json(argdown_node, nlp)
+        node = config.AtomNodeClass.from_argdown_json(argdown_node, config.nlp)
 
         if node:
             g.add_node(node)
 
     for argdown_edge in obj["map"]["edges"]:
-        if edge := edge_from_argdown(argdown_edge, g.nodes, edge_class):
+        if edge := edge_from_argdown(argdown_edge, g.nodes, config.EdgeClass):
             g.add_edge(edge)
             if argdown_edge["relationType"] == "support":
                 scheme = Support.DEFAULT
@@ -46,7 +43,7 @@ def from_argdown(
             else:
                 scheme = Support.DEFAULT
             # create scheme_node for edge
-            scheme_node = scheme_class(
+            scheme_node = config.SchemeNodeClass(
                 metadata=Metadata(timestamp, timestamp),
                 scheme=scheme,
             )
@@ -64,17 +61,17 @@ def from_argdown(
 
 def edge_from_argdown(
     obj: argdown.Edge,
-    nodes: t.Mapping[str, Node],
+    nodes: t.Mapping[str, AbstractNode],
     edge_class: t.Type[Edge] = Edge,
 ) -> t.Optional[Edge]:
     """Generate Edge object from Argdown JSON Edge format."""
     if "from" in obj:
-        source_id = obj["from"]
+        source_id = obj["from"]  # type: ignore
     else:
         source_id = obj["source"]
 
     if "to" in obj:
-        target_id = obj["to"]
+        target_id = obj["to"]  # type: ignore
     else:
         target_id = obj["target"]
 

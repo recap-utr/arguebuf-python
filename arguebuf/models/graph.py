@@ -1,44 +1,25 @@
 from __future__ import absolute_import, annotations
 
-import csv
-import importlib.metadata
 import itertools
-import json
 import logging
-import re
 import typing as t
-import xml.etree.ElementTree as ET
-from enum import Enum
-from pathlib import Path
 
-import networkx as nx
-import pendulum
-from arg_services.graph.v1 import graph_pb2
-from google.protobuf.json_format import MessageToDict, ParseDict
-from lxml import html
-
-from arguebuf.models import Userdata
 from arguebuf.models.analyst import Analyst
 from arguebuf.models.edge import Edge
 from arguebuf.models.metadata import Metadata
-from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, Support
+from arguebuf.models.node import AbstractNode, AtomNode, SchemeNode
 from arguebuf.models.participant import Participant
-from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, aml, argdown, ova, sadface
-from arguebuf.services import dt, traversal, utils
+from arguebuf.models.typing import TextType
+from arguebuf.models.userdata import Userdata
+from arguebuf.services import traversal, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 
 log = logging.getLogger(__name__)
 
 
-class GraphFormat(str, Enum):
-    ARGUEBUF = "arguebuf"
-    AIF = "aif"
-
-
 # noinspection PyProtectedMember
-class Graph:
+class Graph(t.Generic[TextType]):
     """Graph in AIF format.
 
     No attribute is mandatory.
@@ -66,14 +47,14 @@ class Graph:
     )
 
     name: str
-    _nodes: ImmutableDict[str, Node]
+    _nodes: ImmutableDict[str, AbstractNode]
     _atom_nodes: ImmutableDict[str, AtomNode]
     _scheme_nodes: ImmutableDict[str, SchemeNode]
     _edges: ImmutableDict[str, Edge]
-    _incoming_nodes: ImmutableDict[Node, ImmutableSet[Node]]
-    _incoming_edges: ImmutableDict[Node, ImmutableSet[Edge]]
-    _outgoing_nodes: ImmutableDict[Node, ImmutableSet[Node]]
-    _outgoing_edges: ImmutableDict[Node, ImmutableSet[Edge]]
+    _incoming_nodes: ImmutableDict[AbstractNode, ImmutableSet[AbstractNode]]
+    _incoming_edges: ImmutableDict[AbstractNode, ImmutableSet[Edge]]
+    _outgoing_nodes: ImmutableDict[AbstractNode, ImmutableSet[AbstractNode]]
+    _outgoing_edges: ImmutableDict[AbstractNode, ImmutableSet[Edge]]
     _resources: ImmutableDict[str, Resource]
     _participants: ImmutableDict[str, Participant]
     _major_claim: t.Optional[AtomNode]
@@ -88,7 +69,7 @@ class Graph:
         return self._edges
 
     @property
-    def nodes(self) -> t.Mapping[str, Node]:
+    def nodes(self) -> t.Mapping[str, AbstractNode]:
         return self._nodes
 
     @property
@@ -99,13 +80,17 @@ class Graph:
     def scheme_nodes(self) -> t.Mapping[str, SchemeNode]:
         return self._scheme_nodes
 
-    def incoming_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[Node]:
+    def incoming_nodes(
+        self, node: t.Union[str, AbstractNode]
+    ) -> t.AbstractSet[AbstractNode]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._incoming_nodes[node]
 
-    def incoming_atom_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[AtomNode]:
+    def incoming_atom_nodes(
+        self, node: t.Union[str, AbstractNode]
+    ) -> t.AbstractSet[AtomNode]:
         if isinstance(node, str):
             node = self._nodes[node]
 
@@ -122,13 +107,17 @@ class Graph:
 
         return incoming_atom_nodes
 
-    def outgoing_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[Node]:
+    def outgoing_nodes(
+        self, node: t.Union[str, AbstractNode]
+    ) -> t.AbstractSet[AbstractNode]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._outgoing_nodes[node]
 
-    def outgoing_atom_nodes(self, node: t.Union[str, Node]) -> t.AbstractSet[AtomNode]:
+    def outgoing_atom_nodes(
+        self, node: t.Union[str, AbstractNode]
+    ) -> t.AbstractSet[AtomNode]:
         if isinstance(node, str):
             node = self._nodes[node]
 
@@ -147,13 +136,13 @@ class Graph:
 
         return outgoing_atom_nodes
 
-    def incoming_edges(self, node: t.Union[str, Node]) -> t.AbstractSet[Edge]:
+    def incoming_edges(self, node: t.Union[str, AbstractNode]) -> t.AbstractSet[Edge]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._incoming_edges[node]
 
-    def outgoing_edges(self, node: t.Union[str, Node]) -> t.AbstractSet[Edge]:
+    def outgoing_edges(self, node: t.Union[str, AbstractNode]) -> t.AbstractSet[Edge]:
         if isinstance(node, str):
             node = self._nodes[node]
 
@@ -259,7 +248,7 @@ class Graph:
     def __repr__(self):
         return utils.class_repr(self, [self.name])
 
-    def add_node(self, node: Node) -> None:
+    def add_node(self, node: AbstractNode) -> None:
         """Add a node to the graph.
 
         Args:
@@ -270,7 +259,7 @@ class Graph:
             >>> g.add_node(AtomNode("Exemplary node"))
             >>> len(g.nodes)
             1
-            >>> g.add_node(SchemeNode(Support.DEFAULT))
+            >>> g.add_node(SchemeNode())
             >>> len(g.nodes)
             2
             >>> g.add_node("Test")
@@ -278,8 +267,8 @@ class Graph:
             TypeError: Expected type '<class 'arguebuf.node.Node'>', but got '<class 'str'>'. Make sure that you are passing the correct method arguments.
         """
 
-        if not isinstance(node, Node):
-            raise TypeError(utils.type_error(type(node), Node))
+        if not isinstance(node, AbstractNode):
+            raise TypeError(utils.type_error(type(node), AbstractNode))
 
         if node.id in self._nodes:
             raise ValueError(utils.duplicate_key_error(self.name, node.id))
@@ -307,7 +296,7 @@ class Graph:
         self._outgoing_nodes._store[node] = ImmutableSet()
         self._outgoing_edges._store[node] = ImmutableSet()
 
-    def remove_node(self, node: Node) -> None:
+    def remove_node(self, node: AbstractNode) -> None:
         """Remove a node and its corresponding edges from the graph.
 
         Args:
@@ -316,7 +305,7 @@ class Graph:
         Examples:
             >>> g = Graph()
             >>> n1 = AtomNode("Node1")
-            >>> n2 = SchemeNode(Support.DEFAULT)
+            >>> n2 = SchemeNode()
             >>> e = Edge(n1, n2)
             >>> g.add_edge(e)
             >>> len(g.nodes)
@@ -364,7 +353,7 @@ class Graph:
         Examples:
             >>> g = Graph()
             >>> n1 = AtomNode("Premise")
-            >>> n2 = SchemeNode(Support.DEFAULT)
+            >>> n2 = SchemeNode()
             >>> n3 = AtomNode("Claim")
             >>> e1 = Edge(n1, n2)
             >>> e2 = Edge(n2, n3)
@@ -403,7 +392,7 @@ class Graph:
         Examples:
             >>> g = Graph()
             >>> n1 = AtomNode("Node1")
-            >>> n2 = SchemeNode(Support.DEFAULT)
+            >>> n2 = SchemeNode()
             >>> e = Edge(n1, n2)
             >>> g.add_edge(e)
             >>> len(g.edges)
@@ -601,734 +590,7 @@ class Graph:
 
         del self._analysts._store[analyst.id]
 
-    def node_distance(
-        self,
-        start_node: Node,
-        end_node: Node,
-        max_distance: t.Optional[int] = None,
-        directed: bool = True,
-        ignore_schemes: bool = False,
-    ) -> t.Optional[int]:
-        """Get the distance between `start_node` and `end_node` in the graph.
-
-        Args:
-            start_node: Node object that is part of the graph.
-            end_node: Node object that is part of the graph.
-            max_distance: Only search for nodes having at most a distance of this argument.
-                Especially helpful when dealing with large graphs where shorts paths are searched for.
-            directed: If `False`, also search for the direction `end_node` -> `start_node`.
-
-        Returns:
-            `None` if no path between
-
-        Examples:
-            >>> g = Graph()
-            >>> n1 = AtomNode("Premise")
-            >>> n2 = SchemeNode(Support.DEFAULT)
-            >>> n3 = AtomNode("Claim")
-            >>> e1 = Edge(n1, n2)
-            >>> e2 = Edge(n2, n3)
-            >>> g.add_node(n1)
-            >>> g.add_node(n2)
-            >>> len(g.nodes)
-            2
-            >>> g.add_edge(e1)
-            >>> g.add_edge(e2)
-            >>> len(g.edges)
-            2
-            >>> g.node_distance(n1, n3)
-            2
-            >>> g.node_distance(n3, n1)
-        """
-
-        if start_node in self.nodes.values() and end_node in self.nodes.values():
-            if start_node == end_node:
-                return 0
-
-            connections = (
-                self.outgoing_atom_nodes if ignore_schemes else self.outgoing_nodes
-            )
-
-            dist = traversal.node_distance(
-                start_node, end_node, connections, max_distance
-            )
-
-            if dist is None and not directed:
-                dist = traversal.node_distance(
-                    end_node, start_node, connections, max_distance
-                )
-
-            return dist
-
-        return None
-
-    @classmethod
-    def from_ova(
-        cls,
-        obj: ova.Graph,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from OVA argument graph file (reference: http://ova.uni-trier.de/)."""
-        g = cls(name)
-
-        resource = Resource.from_ova(obj["analysis"], nlp)
-        g.add_resource(resource)
-
-        for participant in obj["participants"]:
-            g.add_participant(Participant.from_ova(participant))
-
-        if analyst_name := obj["analysis"].get("annotatorName"):
-            g.add_analyst(Analyst(name=analyst_name))
-
-        for ova_node in obj["nodes"]:
-            node = (
-                atom_class.from_ova(ova_node, nlp)
-                if ova_node.get("type") == "I"
-                else scheme_class.from_ova(ova_node, nlp)
-            )
-
-            if node:
-                g.add_node(node)
-
-            if ova_node.get("major_claim") and isinstance(node, AtomNode):
-                g._major_claim = node
-
-        for ova_edge in obj["edges"]:
-            if edge := edge_class.from_ova(ova_edge, g._nodes):
-                g.add_edge(edge)
-
-        if (analysis := obj.get("analysis")) and (raw_text := analysis.get("txt")):
-            _inject_original_text(raw_text, g._atom_nodes, resource, nlp)
-
-        return g
-
-    @classmethod
-    def from_sadface(
-        cls,
-        obj: sadface.Graph,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from SADFace argument graph file
-        (reference: https://github.com/Open-Argumentation/SADFace/blob/master/examples/hangback/data.json).
-        """
-        g = cls(name)
-
-        for sadface_node in obj["nodes"]:
-            node = (
-                atom_class.from_sadface(sadface_node, nlp)
-                if sadface_node["type"] == "atom"
-                else scheme_class.from_sadface(sadface_node, nlp)
-            )
-
-            if node:
-                g.add_node(node)
-
-        for sadface_edge in obj["edges"]:
-            if edge := edge_class.from_sadface(sadface_edge, g._nodes):
-                g.add_edge(edge)
-
-        # create
-        # object
-        created = dt.from_format(
-            obj["metadata"]["core"]["created"], sadface.DATE_FORMAT
-        )
-        updated = dt.from_format(obj["metadata"]["core"]["edited"], sadface.DATE_FORMAT)
-        metadata = Metadata(created, updated)
-        g.metadata = metadata
-
-        # create Analyst object
-        analyst = Analyst(
-            name=obj["metadata"]["core"]["analyst_name"],
-            email=obj["metadata"]["core"]["analyst_email"],
-        )
-        g.add_analyst(analyst)
-
-        # create Userdata dict
-        userdata = {
-            "notes": obj["metadata"]["core"]["notes"],
-            "description": obj["metadata"]["core"]["description"],
-            "title": obj["metadata"]["core"]["title"],
-            "sadfaceVersion": obj["metadata"]["core"]["version"],
-        }
-        g.userdata = userdata
-
-        return g
-
-    @classmethod
-    def from_aif(
-        cls,
-        obj: aif.Graph,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from AIF argument graph file
-        (reference: http://www.wi2.uni-trier.de/shared/publications/2019_LenzOllingerSahitajBergmann_ICCBR.pdf)
-
-        """
-        g = cls(name)
-
-        for aif_node in obj["nodes"]:
-            node = (
-                atom_class.from_aif(aif_node, nlp)
-                if aif_node["type"] == "I"
-                else scheme_class.from_aif(aif_node, nlp)
-            )
-
-            if node:
-                g.add_node(node)
-
-        for aif_edge in obj["edges"]:
-            if edge := edge_class.from_aif(aif_edge, g._nodes):
-                g.add_edge(edge)
-
-        return g
-
-    def to_aif(self) -> aif.Graph:
-        """Export structure of Graph instance to AIF argument graph format."""
-        return {
-            "nodes": [node.to_aif() for node in self._nodes.values()],
-            "edges": [edge.to_aif() for edge in self._edges.values()],
-            "locutions": [],
-        }
-
-    def to_protobuf(self) -> graph_pb2.Graph:
-        """Export structure of Graph instance to PROTOBUF argument graph format."""
-        try:
-            version = importlib.metadata.version("arg_services")
-        except importlib.metadata.PackageNotFoundError:
-            version = ""
-
-        g = graph_pb2.Graph(
-            schema_version=1,
-            library_version=version,
-            metadata=self.metadata.to_protobuf(),
-        )
-
-        for node_id, node in self._nodes.items():
-            g.nodes[node_id].CopyFrom(node.to_protobuf())
-
-        for edge_id, edge in self._edges.items():
-            g.edges[edge_id].CopyFrom(edge.to_protobuf())
-
-        if self._major_claim:
-            g.major_claim = self._major_claim.id
-
-        for resource_id, resource in self._resources.items():
-            g.resources[resource_id].CopyFrom(resource.to_protobuf())
-
-        for participant_id, participant in self._participants.items():
-            g.participants[participant_id].CopyFrom(participant.to_protobuf())
-
-        for analyst_id, analyst in self._analysts.items():
-            g.analysts[analyst_id].CopyFrom(analyst.to_protobuf())
-
-        g.userdata.update(self.userdata)
-
-        return g
-
-    @classmethod
-    def from_protobuf(
-        cls,
-        obj: graph_pb2.Graph,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        participant_class: t.Type[Participant] = Participant,
-        analyst_class: t.Type[Analyst] = Analyst,
-        resource_class: t.Type[Resource] = Resource,
-        reference_class: t.Type[Reference] = Reference,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from PROTOBUF argument graph file.(Link?)"""
-        g = cls(name)
-
-        for resource_id, resource in obj.resources.items():
-            g.add_resource(resource_class.from_protobuf(resource_id, resource, nlp))
-
-        for participant_id, participant in obj.participants.items():
-            g.add_participant(
-                participant_class.from_protobuf(participant_id, participant)
-            )
-
-        for analyst_id, analyst in obj.analysts.items():
-            g.add_analyst(analyst_class.from_protobuf(analyst_id, analyst))
-
-        for node_id, node in obj.nodes.items():
-            if node.WhichOneof("type") == "atom":
-                g.add_node(
-                    atom_class.from_protobuf(
-                        node_id,
-                        node,
-                        g._resources,
-                        g._participants,
-                        reference_class,
-                        nlp,
-                    )
-                )
-            elif node.WhichOneof("type") == "scheme":
-                g.add_node(
-                    scheme_class.from_protobuf(
-                        node_id,
-                        node,
-                        g._resources,
-                        g._participants,
-                        reference_class,
-                        nlp,
-                    )
-                )
-            # TODO: Raise error if node is neither scheme nor atom
-
-        for edge_id, proto_edge in obj.edges.items():
-            if edge := edge_class.from_protobuf(edge_id, proto_edge, g._nodes):
-                g.add_edge(edge)
-
-        major_claim = g._nodes[obj.major_claim] if obj.major_claim else None
-
-        if major_claim and isinstance(major_claim, AtomNode):
-            g._major_claim = major_claim
-
-        g.userdata.update(obj.userdata)
-        g.metadata = Metadata.from_protobuf(obj.metadata)
-        g.library_version = obj.library_version
-        g.schema_version = obj.schema_version
-
-        return g
-
-    @classmethod
-    def from_dict(
-        cls,
-        obj: t.Mapping[str, t.Any],
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from DICT argument graph file(Link?)."""
-        if "analysis" in obj:
-            return cls.from_ova(
-                t.cast(ova.Graph, obj),
-                name,
-                atom_class,
-                scheme_class,
-                edge_class,
-                nlp,
-            )
-
-        if "locutions" in obj:
-            return cls.from_aif(
-                t.cast(aif.Graph, obj),
-                name,
-                atom_class,
-                scheme_class,
-                edge_class,
-                nlp,
-            )
-
-        return cls.from_protobuf(
-            ParseDict(obj, graph_pb2.Graph()),
-            name,
-            atom_class,
-            scheme_class,
-            edge_class,
-            nlp=nlp,
-        )
-
-    def to_dict(self, format: GraphFormat) -> t.Dict[str, t.Any]:
-        """Export structure of Graph instance to DICT argument graph format."""
-
-        if format == GraphFormat.AIF:
-            return t.cast(t.Dict[str, t.Any], self.to_aif())
-
-        return MessageToDict(self.to_protobuf(), including_default_value_fields=False)
-
-    @classmethod
-    def from_json(
-        cls,
-        obj: t.TextIO,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from JSON argument graph file(Link?)."""
-        return cls.from_dict(
-            json.load(obj), name, atom_class, scheme_class, edge_class, nlp
-        )
-
-    def to_json(
-        self,
-        obj: t.TextIO,
-        format: GraphFormat = GraphFormat.ARGUEBUF,
-        pretty: bool = False,
-    ) -> None:
-        """Export structure of Graph instance to JSON argument graph format."""
-        json.dump(
-            self.to_dict(format),
-            obj,
-            ensure_ascii=False,
-            indent=4 if pretty else None,
-        )
-
-    @classmethod
-    def from_brat(
-        cls,
-        obj: t.TextIO,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from BRAT argument graph file (reference: https://brat.nlplab.org/)"""
-        reader = csv.reader(obj, delimiter="\t")
-        g = cls(name)
-
-        atom_nodes = {}
-        mc = atom_class(utils.parse("", nlp))
-        g.add_node(mc)
-        g._major_claim = mc
-
-        for row in reader:
-            userdata = row[1].split()
-
-            if row[0].startswith("T"):
-                if userdata[0] == "MajorClaim":
-                    mc.text = utils.parse(f"{mc.plain_text}. {row[2]}", nlp)
-                else:
-                    atom = atom_class(utils.parse(row[2], nlp))
-                    g.add_node(atom)
-                    atom_nodes[row[0]] = atom
-
-            elif row[0].startswith("A") or row[0].startswith("R"):
-                if row[0].startswith("A"):
-                    scheme_type = (
-                        Attack.DEFAULT if userdata[2] == "Against" else Support.DEFAULT
-                    )
-                    source = atom_nodes[userdata[1]]
-                    target = mc
-                else:
-                    scheme_type = (
-                        Attack.DEFAULT if userdata[0] == "attacks" else Support.DEFAULT
-                    )
-                    source = atom_nodes[userdata[1].split(":")[1]]
-                    target = atom_nodes[userdata[2].split(":")[1]]
-
-                scheme = scheme_class(scheme_type)
-                g.add_node(scheme)
-
-                g.add_edge(edge_class(source, scheme))
-                g.add_edge(edge_class(scheme, target))
-
-        return g
-
-    @classmethod
-    def from_kialo(
-        cls,
-        obj: t.TextIO,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        if name_match := re.search(r"Discussion Title: (.*)", obj.readline()):
-            name = name_match[1]
-
-        # After the title, an empty line should follow
-        assert obj.readline().strip() == ""
-
-        g = cls(name)
-
-        # Example: 1.1. Pro: Gold is better than silver.
-        # Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
-        pattern = re.compile(r"^(1\.(?:\d+\.)+) (?:(Con|Pro): )?(.*)")
-        current_line = obj.readline()
-        next_line = obj.readline()
-
-        mc_match = re.search(r"^((?:\d+\.)+) (.*)", current_line)
-
-        if not mc_match:
-            raise ValueError("The major claim is not present in the third line!")
-
-        mc_id = mc_match[1]
-        mc_text = mc_match[2]
-
-        # See in the following while loop for explanation of this block
-        while next_line and not pattern.search(next_line):
-            mc_text = f"{mc_text}\n{next_line.strip()}"
-            next_line = obj.readline()
-
-        mc = _kialo_atom_node(mc_id, mc_text, nlp, atom_class)
-        g.add_node(mc)
-        g.major_claim = mc
-
-        current_line = next_line
-        next_line = obj.readline()
-
-        while current_line:
-            if current_match := pattern.search(current_line):
-                source_id = current_match[1]
-                source_id_parts = source_id[:-1].split(".")
-                level = len(source_id_parts)
-                stance = current_match[2]
-                text = current_match[3]
-
-                # The text of a node is allowed to span multiple lines.
-                # Thus, we need to look ahead to concatenate the complete text.
-                # As long as the pattern is not found in the next line,
-                # we assume that the text belongs to the previous statement.
-                while next_line and not pattern.search(next_line):
-                    text = f"{text}\n{next_line.strip()}"
-                    next_line = obj.readline()
-
-                assert source_id
-                assert text
-
-                if id_ref_match := re.search(r"^-> See ((?:\d+\.)+)", text):
-                    id_ref = id_ref_match[1]
-                    source = g.atom_nodes[id_ref]
-                else:
-                    source = _kialo_atom_node(source_id, text, nlp, atom_class)
-                    g.add_node(source)
-
-                if stance:
-                    stance = stance.lower()
-                    scheme = scheme_class(
-                        Attack.DEFAULT if stance == "con" else Support.DEFAULT,
-                        id=f"{source_id}scheme",
-                    )
-                else:
-                    scheme = scheme_class(Rephrase.DEFAULT, id=f"{source_id}scheme")
-
-                target_id = ".".join(source_id_parts[:-1] + [""])
-                target = g.atom_nodes[target_id]
-
-                g.add_node(scheme)
-                g.add_edge(edge_class(source, scheme, id=f"{source.id}->{scheme.id}"))
-                g.add_edge(edge_class(scheme, target, id=f"{scheme.id}->{target.id}"))
-
-                current_line = next_line
-                next_line = obj.readline()
-
-        return g
-
-    @classmethod
-    def from_aml(
-        cls,
-        obj: t.IO,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """
-        Generate Graph structure from AML argument graph file
-        ElementTree XML API: https://docs.python.org/3/library/xml.etree.elementtree.html#
-        """
-
-        tree = ET.parse(obj)
-        root = tree.getroot()
-
-        # create nodes and edges from AU element
-        au = root.find("AU")
-        g = cls(name)
-        g = aml.read_au(au, g, nlp)
-
-        # create edge objects and add to g
-
-        # create Metadata object
-        # create Analyst object
-        # create Userdata
-
-        return g
-
-    @classmethod
-    def from_io(
-        cls,
-        obj: t.TextIO,
-        suffix: str,
-        name: t.Optional[str] = None,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from IO argument graph file(Link?)."""
-        args = (obj, name, atom_class, scheme_class, edge_class, nlp)
-
-        if suffix == ".ann":
-            return cls.from_brat(*args)
-        if suffix == ".txt":
-            return cls.from_kialo(*args)
-        if suffix == ".aml":
-            return cls.from_aml(*args)
-
-        return cls.from_json(*args)
-
-    def to_io(
-        self,
-        obj: t.TextIO,
-        format: GraphFormat = GraphFormat.ARGUEBUF,
-        pretty: bool = False,
-    ) -> None:
-        """Export structure of Graph instance to IO argument graph format."""
-        self.to_json(obj, format, pretty)
-
-    @classmethod
-    def from_file(
-        cls,
-        path: t.Union[Path, str],
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Generate Graph structure from a File."""
-        if isinstance(path, str):
-            path = Path(path)
-
-        with path.open("r", encoding="utf-8") as file:
-            return cls.from_io(
-                file,
-                path.suffix,
-                path.stem,
-                atom_class,
-                scheme_class,
-                edge_class,
-                nlp,
-            )
-
-    def to_file(
-        self,
-        path: t.Union[Path, str],
-        format: GraphFormat = GraphFormat.ARGUEBUF,
-        pretty: bool = False,
-    ) -> None:
-        """Export strucure of Graph instance into structure of File/Folder format."""
-        if isinstance(path, str):
-            path = Path(path)
-
-        if path.is_dir() or not path.suffix:
-            path = path / f"{self.name}.json"
-
-        with path.open("w", encoding="utf-8") as file:
-            self.to_io(file, format, pretty)
-
-    to_folder = to_file
-
-    @classmethod
-    def from_folder(
-        cls,
-        path: t.Union[Path, str],
-        pattern: str,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> t.Dict[Path, Graph]:
-        """Load all graphs matching the specified `pattern` in `path`.
-
-        Args:
-            path: Folder containing the graphs to be loaded.
-            pattern: Unix glob pattern to filter the available files.
-                Recursive matching can be achieved by prepending `**/` to any pattern.
-                For instance, all `json` files of a folder can be retrieved with `**/*.json`.
-                Supports the following wildcards: <https://docs.python.org/3/library/fnmatch.html#module-fnmatch>
-            atom_class: Allows to override the class used for atom nodes in case a specialized subclass has been created. Defaults to `AtomNode`.
-            scheme_class: Allows to override the class used for scheme nodes in case a specialized subclass has been created. Defaults to `SchemeNode`.
-            edge_class: Allows to override the class used for edges in case a specialized subclass has been created. Defaults to `Edge`.
-            nlp: Optionally pass a function to transforms all texts of atom nodes and resources to arbitrary Python objects.
-                Useful when using `spacy` to generate embeddings.
-                In this case, you can load a model with `spacy.load(...)` and pass the resulting `nlp` function via this parameter.
-
-        Returns:
-            Dictionary containing all found file paths as well as the loaded graphs.
-        """
-
-        if isinstance(path, str):
-            path = Path(path)
-
-        return {
-            file: cls.from_file(file, atom_class, scheme_class, edge_class, nlp)
-            for file in sorted(path.glob(pattern))
-        }
-
-    def to_nx(
-        self,
-        graph_attrs: t.Optional[
-            t.MutableMapping[str, t.Callable[[Graph], t.Any]]
-        ] = None,
-        atom_attrs: t.Optional[
-            t.MutableMapping[str, t.Callable[[AtomNode], t.Any]]
-        ] = None,
-        scheme_attrs: t.Optional[
-            t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]]
-        ] = None,
-        edge_attrs: t.Optional[t.MutableMapping[str, t.Callable[[Edge], t.Any]]] = None,
-    ) -> nx.DiGraph:
-        """Transform the argument graph for use with the library `NetworkX`
-
-        This library allows you to apply advanced graph-related algorithms directly on your argument graphs.
-        For instance, shortest paths and various distances can be computed.
-        [Documentation](https://networkx.org/documentation/stable/reference/index.html)
-
-        It is possible to add arbitrary attributes to the resulting graph and its elements.
-        For this, you need to pass a dictionary with the desired name of the attribute and a function that is used to compute the attribute's value.
-        The function will be passed the corresponding element as its only parameter.
-        For instance, you could pass `atom_attrs={"text": lambda node: node.plain_text}` to set a `text` attribute for atom nodes.
-
-        Args:
-            graph_attrs: Attribute functions for the whole graph.
-            atom_attrs: Attribute functions for the atom nodes.
-            scheme_attrs: Attribute functions for the scheme nodes.
-            edge_attrs: Attribute functions for the edges.
-
-        Returns:
-            Instance of the *directed* `NetworkX` graph.
-
-        Examples:
-            >>> g = Graph("Test")
-            >>> n1 = AtomNode("Node1")
-            >>> n2 = AtomNode("Node2")
-            >>> e = Edge(n1, n2)
-            >>> g.add_edge(e)
-            >>> gnx = g.to_nx()
-            >>> gnx.number_of_nodes()
-            2
-        """
-
-        if graph_attrs is None:
-            graph_attrs = {}
-
-        g = nx.DiGraph(None, **{key: func(self) for key, func in graph_attrs.items()})
-
-        for node in self._atom_nodes.values():
-            node.to_nx(g, atom_attrs)
-
-        for node in self._scheme_nodes.values():
-            node.to_nx(g, scheme_attrs)
-
-        for edge in self._edges.values():
-            edge.to_nx(g, edge_attrs)
-
-        return g
-
-    def strip_scheme_nodes(self) -> Graph:
+    def strip_scheme_nodes(self) -> None:
         """Remove scheme nodes from graph to connect atom nodes directly
 
         Can be useful to analyze the structure of atom nodes
@@ -1349,86 +611,3 @@ class Graph:
                 )
 
             self.remove_node(scheme)
-
-        return self
-
-    def copy(
-        self,
-        atom_class: t.Type[AtomNode] = AtomNode,
-        scheme_class: t.Type[SchemeNode] = SchemeNode,
-        edge_class: t.Type[Edge] = Edge,
-        participant_class: t.Type[Participant] = Participant,
-        analyst_class: t.Type[Analyst] = Analyst,
-        resource_class: t.Type[Resource] = Resource,
-        reference_class: t.Type[Reference] = Reference,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> Graph:
-        """Contents of Graph instance are copied into new Graph object."""
-
-        return Graph.from_protobuf(
-            self.to_protobuf(),
-            self.name,
-            atom_class,
-            scheme_class,
-            edge_class,
-            participant_class,
-            analyst_class,
-            resource_class,
-            reference_class,
-            nlp,
-        )
-
-
-def _kialo_atom_node(
-    id: str,
-    text: str,
-    nlp: t.Optional[t.Callable[[str], t.Any]],
-    atom_class: t.Type[AtomNode],
-) -> AtomNode:
-    # Remove backslashes before parentheses/brackets
-    text = re.sub(r"\\([\[\]\(\)])", r"\1", text)
-
-    # Remove markdown links
-    text = re.sub(
-        r"\[(.*?)\]\(.*?\)",
-        r"\1",
-        text,
-    )
-
-    # Apply user-provided nlp function
-    text = utils.parse(text, nlp)
-
-    return atom_class(text, id=id)
-
-
-def _inject_original_text(
-    raw_text: str,
-    nodes: t.Mapping[str, AtomNode],
-    resource: Resource,
-    nlp: t.Optional[t.Callable[[str], t.Any]],
-) -> None:
-    doc = html.fromstring(f"<html><head></head><body>{raw_text}</body></html>")
-    text = ""
-
-    for elem in doc.body.iter():
-        # Span elements need special handling
-        if elem.tag == "span":
-            # The id is prefixed with 'node', e.g. 'node5'.
-            node_key = elem.attrib["id"].replace("node", "")
-            if node := nodes.get(node_key):
-                node._reference = Reference(
-                    resource, len(text), utils.parse(elem.text, nlp)
-                )
-
-            if elem.text:
-                text += elem.text
-
-        elif elem.tag == "br":
-            text += "\n"
-
-        elif elem.text:
-            text += elem.text
-
-        # Text after a tag should always be added to the overall text
-        if elem.tail:
-            text += elem.tail

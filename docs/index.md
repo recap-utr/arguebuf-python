@@ -61,7 +61,7 @@ Given an input file, the library can automatically determine the correct format 
 One can either pass a string pointing to the file or a `pathlib.Path` object.
 
 ```python
-graph = ag.Graph.from_file("graph.json")
+graph = ag.from_file("graph.json")
 ```
 
 It is also possible to load multiple graphs within a folder.
@@ -69,7 +69,7 @@ Here, you need to pass the folder along with a [glob pattern](https://docs.pytho
 This also enables to recursively load all argument graphs from a common parent directory.
 
 ```python
-graphs = ag.Graph.from_folder("./data", "**/*.json")
+graphs = ag.from_folder("./data", "**/*.json")
 ```
 
 Since atom nodes contain textual information that may need to be analyzed using NLP techniques, we support passing a custom `nlp` function to these loader methods.
@@ -78,7 +78,7 @@ This also makes it really easy to integrate the popular [`spacy` library](http:/
 ```python
 import spacy
 nlp = spacy.load("en_core_web_lg")
-graph = ag.Graph.from_file("graph.json", nlp=nlp)
+graph = ag.from_file("graph.json", nlp=nlp)
 ```
 
 ### Programmatically Create a New Graph
@@ -116,17 +116,17 @@ Have a look at the following code snippet to get an overview of the possibilitie
 
 ```python
 # Export to graphviz DOT format
-dot = graph.to_gv()
+dot = ag.to_graphviz(graph)
 
 # Export an image of this dot source to a file
 ag.render(dot, "./graph.pdf")
 
 # Convert to NetworkX graph
-nx = graph.to_nx()
+nx = ag.to_networkx(graph)
 
 # Save the graph as Arguebuf
-graph.to_file("./graph.json")
+ag.to_file(graph, "./graph.json")
 
 # Save the graph as AIF
-graph.to_file("./graph.json", ag.GraphFormat.AIF)
+ag.to_file(graph, "./graph.json", ag.GraphFormat.AIF)
 ```

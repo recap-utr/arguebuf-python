@@ -1,6 +1,5 @@
 import textwrap
 import typing as t
-from enum import Enum
 from pathlib import Path
 
 from graphviz import Digraph
@@ -8,7 +7,8 @@ from graphviz import Digraph
 from arguebuf.models.edge import Edge
 from arguebuf.models.graph import Graph
 from arguebuf.models.node import AtomNode, SchemeNode
-from arguebuf.schema.graphviz import EdgeStyle, GraphvizGraph
+from arguebuf.schemas.graphviz import EdgeStyle, GraphvizGraph
+from arguebuf.services.utils import uuid
 
 try:
     from pygraphviz import AGraph
@@ -164,20 +164,20 @@ def _edge_to_gv(edge: Edge, g: GraphvizGraph) -> None:
 
 
 def render(
-    graph: t.Optional[GraphvizGraph],
+    graph: GraphvizGraph,
     path: t.Union[Path, str],
     prog: t.Literal["neato", "dot", "twopi", "circo", "fdp", "nop"] = "dot",
 ) -> None:
     """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
     if isinstance(path, str):
         path = Path(path)
+    if path.is_dir():
+        path /= graph.name or uuid()
 
-    if graph is None:
-        pass
-    elif isinstance(graph, Graph):
+    if isinstance(graph, Graph):
         raise ValueError(
             "This method expects a graph in the 'DOT' format."
-            "Please use 'graph.to_gv()' to convert your argument graph to the 'DOT' format."
+            "Please use 'arguebuf.to_graphviz(graph)' to convert your argument graph to the 'DOT' format."
         )
     elif isinstance(graph, Digraph):
         graph.render(outfile=path, renderer=prog)
