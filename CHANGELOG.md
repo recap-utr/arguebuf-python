@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.0-beta.11](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.10...v2.0.0-beta.11) (2023-01-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* completely restructure the package
+
+### Features
+
+* add initial support for loading case bases ([b59ce73](https://github.com/recap-utr/arguebuf-python/commit/b59ce73417535c8e13b3cf3e0fc6f826fa7be002))
+* completely restructure the package ([b2d3262](https://github.com/recap-utr/arguebuf-python/commit/b2d32621c5485d8ed6cb556bb12897d8a0d8ba92))
+
 ## [2.0.0-beta.10](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.9...v2.0.0-beta.10) (2023-01-19)
 
 
