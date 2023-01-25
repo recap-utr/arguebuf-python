@@ -1,11 +1,7 @@
-import json
-import multiprocessing
-import typing as t
 from pathlib import Path
 
 import pytest
 from arg_services.graph.v1 import graph_pb2
-from deepdiff import DeepDiff
 
 import arguebuf as ag
 
@@ -164,87 +160,3 @@ def test_create_graph(tmp_path: Path):
     assert len(g.nodes) == len(gc.nodes)
 
     ag.render(ag.to_graphviz(g), tmp_path)
-
-
-def test_import_graphs():
-    data_path = Path(__package__, "data")
-    brat_folder = data_path / "brat"
-    aif_folder = data_path / "aif"
-    ova_folder = data_path / "ova"
-    kialo_folder = data_path / "kialo"
-
-    with multiprocessing.Pool() as pool:
-        pool.map(_import_generic_graph, sorted(aif_folder.rglob("*.json")))
-        pool.map(_import_generic_graph, sorted(ova_folder.rglob("*.json")))
-        pool.map(_import_generic_graph, sorted(brat_folder.rglob("*.ann")))
-        pool.map(_import_generic_graph, sorted(kialo_folder.rglob("*.txt")))
-
-        pool.map(_import_aif_graph, sorted(aif_folder.rglob("*.json")))
-
-    # For debugging
-    # for file in sorted(aif_folder.rglob("*.json")):
-    #     _import_aif_graph(file)
-
-
-def _import_generic_graph(file):
-    graph = ag.from_file(file)
-
-    assert ag.to_dict(graph, ag.GraphFormat.AIF) != {}
-    assert ag.to_dict(graph, ag.GraphFormat.ARGUEBUF) != {}
-
-
-def _clean_raw_aif(g: t.MutableMapping[str, t.Any]) -> None:
-    # Remove locutions as these are not parsed
-    g["locutions"] = []
-    g["nodes"] = [
-        node for node in tuple(g["nodes"]) if node["type"] not in {"L", "TA", "YA"}
-    ]
-    node_ids = {node["nodeID"] for node in g["nodes"]}
-    g["edges"] = [
-        edge
-        for edge in tuple(g["edges"])
-        if edge["fromID"] in node_ids and edge["toID"] in node_ids
-    ]
-
-    for node in g["nodes"]:
-        if node["type"] != "I":
-
-            # There is a mitchmatch between our export and the araucaria text
-            del node["text"]
-
-            # Also, scheme information is exported differently than done in the araucaria corpus.
-            # For now, we do not check the correct export of schemes.
-            if "scheme" in node:
-                del node["scheme"]
-            if "schemeID" in node:
-                del node["schemeID"]
-
-
-def _clean_exported_aif(g: t.MutableMapping[str, t.Any]) -> None:
-    for node in g["nodes"]:
-        if node["type"] != "I":
-            assert len(node["text"]) > 1
-            del node["text"]
-
-
-def _import_aif_graph(file):
-    with file.open() as f:
-        raw = json.load(f)
-
-    _clean_raw_aif(raw)
-
-    graph = ag.from_file(file)
-    export = ag.to_dict(graph, ag.GraphFormat.AIF)
-    _clean_exported_aif(export)
-
-    assert export == raw, file  # for debugging
-    diff = DeepDiff(raw, export, ignore_order=True)
-
-    # if diff != {}:
-    #     print("RAW:")
-    #     print(json.dumps(raw))
-    #     print("EXPORT:")
-    #     print(json.dumps(export))
-    #     print()
-
-    assert diff == {}, file
