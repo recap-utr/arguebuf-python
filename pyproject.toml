@@ -32,6 +32,7 @@ multimethod = { version = "^1.9.1", optional = true }
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.2"
 pytest-cov = "^4.0.0"
+pytest-xdist = "^3.1.0"
 deepdiff = { extras = ["murmur"], version = "^6.0.0" }
 lxml-stubs = "^0.4.0"
 
@@ -41,7 +42,8 @@ cli = ["typer", "deepl", "multimethod"]
 graphviz = ["pygraphviz"]
 
 [tool.pytest.ini_options]
-addopts = "--cov arguebuf --cov-report term-missing -vv"
+addopts = "--numprocesses 4 --dist load --cov arguebuf --cov-report term-missing --doctest-modules"
+doctest_optionflags = "NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 
 [build-system]
 requires = ["poetry-core"]
