@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import re
 import typing as t
-from dataclasses import asdict, dataclass, fields
+from collections.abc import Iterable
+from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
-from arguebuf.converters.from_path import from_folder
+from arguebuf.converters.config import ConverterConfig, DefaultConverter
+from arguebuf.converters.from_path import from_file, from_folder
 from arguebuf.models.graph import Graph
 
-format2pattern = {
+format2glob = {
     "aif": "*.json",
     "aml": "*.aml",
     "argdown": "*.json",
@@ -18,92 +21,111 @@ format2pattern = {
     "microtexts": "*.xml",
     "ova": "*.json",
     "protobuf": "*.json",
+    None: "*",
 }
 
-DEFAULT_PATTERN = "*"
+DEFAULT_GLOB = "*"
 
 
 @dataclass
-class CasebaseFilter:
+class FilesystemFilter:
     name: str
-    lang: t.Optional[str] = None
-    format: t.Optional[str] = None
-    variant: t.Optional[str] = None
-    schemes: t.Optional[bool] = None
+    kwargs: t.Dict[str, str]
+
+    def __init__(self, name: str, **kwargs: str) -> None:
+        self.name = name
+        self.kwargs = kwargs
 
     @property
-    def pattern(self) -> str:
-        if self.format is not None:
-            return format2pattern.get(self.format, DEFAULT_PATTERN)
-
-        return DEFAULT_PATTERN
+    def glob(self) -> str:
+        return format2glob.get(self.kwargs.get("format"), DEFAULT_GLOB)
 
     @classmethod
-    def from_path(cls, path: Path) -> CasebaseFilter:
-        filter = CasebaseFilter(path.parent.name)
+    def from_path(cls, path: Path) -> FilesystemFilter:
+        kwargs: dict[str, str] = {}
         entries = path.name.replace(" ", "").split(",")
 
         for entry in entries:
             key, *values = entry.split("=")
-            value = values[0] if len(values) == 1 else True
+            value = values[0] if len(values) == 1 else "true"
+            kwargs[key] = value
 
-            setattr(filter, key, value)
+        return cls(path.parent.name, **kwargs)
 
-        return filter
 
-    def to_path(self) -> Path:
-        attributes = {
-            key: value
-            for key, value in asdict(self)
-            if value is not None and key != "name"
-        }
-        folder_name = ",".join(
-            f"{key}={value}"
-            for key, value in sorted(attributes.items(), key=lambda x: x[0])
-        )
+class CasebaseFilter:
+    name: re.Pattern
+    cases: t.Optional[re.Pattern]
+    kwargs: t.Dict[str, re.Pattern]
 
-        return Path(self.name, folder_name)
+    def __init__(self, name: str, cases: t.Optional[str] = None, **kwargs: str):
+        self.name = re.compile(name)
+        self.cases = re.compile(cases) if cases is not None else None
+        self.kwargs = {}
 
-    def __eq__(self, other: CasebaseFilter) -> bool:
+        for key, value in kwargs.items():
+            self.kwargs[key] = re.compile(value)
+
+    def __eq__(self, other: FilesystemFilter) -> bool:
+        return self.kwargs == other.kwargs and self >= other
+
+    def __ge__(self, other: FilesystemFilter) -> bool:
         return all(
-            getattr(self, field.name) is None
-            or getattr(other, field.name) is None
-            or (getattr(self, field.name) == getattr(other, field.name))
-            for field in fields(CasebaseFilter)
-        )
-
-    def __ge__(self, other: CasebaseFilter) -> bool:
-        return all(
-            getattr(self, field.name) is None
-            or (getattr(self, field.name) == getattr(other, field.name))
-            for field in fields(CasebaseFilter)
-        )
-
-    def __le__(self, other: CasebaseFilter) -> bool:
-        return all(
-            getattr(other, field.name) is None
-            or (getattr(self, field.name) == getattr(other, field.name))
-            for field in fields(CasebaseFilter)
+            pattern.match(other.kwargs.get(kwarg, "null"))
+            for kwarg, pattern in self.kwargs.items()
         )
 
 
 def from_casebase(
-    filters: t.Iterable[CasebaseFilter],
-    basepath: Path = Path.cwd(),
+    basepath: t.Union[Path, str],
+    include: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter]],
+    # exclude: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter], None] = None,
+    config: ConverterConfig = DefaultConverter,
     strict_equal: bool = False,
 ):
     graphs: dict[Path, Graph] = {}
 
-    for input_filter in filters:
-        searchpath = basepath / input_filter.name
+    if not isinstance(basepath, Path):
+        basepath = Path(basepath)
 
-        for folder in searchpath.iterdir():
-            if folder.is_dir():
-                candidate_filter = CasebaseFilter.from_path(folder)
+    if not isinstance(include, Iterable):
+        include = [include]
 
-                if (strict_equal and input_filter == candidate_filter) or (
-                    not strict_equal and input_filter >= candidate_filter
-                ):
-                    graphs.update(from_folder(folder, f"**/{candidate_filter.pattern}"))
+    # if isinstance(exclude, CasebaseFilter):
+    #     exclude = [exclude]
+
+    for filter in include:
+        for path in sorted(basepath.glob("*/*")):
+            if path.is_dir() and filter.name.match(path.parent.name):
+                graphs.update(_from_casebase_single(filter, path, config, strict_equal))
 
     return graphs
+
+
+def _from_casebase_single(
+    user_filter: CasebaseFilter,
+    path: Path,
+    config: ConverterConfig,
+    strict_equal: bool,
+):
+    filesystem_filter = FilesystemFilter.from_path(path)
+
+    if (strict_equal and user_filter == filesystem_filter) or (
+        not strict_equal and user_filter >= filesystem_filter
+    ):
+        glob = f"**/{filesystem_filter.glob}"
+
+        if user_filter.cases is not None:
+            graphs = {}
+
+            for file in sorted(path.glob(glob)):
+                if file.is_file() and user_filter.cases.match(
+                    str(file.relative_to(path))
+                ):
+                    graphs[file] = from_file(file, config=config)
+
+            return graphs
+
+        return from_folder(path, glob, config=config)
+
+    return {}
