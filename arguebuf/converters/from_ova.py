@@ -73,8 +73,9 @@ def _inject_original_text(
 ) -> None:
     doc = html.fromstring(f"<html><head></head><body>{raw_text}</body></html>")
     text = ""
+    body = doc.find("body")
 
-    if body := doc.find("body"):
+    if body is not None:
         for elem in body.iter():
             # Span elements need special handling
             if elem.tag == "span":
