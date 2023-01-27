@@ -42,7 +42,7 @@ cli = ["typer", "deepl", "multimethod"]
 graphviz = ["pygraphviz"]
 
 [tool.pytest.ini_options]
-addopts = "--numprocesses 4 --dist load --cov arguebuf --cov-report term-missing --doctest-modules"
+addopts = "--numprocesses 4 --dist load --cov arguebuf --cov-report term-missing --doctest-modules --ignore arguebuf/cli"
 doctest_optionflags = "NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 
 [build-system]
