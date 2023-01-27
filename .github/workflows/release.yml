@@ -11,14 +11,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      # - uses: webfactory/ssh-agent@v0.7.0
+      # - uses: de-vri-es/setup-git-credentials@v2
       #   with:
-      #     ssh-private-key: |
-      #       ${{ secrets.SSH_ARGUEBASE_PUBLIC }}
-      #       ${{ secrets.SSH_ARGUEBASE_PRIVATE }}
-      - uses: de-vri-es/setup-git-credentials@v2
+      #     credentials: https://${{ secrets.GH_PULL_ACTOR }}:${{ secrets.GH_PULL_TOKEN }}@github.com/
+      - uses: webfactory/ssh-agent@v0.7.0
         with:
-          credentials: https://${{ secrets.GH_PULL_ACTOR }}:${{ secrets.GH_PULL_TOKEN }}@github.com/
+          ssh-private-key: |
+            ${{ secrets.SSH_ARGUEBASE_PUBLIC }}
+            ${{ secrets.SSH_ARGUEBASE_PRIVATE }}
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
