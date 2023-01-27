@@ -1,0 +1,12 @@
+frozen: true
+deps:
+- path: kialo/format=kialo,lang=en
+  repo:
+    url: git@github.com:recap-utr/arguebase-private.git
+    rev_lock: 0711598c5357bf9477630857ad706cb86ef458ee
+outs:
+- path: kialo/format=kialo,lang=en
+  md5: e19ebc43c45b6159ebff60eb38357b86.dir
+  size: 39691939
+  nfiles: 590
+md5: 7d47ce94e4e1d9e96403ccc5347ccf63
