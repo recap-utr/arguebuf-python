@@ -1,3 +1,7 @@
+"""
+.. include:: ../README.md
+"""
+
 import logging
 
 from . import schemas

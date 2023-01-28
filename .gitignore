@@ -228,4 +228,4 @@ poetry.toml
 
 .vscode/
 .idea/
-_autosummary
+_readthedocs/

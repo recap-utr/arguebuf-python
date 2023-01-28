@@ -2,8 +2,18 @@
 # https://github.com/readthedocs/readthedocs.org/issues/4912
 version: 2
 
-sphinx:
-  configuration: docs/conf.py
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.9"
+  jobs:
+    post_create_environment:
+      - pip install poetry
+      - poetry config virtualenvs.create false
+    post_install:
+      - poetry install --with docs
+  commands:
+    - poetry run pdoc -d google --math -o _readthedocs/html/ arguebuf
 
 formats:
   - epub
