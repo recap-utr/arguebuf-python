@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arguebuf"
-version = "2.0.0b11"
+version = "2.0.0b12"
 description = "A library for loading argument graphs in various formats (e.g., AIF)."
 authors = ["Mirko Lenz <info@mirko-lenz.de>"]
 license = "MIT"

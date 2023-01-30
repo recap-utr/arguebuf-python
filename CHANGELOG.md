@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0-beta.12](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.11...v2.0.0-beta.12) (2023-01-30)
+
+
+### Features
+
+* allow custom folder glob for casebase import ([08f07fe](https://github.com/recap-utr/arguebuf-python/commit/08f07feb33559b9468df1286c822fcd89c640395))
+* allow specifying globs in casebase loader ([220fe3a](https://github.com/recap-utr/arguebuf-python/commit/220fe3a3906203c4473ebd2298cd51329ae35152))
+
+
+### Bug Fixes
+
+* **graphviz:** check format and engine ([29c0a48](https://github.com/recap-utr/arguebuf-python/commit/29c0a4858315479abbb3f34083e9397d6885b0b4))
+* **graphviz:** switch engines and renderers ([98396c8](https://github.com/recap-utr/arguebuf-python/commit/98396c876f707fdf1b2ffd00faf8f90ee2d8bafa))
+* **ova:** correctly check for body ([e18396e](https://github.com/recap-utr/arguebuf-python/commit/e18396e647636741ccb1c86cb9117a1917bdf508))
+* overhaul casebase import to make it robust ([5c07339](https://github.com/recap-utr/arguebuf-python/commit/5c073396dbaf6a57538d166b09af5227b6caaf25))
+* properly init graphviz graphs ([514dea3](https://github.com/recap-utr/arguebuf-python/commit/514dea36768a7de4678e08803531e7eca7eb5d8f))
+
 ## [2.0.0-beta.11](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.10...v2.0.0-beta.11) (2023-01-24)
 
 
