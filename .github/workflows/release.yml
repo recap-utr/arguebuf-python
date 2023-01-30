@@ -21,7 +21,7 @@ jobs:
       - uses: iterative/setup-dvc@v1
         with:
           version: ${{ env.DVC_VERSION }}
-      - run: dvc pull --force --verbose --recursive data
+      - run: dvc pull --force --verbose
       - run: pip install poetry==${{ env.POETRY_VERSION }}
       - run: poetry config virtualenvs.in-project true
       - run: poetry install
