@@ -27,6 +27,8 @@ jobs:
         with:
           version: ${{ env.DVC_VERSION }}
       - run: dvc pull --force --verbose
+        env:
+          SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
       - run: pip install poetry==${{ env.POETRY_VERSION }}
       - run: poetry config virtualenvs.in-project true
       - run: poetry install
