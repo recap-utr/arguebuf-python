@@ -1,7 +1,7 @@
-md5: ce036e5eb447bf44efdf7bb5df8d6490
+md5: 7f42392a927c20f112b88d87fffd831e
 frozen: true
 deps:
-- path: /
+- path: .
   repo:
     url: https://github.com/recap-utr/arguebase-private.git
     rev_lock: 0711598c5357bf9477630857ad706cb86ef458ee
