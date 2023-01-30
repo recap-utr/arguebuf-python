@@ -2,7 +2,7 @@ import textwrap
 import typing as t
 from pathlib import Path
 
-from graphviz import Digraph
+from graphviz import FORMATS, RENDERERS, Digraph
 
 from arguebuf.models.edge import Edge
 from arguebuf.models.graph import Graph
@@ -164,13 +164,21 @@ def _edge_to_gv(edge: Edge, g: GraphvizGraph) -> None:
 def render(
     graph: GraphvizGraph,
     path: t.Union[Path, str],
-    prog: t.Literal["neato", "dot", "twopi", "circo", "fdp", "nop"] = "dot",
+    prog: str = "dot",
 ) -> None:
     """Visualize a Graph instance using a GraphViz backend. Make sure that a GraphViz Executable path is set on your machine for visualization."""
     if isinstance(path, str):
         path = Path(path)
-    if path.is_dir():
-        path /= graph.name or uuid()
+
+    if path.suffix.removeprefix(".") not in FORMATS:
+        raise ValueError(
+            f"You need to provide a path with a file ending supported by graphviz: {FORMATS}"
+        )
+
+    if prog not in RENDERERS:
+        raise ValueError(
+            f"You need to provide a prog that is supported by graphviz: {RENDERERS}"
+        )
 
     if isinstance(graph, Graph):
         raise ValueError(
