@@ -7,7 +7,7 @@ from deepdiff import DeepDiff
 
 import arguebuf as ag
 
-DATA_PATH = Path(__package__, "data")
+DATA_PATH = Path("data")
 
 
 def test_convert_kialo():

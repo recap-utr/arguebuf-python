@@ -8,6 +8,7 @@ readme = "README.md"
 homepage = "https://recap.uni-trier.de"
 repository = "https://github.com/recap-utr/arguebuf-python"
 documentation = "https://arguebuf.readthedocs.io/en/latest"
+packages = [{ include = "arguebuf" }]
 
 [tool.poetry.scripts]
 arguebuf = "arguebuf.cli.app:cli"
