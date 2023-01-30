@@ -7,31 +7,48 @@ from deepdiff import DeepDiff
 
 import arguebuf as ag
 
-DATA_PATH = Path("data")
+ARGUEBASE_PRIVATE = Path("data", "arguebase-private")
+ARGUEBASE_PUBLIC = Path("data", "arguebase-public")
 
 
 def test_convert_kialo():
-    graphs = ag.from_casebase(DATA_PATH, ag.CasebaseFilter(r"kialo", r"^the-"))
+    graphs = ag.from_casebase(ARGUEBASE_PRIVATE, ag.CasebaseFilter("kialo", r"^the-"))
     assert len(graphs) == 27
 
     for graph in graphs.values():
         _test_generic(graph)
 
 
-def test_convert_recap():
-    graphs = ag.from_casebase(DATA_PATH, ag.CasebaseFilter(r"recap", format=r"ova"))
+def test_convert_ova():
+    graphs = ag.from_casebase(
+        ARGUEBASE_PRIVATE, ag.CasebaseFilter("recap", format="ova", lang="de")
+    )
     assert len(graphs) == 100
 
     for graph in graphs.values():
         _test_generic(graph)
 
 
-# def test_convert_microtexts():
-#     graphs = ag.from_casebase(DATA_PATH, ag.CasebaseFilter(r"microtexts", r"^the-"))
-#     assert len(graphs) == 27
+def test_convert_aif():
+    graphs = ag.from_casebase(
+        ARGUEBASE_PUBLIC, ag.CasebaseFilter("microtexts", format="aif")
+    )
+    assert len(graphs) == 110
 
-#     for graph in graphs.values():
-#         _test_generic(graph)
+    for file, graph in graphs.items():
+        _test_generic(graph)
+        _test_aif(graph, file)
+
+
+def test_convert_arggraph():
+    graphs = ag.from_casebase(
+        ARGUEBASE_PUBLIC,
+        ag.CasebaseFilter(r"microtexts", r"^micro_[bc]", format="arggraph", lang="en"),
+    )
+    assert len(graphs) == 62 + 171
+
+    for graph in graphs.values():
+        _test_generic(graph)
 
 
 def _test_generic(graph: ag.Graph):
@@ -73,13 +90,12 @@ def _clean_exported_aif(g: t.MutableMapping[str, t.Any]) -> None:
             del node["text"]
 
 
-def _test_aif(file):
+def _test_aif(graph: ag.Graph, file: Path):
     with file.open() as f:
         raw = json.load(f)
 
     _clean_raw_aif(raw)
 
-    graph = ag.from_file(file)
     export = ag.to_dict(graph, ag.GraphFormat.AIF)
     _clean_exported_aif(export)
 
