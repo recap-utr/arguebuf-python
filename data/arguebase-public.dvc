@@ -1,0 +1,12 @@
+md5: 8e35b9d338c2ccd55159fe5af779ae24
+frozen: true
+deps:
+- path: .
+  repo:
+    url: git@github.com:recap-utr/arguebase-public.git
+    rev_lock: dbdbf7f792611dfc39a6ef41b798c3843275eb03
+outs:
+- md5: a13a16c03d3f41d6d8ebbda60507e60b.dir
+  size: 35401149
+  nfiles: 5833
+  path: arguebase-public
