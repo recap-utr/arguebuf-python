@@ -159,4 +159,4 @@ def test_create_graph(tmp_path: Path):
 
     assert len(g.nodes) == len(gc.nodes)
 
-    ag.render(ag.to_graphviz(g), tmp_path)
+    ag.render(ag.to_graphviz(g), tmp_path / "test.pdf")
