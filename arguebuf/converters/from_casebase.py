@@ -80,6 +80,7 @@ def from_casebase(
     basepath: t.Union[Path, str],
     include: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter]],
     # exclude: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter], None] = None,
+    basepath_glob: str = "*/*",
     config: ConverterConfig = DefaultConverter,
     strict_equal: bool = False,
 ):
@@ -95,8 +96,13 @@ def from_casebase(
     #     exclude = [exclude]
 
     for filter in include:
-        for path in sorted(basepath.glob("*/*")):
-            if path.is_dir() and filter.name.match(path.parent.name):
+        for path in sorted(basepath.glob(basepath_glob)):
+            if (
+                path.is_dir()
+                and filter.name.match(path.parent.name)
+                and not path.parent.name.startswith(".")
+                and not path.name.startswith(".")
+            ):
                 graphs.update(_from_casebase_single(filter, path, config, strict_equal))
 
     return graphs
