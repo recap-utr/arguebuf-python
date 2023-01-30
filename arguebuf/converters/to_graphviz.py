@@ -13,11 +13,11 @@ from arguebuf.services.utils import uuid
 try:
     from pygraphviz import AGraph
 
-    init_gv = lambda *args, **kwargs: AGraph(*args, **kwargs, directed=True)
+    init_gv_graph = lambda *args, **kwargs: AGraph(*args, **kwargs, directed=True)
     add_gv_node = lambda graph, *args, **kwargs: graph.add_node(*args, **kwargs)
     add_gv_edge = lambda graph, *args, **kwargs: graph.add_edge(*args, **kwargs)
 except ModuleNotFoundError:
-    init_gv = lambda *args, **kwargs: Digraph(*args, **kwargs)
+    init_gv_graph = lambda *args, **kwargs: Digraph(*args, **kwargs)
     add_gv_node = lambda graph, *args, **kwargs: graph.node(*args, **kwargs)
     add_gv_edge = lambda graph, *args, **kwargs: graph.edge(*args, **kwargs)
 
@@ -54,13 +54,11 @@ def to_graphviz(
     if not edge_attr:
         edge_attr = {}
 
-    gv_graph = AGraph(
-        directed=True,
+    gv_graph = init_gv_graph(
         name=str(graph.name),
         strict=True,
-        # format=format or "pdf",
-        # engine=engine or "dot",
     )
+    # NameError
 
     gv_graph.node_attr.update(
         {
