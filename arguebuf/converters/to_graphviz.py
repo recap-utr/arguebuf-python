@@ -2,7 +2,7 @@ import textwrap
 import typing as t
 from pathlib import Path
 
-from graphviz import FORMATS, RENDERERS, Digraph
+from graphviz import ENGINES, FORMATS, Digraph
 
 from arguebuf.models.edge import Edge
 from arguebuf.models.graph import Graph
@@ -175,9 +175,9 @@ def render(
             f"You need to provide a path with a file ending supported by graphviz: {FORMATS}"
         )
 
-    if prog not in RENDERERS:
+    if prog not in ENGINES:
         raise ValueError(
-            f"You need to provide a prog that is supported by graphviz: {RENDERERS}"
+            f"You need to provide a prog that is supported by graphviz: {ENGINES}"
         )
 
     if isinstance(graph, Graph):
@@ -186,6 +186,6 @@ def render(
             "Please use 'arguebuf.to_graphviz(graph)' to convert your argument graph to the 'DOT' format."
         )
     elif isinstance(graph, Digraph):
-        graph.render(outfile=path, renderer=prog)
+        graph.render(outfile=path, engine=prog)
     else:
         graph.draw(path=path, prog=prog)
