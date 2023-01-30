@@ -92,8 +92,12 @@ def from_casebase(
     if not isinstance(include, Iterable):
         include = [include]
 
-    # if isinstance(exclude, CasebaseFilter):
-    #     exclude = [exclude]
+    if exclude == None:
+        exclude = []
+    elif isinstance(exclude, CasebaseFilter):
+        exclude = [exclude]
+
+    # TODO: exclude currently not applied
 
     for filter in include:
         for path in sorted(basepath.glob(glob)):
