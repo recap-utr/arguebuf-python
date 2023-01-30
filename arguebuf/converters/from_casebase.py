@@ -79,8 +79,8 @@ class CasebaseFilter:
 def from_casebase(
     basepath: t.Union[Path, str],
     include: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter]],
-    # exclude: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter], None] = None,
-    basepath_glob: str = "*/*",
+    exclude: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter], None] = None,
+    glob: str = "*/*",
     config: ConverterConfig = DefaultConverter,
     strict_equal: bool = False,
 ):
@@ -96,7 +96,7 @@ def from_casebase(
     #     exclude = [exclude]
 
     for filter in include:
-        for path in sorted(basepath.glob(basepath_glob)):
+        for path in sorted(basepath.glob(glob)):
             if (
                 path.is_dir()
                 and filter.name.match(path.parent.name)
