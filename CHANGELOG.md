@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.13](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.12...v2.0.0-beta.13) (2023-02-01)
+
+
+### Bug Fixes
+
+* update deps ([de8b36d](https://github.com/recap-utr/arguebuf-python/commit/de8b36d67a44d4857055b53a83ff5ae3e5a3770b))
+
 ## [2.0.0-beta.12](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.11...v2.0.0-beta.12) (2023-01-30)
 
 
