@@ -73,6 +73,8 @@ def render(
     overwrite: bool = False,
     start: int = 1,
     max_nodes: t.Optional[int] = None,
+    prog: str = "dot",
+    dpi: int = 300,
 ) -> None:
     if not output_folder:
         output_folder = input_folder
@@ -113,7 +115,7 @@ def render(
                     edge_style=edge_style,
                     max_nodes=max_nodes,
                 )
-                ag.render.graphviz(gv, path_pair.target)
+                ag.render.graphviz(gv, path_pair.target, prog, dpi)
 
 
 @cli.command()
