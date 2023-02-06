@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.0-beta.15](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.14...v2.0.0-beta.15) (2023-02-06)
+
+
+### Features
+
+* add grpc server for casebase loader ([7bf5c08](https://github.com/recap-utr/arguebuf-python/commit/7bf5c085f4ff2d22f6fe856e3f5a6b9e2639ec1b))
+* allow specification of graphviz dpi ([0da5a47](https://github.com/recap-utr/arguebuf-python/commit/0da5a474bc82361f9657cf6598d36f9923282f5d))
+
+
+### Bug Fixes
+
+* make casebase loader more reobust ([174b937](https://github.com/recap-utr/arguebuf-python/commit/174b937c783235664d724a53da193082ec1c9256))
+* **test:** wrong usage of casebase loader ([6b4dc9d](https://github.com/recap-utr/arguebuf-python/commit/6b4dc9dbee94aa5a09cbdd58915cbf162809b961))
+
 ## [2.0.0-beta.14](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.13...v2.0.0-beta.14) (2023-02-06)
 
 
