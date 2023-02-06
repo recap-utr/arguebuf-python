@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0-beta.14](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.13...v2.0.0-beta.14) (2023-02-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* restructure package
+
+### Features
+
+* restructure package ([77facb1](https://github.com/recap-utr/arguebuf-python/commit/77facb129fc215ea3f6682a9df91167e5b3e81c8))
+
 ## [2.0.0-beta.13](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.12...v2.0.0-beta.13) (2023-02-01)
 
 
