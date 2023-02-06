@@ -6,6 +6,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from arg_services.cbr.v1beta.model_pb2 import CasebaseFilter as CasebaseFilterProto
+
 from arguebuf.model import Graph
 
 from .config import Config, DefaultConfig
@@ -78,11 +80,35 @@ class CasebaseFilter:
             for kwarg, pattern in self.kwargs.items()
         )
 
+    @classmethod
+    def from_protobuf(cls, filter: CasebaseFilterProto) -> CasebaseFilter:
+        return cls(filter.name, filter.cases, **filter.kwargs)
+
+
+CasebaseFilterType = t.Union[CasebaseFilter, CasebaseFilterProto]
+
+
+def convert_filters(
+    filters: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType], None]
+) -> t.List[CasebaseFilter]:
+    if filters is None:
+        return []
+
+    if not isinstance(filters, Iterable):
+        filters = [filters]
+
+    return [
+        filter
+        if isinstance(filter, CasebaseFilter)
+        else CasebaseFilter.from_protobuf(filter)
+        for filter in filters
+    ]
+
 
 def load_casebase(
-    basepath: t.Union[Path, str],
-    include: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter]],
-    exclude: t.Union[CasebaseFilter, t.Iterable[CasebaseFilter], None] = None,
+    include: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType]],
+    exclude: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType], None] = None,
+    basepath: t.Union[Path, str] = Path("."),
     glob: str = "*/*",
     config: Config = DefaultConfig,
     strict_equal: bool = False,
@@ -92,13 +118,8 @@ def load_casebase(
     if not isinstance(basepath, Path):
         basepath = Path(basepath)
 
-    if not isinstance(include, Iterable):
-        include = [include]
-
-    if exclude is None:
-        exclude = []
-    elif isinstance(exclude, CasebaseFilter):
-        exclude = [exclude]
+    include = convert_filters(include)
+    exclude = convert_filters(exclude)
 
     # TODO: exclude currently not applied
 
@@ -110,7 +131,7 @@ def load_casebase(
                 and not path.parent.name.startswith(".")
                 and not path.name.startswith(".")
             ):
-                graphs.update(_from_casebase_single(filter, path, config, strict_equal))
+                graphs |= _from_casebase_single(filter, path, config, strict_equal)
 
     return graphs
 
@@ -129,15 +150,12 @@ def _from_casebase_single(
         glob = f"**/{filesystem_filter.glob}"
 
         if user_filter.cases is not None:
-            graphs = {}
-
-            for file in sorted(path.glob(glob)):
-                if file.is_file() and user_filter.cases.match(
-                    str(file.relative_to(path))
-                ):
-                    graphs[file] = load_file(file, config=config)
-
-            return graphs
+            return {
+                file: load_file(file, config=config)
+                for file in sorted(path.glob(glob))
+                if file.is_file()
+                and user_filter.cases.match(str(file.relative_to(path)))
+            }
 
         return load_folder(path, glob, config=config)
 
