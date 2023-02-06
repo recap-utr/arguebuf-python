@@ -1,7 +1,7 @@
 ---
 # https://github.com/readthedocs/readthedocs.org/issues/4912
 version: 2
-
+formats: all
 build:
   os: ubuntu-22.04
   tools:
@@ -13,5 +13,4 @@ build:
     - poetry config virtualenvs.create false
     - poetry install --with docs
     - poetry run pdoc -d google --math -o _readthedocs/html/ arguebuf
-
-formats: all
+    - cp -rf ./static ./_readthedocs/html/

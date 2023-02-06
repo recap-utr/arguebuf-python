@@ -5,11 +5,9 @@ from pathlib import Path
 import typer
 
 import arguebuf as ag
-from arguebuf.cli.translator import Translator
-from arguebuf.converters.to_graphviz import to_graphviz
-from arguebuf.schemas.graphviz import EdgeStyle
 
 from . import model
+from .translator import Translator
 
 cli = typer.Typer()
 
@@ -22,7 +20,7 @@ def translate(
     auth_key: str,
     input_glob: str,
     output_folder: t.Optional[Path] = None,
-    output_format: ag.GraphFormat = ag.GraphFormat.ARGUEBUF,
+    output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
@@ -45,21 +43,15 @@ def translate(
     ) as bar:
         for path_pair in bar:
             if overwrite or not path_pair.target.exists():
-                graph = ag.from_file(path_pair.source)
+                graph = ag.load.file(path_pair.source)
                 translator.translate(graph)
-                ag.to_file(graph, path_pair.target, output_format)
+                ag.dump.file(
+                    graph, path_pair.target, ag.dump.Config(format=output_format)
+                )
 
 
 def _strip_node_labels(node: ag.AbstractNode) -> str:
-    label: str = ""
-
-    for char in node.label:
-        if char.isspace():
-            label += char
-        else:
-            label += "–"
-
-    return label
+    return "".join(char if char.isspace() else "–" for char in node.label)
 
 
 @cli.command()
@@ -70,7 +62,7 @@ def render(
     output_format: str = ".pdf",
     strip_scheme_nodes: bool = False,
     strip_node_labels: bool = False,
-    edge_style: t.Optional[EdgeStyle] = None,
+    edge_style: t.Optional[ag.schemas.graphviz.EdgeStyle] = None,
     nodesep: t.Optional[float] = None,
     ranksep: t.Optional[float] = None,
     node_wrap_col: t.Optional[int] = None,
@@ -101,12 +93,12 @@ def render(
     ) as bar:
         for path_pair in bar:
             if overwrite or not path_pair.target.exists():
-                g = ag.from_file(path_pair.source)
+                g = ag.load.file(path_pair.source)
 
                 if strip_scheme_nodes:
                     g.strip_scheme_nodes()
 
-                gv = to_graphviz(
+                gv = ag.dump.graphviz(
                     g,
                     nodesep=nodesep,
                     ranksep=ranksep,
@@ -121,7 +113,7 @@ def render(
                     edge_style=edge_style,
                     max_nodes=max_nodes,
                 )
-                ag.render(gv, path_pair.target)
+                ag.render.graphviz(gv, path_pair.target)
 
 
 @cli.command()
@@ -129,7 +121,7 @@ def convert(
     input_folder: Path,
     input_glob: str,
     output_folder: t.Optional[Path] = None,
-    output_format: ag.GraphFormat = ag.GraphFormat.ARGUEBUF,
+    output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
@@ -160,9 +152,11 @@ def convert(
                         input_folder
                     ).with_suffix(text_suffix)
 
-                graph = ag.from_file(path_pair.source, text_file=text_file)
+                graph = ag.load.file(path_pair.source, text_file=text_file)
 
-                ag.to_file(graph, path_pair.target, output_format)
+                ag.dump.file(
+                    graph, path_pair.target, ag.dump.Config(format=output_format)
+                )
 
 
 @cli.command()
@@ -172,7 +166,7 @@ def statistics(
 ):
     files = sorted(input_folder.glob(input_glob))
 
-    graphs = [ag.from_file(file) for file in files]
+    graphs = [ag.load.file(file) for file in files]
     atom_nodes = [len(graph.atom_nodes) for graph in graphs]
     scheme_nodes = [len(graph.scheme_nodes) for graph in graphs]
     edges = [len(graph.edges) for graph in graphs]

@@ -57,7 +57,7 @@ import arguebuf as ag
 ```
 
 In the following, we will introduce the most important features of `arguebuf`.
-For more examples, we encourage you to visit our [API documentation](./api.md) which contains examples for most of the methods.
+For more details including examples, check out our API documentation.
 
 ### Importing an Existing Graph
 
@@ -66,7 +66,7 @@ Given an input file, the library can automatically determine the correct format 
 One can either pass a string pointing to the file or a `pathlib.Path` object.
 
 ```python
-graph = ag.from_file("graph.json")
+graph = ag.load.file("graph.json")
 ```
 
 It is also possible to load multiple graphs within a folder.
@@ -74,7 +74,7 @@ Here, you need to pass the folder along with a [glob pattern](https://docs.pytho
 This also enables to recursively load all argument graphs from a common parent directory.
 
 ```python
-graphs = ag.from_folder("./data", "**/*.json")
+graphs = ag.load.folder("./data", "**/*.json")
 ```
 
 Since atom nodes contain textual information that may need to be analyzed using NLP techniques, we support passing a custom `nlp` function to these loader methods.
@@ -83,7 +83,7 @@ This also makes it really easy to integrate the popular [`spacy` library](http:/
 ```python
 import spacy
 nlp = spacy.load("en_core_web_lg")
-graph = ag.from_file("graph.json", nlp=nlp)
+graph = ag.load.file("graph.json", nlp=nlp)
 ```
 
 ### Programmatically Create a New Graph
@@ -112,7 +112,7 @@ graph.major_claim = claim
 
 With this code, we get the following output
 
-![Output of programmatic graph creation](./img/programmatic.png)
+![Output of programmatic graph creation](./static/programmatic.png)
 
 ### Exporting Argument Graphs
 
@@ -121,17 +121,17 @@ Have a look at the following code snippet to get an overview of the possibilitie
 
 ```python
 # Export to graphviz DOT format
-dot = ag.to_graphviz(graph)
+dot = ag.dump.graphviz(graph)
 
 # Export an image of this dot source to a file
-ag.render(dot, "./graph.pdf")
+ag.render.graphviz(dot, "./graph.pdf")
 
 # Convert to NetworkX graph
-nx = ag.to_networkx(graph)
+nx = ag.dump.networkx(graph)
 
 # Save the graph as Arguebuf
-ag.to_file(graph, "./graph.json")
+ag.dump.file(graph, "./graph.json")
 
 # Save the graph as AIF
-ag.to_file(graph, "./graph.json", ag.GraphFormat.AIF)
+ag.dump.file(graph, "./graph.json", ag.GraphFormat.AIF)
 ```

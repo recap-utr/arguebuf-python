@@ -4,67 +4,39 @@
 
 import logging
 
-from . import schemas
-from .converters import *
-from .models import *
-from .services import *
+from . import dump, load, model, render, schemas, traverse
+from .model import *
+from .utils import copy
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __all__ = (
-    # models
+    # submodules
+    "load",
+    "dump",
+    "render",
+    "traverse",
+    "schemas",
+    "model",
+    # functions
+    "uuid",
+    "copy",
+    # classes
     "Graph",
-    "AbstractNode",
     "AtomNode",
     "SchemeNode",
     "Edge",
-    "Analyst",
     "Metadata",
+    "Userdata",
+    "Analyst",
     "Participant",
-    "Reference",
     "Resource",
-    "Attack",
-    "Preference",
-    "Rephrase",
+    "Reference",
+    "AbstractNode",
+    "AtomOrSchemeNode",
     "Scheme",
     "Support",
-    "Userdata",
-    "AtomOrSchemeNode",
-    # converters
-    "ConverterConfig",
-    "GraphFormat",
-    "copy",
-    "from_aif",
-    "from_aml",
-    "from_argdown",
-    "from_brat",
-    "CasebaseFilter",
-    "from_casebase",
-    "from_dict",
-    "from_io",
-    "from_json",
-    "from_kialo",
-    "from_microtexts",
-    "from_ova",
-    "from_file",
-    "from_folder",
-    "from_protobuf",
-    "from_sadface",
-    "to_aif",
-    "to_dict",
-    "render",
-    "to_graphviz",
-    "to_io",
-    "to_json",
-    "to_networkx",
-    "to_file",
-    "to_folder",
-    "to_protobuf",
-    # services
-    "bfs",
-    "dfs",
-    "node_distance",
-    "uuid",
-    # schemas
-    "schemas",
+    "Attack",
+    "Rephrase",
+    "Preference",
 )

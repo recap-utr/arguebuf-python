@@ -9,7 +9,6 @@ repos:
     rev: 1.3.0
     hooks:
       - id: poetry-check
-      - id: poetry-lock
   # - repo: https://github.com/terrencepreilly/darglint
   #   rev: v1.8.1
   #   hooks:
