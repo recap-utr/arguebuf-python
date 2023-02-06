@@ -93,7 +93,7 @@ To illustrate this, we generate a graph with two premises that are connected to 
 **Please note:** In case edges with nodes not yet contained in the graph are added, the respective nodes are added automatically.
 
 ```python
-graph = ag.Graph("TITLE")
+graph = ag.Graph()
 
 premise1 = ag.AtomNode("Text of premise 1")
 premise2 = ag.AtomNode("Text of premise 2")
@@ -108,6 +108,8 @@ graph.add_edge(ag.Edge(premise2, scheme2))
 graph.add_edge(ag.Edge(scheme2, claim))
 
 graph.major_claim = claim
+gv_graph = ag.dump.graphviz(graph)
+ag.render.graphviz(gv_graph, "./static/programmatic.png")
 ```
 
 With this code, we get the following output
