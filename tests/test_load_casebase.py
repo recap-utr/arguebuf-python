@@ -13,7 +13,8 @@ ARGUEBASE_PUBLIC = Path("data", "arguebase-public")
 
 def test_convert_kialo():
     graphs = ag.load.casebase(
-        ARGUEBASE_PRIVATE, ag.load.CasebaseFilter("kialo", r"^the-")
+        ag.load.CasebaseFilter("kialo", r"^the-"),
+        basepath=ARGUEBASE_PRIVATE,
     )
     assert len(graphs) == 27
 
@@ -23,7 +24,8 @@ def test_convert_kialo():
 
 def test_convert_ova():
     graphs = ag.load.casebase(
-        ARGUEBASE_PRIVATE, ag.load.CasebaseFilter("recap", format="ova", lang="de")
+        ag.load.CasebaseFilter("recap", format="ova", lang="de"),
+        basepath=ARGUEBASE_PRIVATE,
     )
     assert len(graphs) == 100
 
@@ -33,7 +35,8 @@ def test_convert_ova():
 
 def test_convert_aif():
     graphs = ag.load.casebase(
-        ARGUEBASE_PUBLIC, ag.load.CasebaseFilter("microtexts", format="aif")
+        ag.load.CasebaseFilter("microtexts", format="aif"),
+        basepath=ARGUEBASE_PUBLIC,
     )
     assert len(graphs) == 110
 
@@ -44,10 +47,10 @@ def test_convert_aif():
 
 def test_convert_arggraph():
     graphs = ag.load.casebase(
-        ARGUEBASE_PUBLIC,
         ag.load.CasebaseFilter(
             r"microtexts", r"^micro_[bc]", format="arggraph", lang="en"
         ),
+        basepath=ARGUEBASE_PUBLIC,
     )
     assert len(graphs) == 62 + 171
 
