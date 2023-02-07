@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.16](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.15...v2.0.0-beta.16) (2023-02-07)
+
+
+### Bug Fixes
+
+* **cli:** convert enum members to strings ([7a21b87](https://github.com/recap-utr/arguebuf-python/commit/7a21b87926269bd57b96b15b559d3d477b7d3795))
+
 ## [2.0.0-beta.15](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.14...v2.0.0-beta.15) (2023-02-06)
 
 
