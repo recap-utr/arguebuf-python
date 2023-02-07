@@ -8,8 +8,8 @@ from ._config import Config, DefaultConfig
 from ._load_aml import load_aml
 from ._load_brat import load_brat
 from ._load_json import load_json
-from ._load_kialo import load_kialo
 from ._load_microtexts import load_microtexts
+from ._load_text import load_text
 
 __all__ = ("load_io",)
 
@@ -25,7 +25,7 @@ def load_io(
     if suffix == ".ann":
         return load_brat(obj, name, config)
     if suffix == ".txt":
-        return load_kialo(obj, name, config)
+        return load_text(obj, name, config)
     if suffix == ".aml":
         return load_aml(obj, name, config)
     if suffix == ".xml":
