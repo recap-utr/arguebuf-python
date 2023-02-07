@@ -249,7 +249,6 @@ def _clean_raw_aif(g: t.MutableMapping[str, t.Any]) -> None:
 
     for node in g["nodes"]:
         if node["type"] != "I":
-
             # There is a mitchmatch between our export and the araucaria text
             del node["text"]
 
