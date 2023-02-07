@@ -6,7 +6,7 @@ from graphviz import Digraph
 GraphvizGraph = t.Union[Digraph, t.Any]
 
 
-class EdgeStyle(Enum):
+class EdgeStyle(str, Enum):
     BEZIER = "curved"
     STRAIGHT = "line"
     STEP = "ortho"

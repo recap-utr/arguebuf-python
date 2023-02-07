@@ -10,7 +10,7 @@ from arguebuf.schemas import aif
 __all__ = ("Scheme", "Support", "Attack", "Preference", "Rephrase")
 
 
-class Support(Enum):
+class Support(str, Enum):
     """Enumeration of all available Argumentation Schemes (Walton et al.)
 
     .. autoclasssumm:: Support
@@ -88,7 +88,7 @@ class Support(Enum):
     # DEFINITION = "Definition"
 
 
-class Attack(Enum):
+class Attack(str, Enum):
     """Enumeration of attacking schemes
 
     .. autoclasssumm:: Attack
@@ -98,7 +98,7 @@ class Attack(Enum):
     DEFAULT = "Default"
 
 
-class Preference(Enum):
+class Preference(str, Enum):
     """Enumeration of preference schemes
 
     .. autoclasssumm:: Preference
@@ -108,7 +108,7 @@ class Preference(Enum):
     DEFAULT = "Default"
 
 
-class Rephrase(Enum):
+class Rephrase(str, Enum):
     """Enumeration of rephrase schemes
 
     .. autoclasssumm:: Rephrase

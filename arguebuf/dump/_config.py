@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
 
 __all__ = ("Format", "Config")
 
 
-class Format(Enum):
+class Format(str, Enum):
     ARGUEBUF = "arguebuf"
     AIF = "aif"
 
