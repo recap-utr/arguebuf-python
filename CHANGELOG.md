@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.17](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.16...v2.0.0-beta.17) (2023-02-07)
+
+
+### Bug Fixes
+
+* all enums now inherit from str ([846af05](https://github.com/recap-utr/arguebuf-python/commit/846af0586a415d1039d03ab95923a9423c248cfb))
+
 ## [2.0.0-beta.16](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.15...v2.0.0-beta.16) (2023-02-07)
 
 
