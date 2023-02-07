@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.18](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.17...v2.0.0-beta.18) (2023-02-07)
+
+
+### Features
+
+* allow creating graphs from plain texts ([309e959](https://github.com/recap-utr/arguebuf-python/commit/309e959fa2d934faef198183f0aff18a1eee80b2))
+
 ## [2.0.0-beta.17](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.16...v2.0.0-beta.17) (2023-02-07)
 
 
