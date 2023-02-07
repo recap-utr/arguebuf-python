@@ -7,8 +7,8 @@ __all__ = ("Format", "Config")
 
 
 class Format(Enum):
-    ARGUEBUF = auto()
-    AIF = auto()
+    ARGUEBUF = "arguebuf"
+    AIF = "aif"
 
 
 @dataclass
