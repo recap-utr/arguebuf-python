@@ -48,32 +48,32 @@ def missing_key_error(name: str, key: str) -> str:
     return f"Graph '{name}' does not contain an element with key '{key}'. It cannot be removed."
 
 
-T = t.TypeVar("T")
-U = t.TypeVar("U")
+_T = t.TypeVar("_T")
+_U = t.TypeVar("_U")
 
 
-class ImmutableList(abc.Sequence[T]):
+class ImmutableList(abc.Sequence[_T]):
     """Read-only view."""
 
     __slots__ = "_store"
 
-    _store: t.MutableSequence[T]
+    _store: t.MutableSequence[_T]
 
-    def __init__(self, items: t.Optional[t.MutableSequence[T]] = None):
-        self._store = items or list()
+    def __init__(self, items: t.Optional[t.MutableSequence[_T]] = None):
+        self._store = items or []
 
     def __len__(self) -> int:
         return self._store.__len__()
 
     @t.overload
-    def __getitem__(self, key: int) -> T:
+    def __getitem__(self, key: int) -> _T:
         pass  # Don't put code here
 
     @t.overload
-    def __getitem__(self, key: slice) -> t.Sequence[T]:
+    def __getitem__(self, key: slice) -> t.Sequence[_T]:
         pass  # Don't put code here
 
-    def __getitem__(self, key: t.Union[int, slice]) -> t.Union[T, t.Sequence[T]]:
+    def __getitem__(self, key: t.Union[int, slice]) -> t.Union[_T, t.Sequence[_T]]:
         return self._store.__getitem__(key)
 
     def __repr__(self) -> str:
@@ -83,14 +83,14 @@ class ImmutableList(abc.Sequence[T]):
         return self._store.__str__()
 
 
-class ImmutableSet(abc.Set[T]):
+class ImmutableSet(abc.Set[_T]):
     """Read-only view."""
 
     __slots__ = "_store"
 
-    _store: t.MutableSet[T]
+    _store: t.MutableSet[_T]
 
-    def __init__(self, items: t.Optional[t.MutableSet[T]] = None):
+    def __init__(self, items: t.Optional[t.MutableSet[_T]] = None):
         self._store = items or set()
 
     def __len__(self) -> int:
@@ -99,7 +99,7 @@ class ImmutableSet(abc.Set[T]):
     def __contains__(self, item: object) -> bool:
         return self._store.__contains__(item)
 
-    def __iter__(self) -> t.Iterator[T]:
+    def __iter__(self) -> t.Iterator[_T]:
         return self._store.__iter__()
 
     def __repr__(self) -> str:
@@ -109,23 +109,23 @@ class ImmutableSet(abc.Set[T]):
         return self._store.__str__()
 
 
-class ImmutableDict(t.Mapping[T, U]):
+class ImmutableDict(t.Mapping[_T, _U]):
     """Read-only view."""
 
     __slots__ = "_store"
 
-    _store: t.MutableMapping[T, U]
+    _store: t.MutableMapping[_T, _U]
 
-    def __init__(self, items: t.Optional[t.MutableMapping[T, U]] = None):
-        self._store = items or dict()
+    def __init__(self, items: t.Optional[t.MutableMapping[_T, _U]] = None):
+        self._store = items or {}
 
     def __len__(self) -> int:
         return self._store.__len__()
 
-    def __getitem__(self, key: T) -> U:
+    def __getitem__(self, key: _T) -> _U:
         return self._store.__getitem__(key)
 
-    def __contains__(self, key: T) -> bool:
+    def __contains__(self, key: _T) -> bool:
         return self._store.__contains__(key)
 
     def __iter__(self) -> t.Iterator:
