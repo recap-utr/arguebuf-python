@@ -19,7 +19,7 @@ from arguebuf.model.scheme import (
     protobuf2support,
 )
 
-from .config import Config, DefaultConfig
+from ._config import Config, DefaultConfig
 
 __all__ = ("load_protobuf",)
 

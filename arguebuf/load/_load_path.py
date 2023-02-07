@@ -6,8 +6,8 @@ from pathlib import Path
 from arguebuf.model import Graph
 from arguebuf.model.resource import Resource
 
-from .config import Config, DefaultConfig
-from .load_io import load_io
+from ._config import Config, DefaultConfig
+from ._load_io import load_io
 
 __all__ = ("load_file", "load_folder")
 

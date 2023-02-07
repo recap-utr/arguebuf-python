@@ -6,9 +6,9 @@ from google.protobuf.json_format import MessageToDict
 
 from arguebuf.model import Graph
 
-from .config import Config, DefaultConfig, Format
-from .dump_aif import dump_aif
-from .dump_protobuf import dump_protobuf
+from ._config import Config, DefaultConfig, Format
+from ._dump_aif import dump_aif
+from ._dump_protobuf import dump_protobuf
 
 __all__ = ("dump_dict",)
 

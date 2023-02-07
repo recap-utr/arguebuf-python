@@ -10,8 +10,8 @@ from arg_services.cbr.v1beta.model_pb2 import CasebaseFilter as CasebaseFilterPr
 
 from arguebuf.model import Graph
 
-from .config import Config, DefaultConfig
-from .load_path import load_file, load_folder
+from ._config import Config, DefaultConfig
+from ._load_path import load_file, load_folder
 
 __all__ = ("CasebaseFilter", "load_casebase")
 

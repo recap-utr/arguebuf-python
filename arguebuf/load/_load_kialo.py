@@ -4,7 +4,7 @@ import typing as t
 from arguebuf.model import Graph, utils
 from arguebuf.model.node import AtomNode, Attack, Rephrase, Support
 
-from .config import Config, DefaultConfig
+from ._config import Config, DefaultConfig
 
 __all__ = ("load_kialo",)
 

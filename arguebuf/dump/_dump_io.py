@@ -4,8 +4,8 @@ import typing as t
 
 from arguebuf.model import Graph
 
-from .config import Config, DefaultConfig
-from .dump_json import dump_json
+from ._config import Config, DefaultConfig
+from ._dump_json import dump_json
 
 __all__ = ("dump_io",)
 

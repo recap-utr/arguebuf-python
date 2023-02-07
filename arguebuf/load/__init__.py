@@ -1,21 +1,21 @@
-from .config import Config
-from .load_aif import load_aif as aif
-from .load_aml import load_aml as aml
-from .load_argdown import load_argdown as argdown
-from .load_brat import load_brat as brat
-from .load_casebase import CasebaseFilter
-from .load_casebase import load_casebase as casebase
-from .load_dict import load_dict as dict
-from .load_io import load_io as io
-from .load_json import load_json as json
-from .load_kialo import load_kialo as kialo
-from .load_microtexts import load_microtexts as arggraph
-from .load_microtexts import load_microtexts as microtexts
-from .load_ova import load_ova as ova
-from .load_path import load_file as file
-from .load_path import load_folder as folder
-from .load_protobuf import load_protobuf as protobuf
-from .load_sadface import load_sadface as sadface
+from ._config import Config
+from ._load_aif import load_aif as aif
+from ._load_aml import load_aml as aml
+from ._load_argdown import load_argdown as argdown
+from ._load_brat import load_brat as brat
+from ._load_casebase import CasebaseFilter
+from ._load_casebase import load_casebase as casebase
+from ._load_dict import load_dict as dict
+from ._load_io import load_io as io
+from ._load_json import load_json as json
+from ._load_kialo import load_kialo as kialo
+from ._load_microtexts import load_microtexts as arggraph
+from ._load_microtexts import load_microtexts as microtexts
+from ._load_ova import load_ova as ova
+from ._load_path import load_file as file
+from ._load_path import load_folder as folder
+from ._load_protobuf import load_protobuf as protobuf
+from ._load_sadface import load_sadface as sadface
 
 __all__ = (
     "aif",

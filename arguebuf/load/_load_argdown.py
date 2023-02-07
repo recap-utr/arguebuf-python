@@ -8,7 +8,7 @@ from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AbstractNode, Attack, Support
 from arguebuf.schemas import argdown
 
-from .config import Config, DefaultConfig
+from ._config import Config, DefaultConfig
 
 __all__ = ("load_argdown",)
 

@@ -8,10 +8,10 @@ from google.protobuf.json_format import ParseDict
 from arguebuf.model import Graph
 from arguebuf.schemas import aif, ova
 
-from .config import Config, DefaultConfig
-from .load_aif import load_aif as load_aif
-from .load_ova import load_ova
-from .load_protobuf import load_protobuf
+from ._config import Config, DefaultConfig
+from ._load_aif import load_aif as load_aif
+from ._load_ova import load_ova
+from ._load_protobuf import load_protobuf
 
 __all__ = ("load_dict",)
 

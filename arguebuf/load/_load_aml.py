@@ -8,7 +8,7 @@ from arguebuf.model.edge import Edge
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, Attack, SchemeNode, Support
 
-from .config import Config, DefaultConfig
+from ._config import Config, DefaultConfig
 
 __all__ = ("load_aml",)
 

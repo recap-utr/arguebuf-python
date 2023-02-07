@@ -1,3 +1,3 @@
-from .render_graphviz import graphviz
+from ._render_graphviz import graphviz
 
 __all__ = ("graphviz",)

@@ -7,7 +7,7 @@ from arguebuf.model import Graph, utils
 from arguebuf.model.node import Attack, Support
 from arguebuf.schemas.microtexts import EdgeType
 
-from .config import Config, DefaultConfig
+from ._config import Config, DefaultConfig
 
 __all__ = ("load_microtexts",)
 

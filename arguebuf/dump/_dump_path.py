@@ -5,8 +5,8 @@ from pathlib import Path
 
 from arguebuf.model import Graph
 
-from .config import Config, DefaultConfig
-from .dump_io import dump_io
+from ._config import Config, DefaultConfig
+from ._dump_io import dump_io
 
 __all__ = ("dump_file",)
 

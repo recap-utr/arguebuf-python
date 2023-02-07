@@ -5,11 +5,11 @@ import pytest
 from arg_services.graph.v1 import graph_pb2
 
 import arguebuf as ag
-from arguebuf.load.config import DefaultConfig
-from arguebuf.load.load_aif import edge_from_aif
-from arguebuf.load.load_argdown import edge_from_argdown
-from arguebuf.load.load_ova import edge_from_ova
-from arguebuf.load.load_sadface import edge_from_sadface
+from arguebuf.load._config import DefaultConfig
+from arguebuf.load._load_aif import edge_from_aif
+from arguebuf.load._load_argdown import edge_from_argdown
+from arguebuf.load._load_ova import edge_from_ova
+from arguebuf.load._load_sadface import edge_from_sadface
 
 aif_data = [
     (

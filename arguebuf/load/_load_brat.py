@@ -6,7 +6,7 @@ import typing as t
 from arguebuf.model import Graph, utils
 from arguebuf.model.scheme import Attack, Support
 
-from .config import Config, DefaultConfig
+from ._config import Config, DefaultConfig
 
 __all__ = ("load_brat",)
 

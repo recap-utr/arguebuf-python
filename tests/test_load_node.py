@@ -7,11 +7,11 @@ import pytest
 from arg_services.graph.v1 import graph_pb2
 
 import arguebuf as ag
-from arguebuf.load.config import DefaultConfig
-from arguebuf.load.load_aif import atom_from_aif
-from arguebuf.load.load_aml import atom_from_aml, scheme_from_aml
-from arguebuf.load.load_ova import atom_from_ova
-from arguebuf.load.load_sadface import atom_from_sadface, scheme_from_sadface
+from arguebuf.load._config import DefaultConfig
+from arguebuf.load._load_aif import atom_from_aif
+from arguebuf.load._load_aml import atom_from_aml, scheme_from_aml
+from arguebuf.load._load_ova import atom_from_ova
+from arguebuf.load._load_sadface import atom_from_sadface, scheme_from_sadface
 from arguebuf.model.node import Support
 
 aif_data_AtomNode = [

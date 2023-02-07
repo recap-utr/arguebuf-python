@@ -5,8 +5,8 @@ from json import dump as pyjson_dump
 
 from arguebuf.model import Graph
 
-from .config import Config, DefaultConfig
-from .dump_dict import dump_dict
+from ._config import Config, DefaultConfig
+from ._dump_dict import dump_dict
 
 __all__ = ("dump_json",)
 

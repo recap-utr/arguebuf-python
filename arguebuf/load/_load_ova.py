@@ -12,7 +12,7 @@ from arguebuf.model.resource import Resource
 from arguebuf.model.scheme import aif2scheme, text2scheme
 from arguebuf.schemas import aif, ova
 
-from .config import Config, DefaultConfig
+from ._config import Config, DefaultConfig
 
 __all__ = ("load_ova",)
 

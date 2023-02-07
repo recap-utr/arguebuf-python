@@ -5,8 +5,8 @@ import typing as t
 
 from arguebuf.model import Graph
 
-from .config import Config, DefaultConfig
-from .load_dict import load_dict
+from ._config import Config, DefaultConfig
+from ._load_dict import load_dict
 
 __all__ = ("load_json",)
 

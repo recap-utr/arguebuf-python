@@ -18,7 +18,7 @@ from arguebuf.model.node import (
 )
 from arguebuf.schemas import sadface
 
-from .config import Config, DefaultConfig
+from ._config import Config, DefaultConfig
 
 __all__ = ("load_sadface",)
 

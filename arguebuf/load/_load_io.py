@@ -4,12 +4,12 @@ import typing as t
 
 from arguebuf.model import Graph
 
-from .config import Config, DefaultConfig
-from .load_aml import load_aml
-from .load_brat import load_brat
-from .load_json import load_json
-from .load_kialo import load_kialo
-from .load_microtexts import load_microtexts
+from ._config import Config, DefaultConfig
+from ._load_aml import load_aml
+from ._load_brat import load_brat
+from ._load_json import load_json
+from ._load_kialo import load_kialo
+from ._load_microtexts import load_microtexts
 
 __all__ = ("load_io",)
 
