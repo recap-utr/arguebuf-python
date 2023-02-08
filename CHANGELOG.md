@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.21](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.20...v2.0.0-beta.21) (2023-02-08)
+
+
+### Features
+
+* make nodes and edges hashable ([bc33e86](https://github.com/recap-utr/arguebuf-python/commit/bc33e8685998c5dee73c58d95ffe678027916ac2))
+
 ## [2.0.0-beta.20](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.19...v2.0.0-beta.20) (2023-02-08)
 
 
