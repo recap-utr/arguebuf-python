@@ -14,8 +14,10 @@ def load_text(
     name: t.Optional[str] = None,
     config: Config = DefaultConfig,
 ) -> Graph:
-    if "Discussion Title: " in obj.readline():
-        obj.seek(0)
+    first_line = obj.readline()
+    obj.seek(0)
+
+    if "Discussion Title: " in first_line:
         return load_kialo(obj, name, config)
 
     text = obj.read()
