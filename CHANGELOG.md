@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.19](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.18...v2.0.0-beta.19) (2023-02-08)
+
+
+### Bug Fixes
+
+* improve saving to file ([15bdc59](https://github.com/recap-utr/arguebuf-python/commit/15bdc591eb249c5ba85f84ba17553a09d70ac129))
+
 ## [2.0.0-beta.18](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.17...v2.0.0-beta.18) (2023-02-07)
 
 
