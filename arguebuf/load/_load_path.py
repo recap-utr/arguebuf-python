@@ -29,7 +29,7 @@ def load_file(
     elif isinstance(text_file, str):
         text_file = Path(text_file)
 
-    if text_file.exists():
+    if text_file.exists() and text_file != file:
         text = text_file.read_text()
         graph.add_resource(Resource(text))
 
