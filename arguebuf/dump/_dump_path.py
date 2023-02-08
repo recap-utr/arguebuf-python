@@ -18,8 +18,10 @@ def dump_file(
     if isinstance(path, str):
         path = Path(path)
 
-    if path.is_dir() or not path.suffix:
+    if path.is_dir():
         path = path / f"{graph.name}.json"
+    elif not path.suffix:
+        path = path.with_suffix(".json")
 
     with path.open("w", encoding="utf-8") as file:
         dump_io(graph, file, config)
