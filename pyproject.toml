@@ -43,6 +43,19 @@ graphviz = ["pygraphviz"]
 addopts = "--numprocesses 4 --dist load --cov arguebuf --cov-report term-missing --doctest-modules --ignore arguebuf/cli"
 doctest_optionflags = "NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 
+[tool.ruff]
+# https://beta.ruff.rs/docs/rules
+target-version = "py39"
+select = ["B", "E", "F", "W"]
+ignore = ["E501"]
+
+[tool.ruff.per-file-ignores]
+"arguebuf/cli/*.py" = ["B008"]
+"arguebuf/model/node.py" = ["B027"]
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

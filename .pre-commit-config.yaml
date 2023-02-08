@@ -9,7 +9,6 @@ repos:
     rev: 1.3.0
     hooks:
       - id: poetry-check
-  # - repo: https://github.com/terrencepreilly/darglint
-  #   rev: v1.8.1
-  #   hooks:
-  #     - id: darglint
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    hooks:
+      - id: ruff
