@@ -61,6 +61,19 @@ class Edge:
     def __post_init__(self):
         pass
 
+    def __eq__(self, other: Edge) -> bool:
+        return (
+            self.id == other.id
+            and self.source == other.source
+            and self.target == other.target
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.id, self.source, self.target))
+
+    def __str__(self) -> str:
+        return str(self.id)
+
     def __repr__(self):
         return utils.class_repr(
             self,

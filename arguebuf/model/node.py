@@ -73,8 +73,17 @@ class AbstractNode(ABC):
     def __post_init__(self):
         pass
 
+    def __eq__(self, other: AbstractNode) -> bool:
+        return self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash(self.id)
+
+    def __str__(self) -> str:
+        return str(self.id)
+
     def __repr__(self):
-        return utils.class_repr(self, [self._id])
+        return utils.class_repr(self, [self.id])
 
     @property
     def id(self) -> str:
