@@ -1,5 +1,5 @@
 import typing as t
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree as Tree
 
 import pendulum
 
@@ -21,13 +21,13 @@ def load_aml(
     ElementTree XML API: https://docs.python.org/3/library/xml.etree.elementtree.html#
     """
 
-    tree = ET.parse(obj)
+    tree = Tree.parse(obj)
     root = tree.getroot()
 
     # create nodes and edges from AU element
     au = root.find("AU")
     g = config.GraphClass(name)
-    assert isinstance(au, ET.Element)
+    assert isinstance(au, Tree.Element)
     g = read_au(au, g, config)
 
     # create edge objects and add to g
@@ -39,7 +39,7 @@ def load_aml(
     return g
 
 
-def read_au(au: ET.Element, g: Graph, config: Config):
+def read_au(au: Tree.Element, g: Graph, config: Config):
     # create the conclusion node
     prop = au.find("PROP")
     if prop is not None:
@@ -53,7 +53,7 @@ def read_au(au: ET.Element, g: Graph, config: Config):
             # consider, that refutations are argument units (AU's)
             read_refutation(conclusion_node, g, refutation, config)
 
-        # read premises and store in a list (list of ET.Element objects)
+        # read premises and store in a list (list of Tree.Element objects)
         premises = [elem for elem in au if elem.tag == "CA" or elem.tag == "LA"]
         for elem in premises:
             if elem.tag == "CA":
@@ -65,7 +65,7 @@ def read_au(au: ET.Element, g: Graph, config: Config):
     return g
 
 
-def read_refutation(conclusion: AtomNode, g, refutation: ET.Element, config: Config):
+def read_refutation(conclusion: AtomNode, g, refutation: Tree.Element, config: Config):
     # consists of one AU
     # get refutation
     au = refutation.find("AU")
@@ -88,7 +88,7 @@ def read_refutation(conclusion: AtomNode, g, refutation: ET.Element, config: Con
             g.add_edge(Edge(scheme_node, conclusion))
 
             # read the rest of au
-            # read premises and store in a list (list of ET.Element objects)
+            # read premises and store in a list (list of Tree.Element objects)
             premises = [elem for elem in au if elem.tag == "CA" or elem.tag == "LA"]
             for elem in premises:
                 if elem.tag == "CA":
@@ -97,7 +97,7 @@ def read_refutation(conclusion: AtomNode, g, refutation: ET.Element, config: Con
                     read_la(premise_node, g, elem, config)
 
 
-def read_ca(conclusion: AtomNode, g: Graph, ca: ET.Element, config: Config):
+def read_ca(conclusion: AtomNode, g: Graph, ca: Tree.Element, config: Config):
     # first read premises
     for au in ca:
         # get premise
@@ -121,7 +121,7 @@ def read_ca(conclusion: AtomNode, g: Graph, ca: ET.Element, config: Config):
             read_au(au, g, config)
 
 
-def read_la(conclusion: AtomNode, g: Graph, la: ET.Element, config: Config):
+def read_la(conclusion: AtomNode, g: Graph, la: Tree.Element, config: Config):
     # first read premises
     for au in la:
         # get premise
@@ -146,7 +146,7 @@ def read_la(conclusion: AtomNode, g: Graph, la: ET.Element, config: Config):
 
 
 def atom_from_aml(
-    obj: ET.Element,
+    obj: Tree.Element,
     config: Config,
 ) -> AtomNode:
     """
@@ -185,17 +185,14 @@ def atom_from_aml(
 
 
 def scheme_from_aml(
-    obj: ET.Element,
+    obj: Tree.Element,
     config: Config,
     refutation=False,
 ) -> SchemeNode:
     """Generate SchemeNode object from AML Node format. obj is a AML "PROP" element."""
 
     # get id of PROP
-    if "identifier" in obj.attrib:
-        id = obj.get("identifier")
-    else:
-        id = None
+    id = obj.get("identifier") if "identifier" in obj.attrib else None
 
     # read owners of PROP
     owner_list = obj.findall("OWNER")

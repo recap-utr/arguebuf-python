@@ -5,7 +5,26 @@
 import logging
 
 from . import dump, load, model, render, schemas, traverse
-from .model import *
+from .model import (
+    AbstractNode,
+    Analyst,
+    AtomNode,
+    AtomOrSchemeNode,
+    Attack,
+    Edge,
+    Graph,
+    Metadata,
+    Participant,
+    Preference,
+    Reference,
+    Rephrase,
+    Resource,
+    Scheme,
+    SchemeNode,
+    Support,
+    Userdata,
+    uuid,
+)
 from .utils import copy
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

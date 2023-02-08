@@ -11,13 +11,26 @@ from arguebuf.schemas.graphviz import EdgeStyle, GraphvizGraph
 try:
     from pygraphviz import AGraph
 
-    init_gv_graph = lambda *args, **kwargs: AGraph(*args, **kwargs, directed=True)
-    add_gv_node = lambda graph, *args, **kwargs: graph.add_node(*args, **kwargs)
-    add_gv_edge = lambda graph, *args, **kwargs: graph.add_edge(*args, **kwargs)
+    def init_gv_graph(*args, **kwargs):  # type: ignore
+        return AGraph(*args, **kwargs, directed=True)
+
+    def add_gv_node(graph, *args, **kwargs):  # type: ignore
+        return graph.add_node(*args, **kwargs)
+
+    def add_gv_edge(graph, *args, **kwargs):  # type: ignore
+        return graph.add_edge(*args, **kwargs)
+
 except ModuleNotFoundError:
-    init_gv_graph = lambda *args, **kwargs: Digraph(*args, **kwargs)
-    add_gv_node = lambda graph, *args, **kwargs: graph.node(*args, **kwargs)
-    add_gv_edge = lambda graph, *args, **kwargs: graph.edge(*args, **kwargs)
+
+    def init_gv_graph(*args, **kwargs):  # type: ignore
+        return Digraph(*args, **kwargs)
+
+    def add_gv_node(graph, *args, **kwargs):  # type: ignore
+        return graph.node(*args, **kwargs)
+
+    def add_gv_edge(graph, *args, **kwargs):  # type: ignore
+        return graph.edge(*args, **kwargs)
+
 
 __all__ = ("dump_graphviz",)
 
@@ -43,7 +56,8 @@ def dump_graphviz(
     if len(graph.nodes) > (max_nodes or 1000):
         return None
 
-    gv_margin: t.Callable[[t.Tuple[float, float]], str] = lambda x: f"{x[0]},{x[1]}"
+    def gv_margin(x):
+        return f"{x[0]},{x[1]}"
 
     if not graph_attr:
         graph_attr = {}

@@ -17,7 +17,8 @@ def warn_missing_nodes(
     edge_id: t.Optional[str], source_id: t.Optional[str], target_id: t.Optional[str]
 ) -> None:
     log.warning(
-        f"Skipping edge '{edge_id}': Source '{source_id}' or target '{target_id}' not found."
+        f"Skipping edge '{edge_id}': Source '{source_id}' or target '{target_id}' not"
+        " found."
     )
 
 

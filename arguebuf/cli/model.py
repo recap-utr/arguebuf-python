@@ -51,7 +51,8 @@ class PathPair:
 
         else:
             raise ValueError(
-                "Folder given as input. Please also provide a folder as output together with a shell globbing pattern and an output suffix."
+                "Folder given as input. Please also provide a folder as output together"
+                " with a shell globbing pattern and an output suffix."
             )
 
         return pairs

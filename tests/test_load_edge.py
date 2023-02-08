@@ -2,7 +2,6 @@ import json
 
 import pendulum
 import pytest
-from arg_services.graph.v1 import graph_pb2
 
 import arguebuf as ag
 from arguebuf.load._config import DefaultConfig

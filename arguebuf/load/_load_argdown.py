@@ -27,24 +27,18 @@ def load_argdown(
 
     # Every node in obj["nodes"] is a atom node
     for argdown_node in obj["map"]["nodes"]:
-        node = config.AtomNodeClass.from_argdown_json(argdown_node, config.nlp)
-
-        if node:
+        if node := config.AtomNodeClass.from_argdown_json(argdown_node, config.nlp):
             g.add_node(node)
 
     for argdown_edge in obj["map"]["edges"]:
         if edge := edge_from_argdown(argdown_edge, g.nodes, config.EdgeClass):
             g.add_edge(edge)
-            if argdown_edge["relationType"] == "support":
-                scheme = Support.DEFAULT
-            elif argdown_edge["relationType"] == "attack":
+
+            if argdown_edge["relationType"] in ("attack", "contradictory"):
                 scheme = Attack.DEFAULT
-            elif argdown_edge["relationType"] == "contradictory":
-                scheme = Attack.DEFAULT
-            elif argdown_edge["relationType"] == "undercut":
-                scheme = Support.DEFAULT
             else:
                 scheme = Support.DEFAULT
+
             # create scheme_node for edge
             scheme_node = config.SchemeNodeClass(
                 metadata=Metadata(timestamp, timestamp),
@@ -68,16 +62,9 @@ def edge_from_argdown(
     edge_class: t.Type[Edge] = Edge,
 ) -> t.Optional[Edge]:
     """Generate Edge object from Argdown JSON Edge format."""
-    if "from" in obj:
-        source_id = obj["from"]  # type: ignore
-    else:
-        source_id = obj["source"]
 
-    if "to" in obj:
-        target_id = obj["to"]  # type: ignore
-    else:
-        target_id = obj["target"]
-
+    source_id = obj.get("from", obj.get("source"))
+    target_id = obj.get("to", obj.get("target"))
     edge_id = obj["id"]
 
     if source_id in nodes and target_id in nodes:

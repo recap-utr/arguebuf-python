@@ -1,10 +1,8 @@
 import json
-from typing import Dict
 from xml.etree import ElementTree as ET
 
 import pendulum
 import pytest
-from arg_services.graph.v1 import graph_pb2
 
 import arguebuf as ag
 from arguebuf.load._config import DefaultConfig
@@ -25,7 +23,10 @@ aif_data_AtomNode = [
         }
         """,
         "119935",
-        "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
+        (
+            "One can hardly move in Friedrichshain or Neukölln these days without"
+            " permanently scanning the ground for dog dirt."
+        ),
         ag.AtomNode,
         pendulum.datetime(2015, 12, 14, 12, 9, 15),
     )
@@ -59,7 +60,10 @@ ova_data_AtomNode = [
         }
         """,
         "119935",
-        "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
+        (
+            "One can hardly move in Friedrichshain or Neukölln these days without"
+            " permanently scanning the ground for dog dirt."
+        ),
         ag.AtomNode,
         pendulum.datetime(2019, 3, 6, 14, 31, 23),
     )

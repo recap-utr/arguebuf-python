@@ -105,9 +105,11 @@ def render(
                     nodesep=nodesep,
                     ranksep=ranksep,
                     wrap_col=node_wrap_col,
-                    margin=node_margin
-                    if all(margin > 0 for margin in node_margin)
-                    else None,
+                    margin=(
+                        node_margin
+                        if all(margin > 0 for margin in node_margin)
+                        else None
+                    ),
                     font_name=font_name,
                     font_size=font_size,
                     atom_label=_strip_node_labels if strip_node_labels else None,

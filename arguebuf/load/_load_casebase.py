@@ -98,9 +98,11 @@ def convert_filters(
         filters = [filters]
 
     return [
-        filter
-        if isinstance(filter, CasebaseFilter)
-        else CasebaseFilter.from_protobuf(filter)
+        (
+            filter
+            if isinstance(filter, CasebaseFilter)
+            else CasebaseFilter.from_protobuf(filter)
+        )
         for filter in filters
     ]
 
@@ -108,7 +110,7 @@ def convert_filters(
 def load_casebase(
     include: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType]],
     exclude: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType], None] = None,
-    basepath: t.Union[Path, str] = Path("."),
+    basepath: t.Union[Path, str] = ".",
     glob: str = "*/*",
     config: Config = DefaultConfig,
     strict_equal: bool = False,

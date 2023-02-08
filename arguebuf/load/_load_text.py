@@ -1,8 +1,7 @@
-import re
 import typing as t
 
 from arguebuf.model import Graph, utils
-from arguebuf.model.node import AtomNode, Attack, Rephrase, Support
+from arguebuf.model.node import AtomNode
 
 from ._config import Config, DefaultConfig
 from ._load_kialo import load_kialo

@@ -155,10 +155,8 @@ class AtomNode(AbstractNode, t.Generic[TextType]):
 
     def color(self, major_claim: bool) -> Color:
         """Get the color for rendering the node."""
-        if major_claim:
-            return Color(bg="#0D47A1")
 
-        return Color(bg="#2196F3")
+        return Color(bg="#0D47A1") if major_claim else Color(bg="#2196F3")
 
 
 class SchemeNode(AbstractNode):

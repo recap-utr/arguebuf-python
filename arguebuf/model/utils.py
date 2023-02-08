@@ -37,15 +37,24 @@ def parse(text: t.Optional[str], nlp: t.Optional[t.Callable[[str], t.Any]]) -> t
 
 
 def type_error(actual: t.Type, expected: t.Type) -> str:
-    return f"Expected type '{expected}', but got '{actual}'. Make sure that you are passing the correct method arguments."
+    return (
+        f"Expected type '{expected}', but got '{actual}'. Make sure that you are"
+        " passing the correct method arguments."
+    )
 
 
 def duplicate_key_error(name: str, key: str) -> str:
-    return f"Graph '{name}' already contains an element with key '{key}'. The keys have to be unique within each graph."
+    return (
+        f"Graph '{name}' already contains an element with key '{key}'. The keys have to"
+        " be unique within each graph."
+    )
 
 
 def missing_key_error(name: str, key: str) -> str:
-    return f"Graph '{name}' does not contain an element with key '{key}'. It cannot be removed."
+    return (
+        f"Graph '{name}' does not contain an element with key '{key}'. It cannot be"
+        " removed."
+    )
 
 
 _T = t.TypeVar("_T")

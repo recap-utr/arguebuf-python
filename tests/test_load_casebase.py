@@ -2,7 +2,6 @@ import json
 import typing as t
 from pathlib import Path
 
-from arg_services.graph.v1 import graph_pb2
 from deepdiff import DeepDiff
 
 import arguebuf as ag

@@ -21,7 +21,8 @@ def graphviz(
 
     if path.suffix.removeprefix(".") not in FORMATS:
         raise ValueError(
-            f"You need to provide a path with a file ending supported by graphviz: {FORMATS}"
+            "You need to provide a path with a file ending supported by graphviz:"
+            f" {FORMATS}"
         )
 
     if prog not in ENGINES:
@@ -31,8 +32,9 @@ def graphviz(
 
     if isinstance(graph, Graph):
         raise ValueError(
-            "This method expects a graph in the 'DOT' format."
-            "Please use 'arguebuf.to_graphviz(graph)' to convert your argument graph to the 'DOT' format."
+            "This method expects a graph in the 'DOT' format.Please use"
+            " 'arguebuf.to_graphviz(graph)' to convert your argument graph to the 'DOT'"
+            " format."
         )
     elif isinstance(graph, Digraph):
         graph.attr(dpi=str(dpi))

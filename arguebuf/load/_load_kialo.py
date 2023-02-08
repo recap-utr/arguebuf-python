@@ -52,7 +52,7 @@ def load_kialo(
         if current_match := pattern.search(current_line):
             source_id = current_match[1]
             source_id_parts = source_id[:-1].split(".")
-            level = len(source_id_parts)
+            # level = len(source_id_parts)
             stance = current_match[2]
             text = current_match[3]
 
