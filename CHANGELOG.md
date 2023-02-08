@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0-beta.20](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.19...v2.0.0-beta.20) (2023-02-08)
+
+
+### Bug Fixes
+
+* imported texts were missing the first line ([f95551e](https://github.com/recap-utr/arguebuf-python/commit/f95551e1e7e94fe00eee53f44ff866dead22a0b5))
+* only add resource if text is a different file ([4c9d558](https://github.com/recap-utr/arguebuf-python/commit/4c9d55859d3b6b04bf15fa512fd40c1d3ce41827))
+
 ## [2.0.0-beta.19](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.18...v2.0.0-beta.19) (2023-02-08)
 
 
