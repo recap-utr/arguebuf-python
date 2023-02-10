@@ -109,18 +109,18 @@ def load_microtexts(
             g.add_edge(config.EdgeClass(source_atom, scheme_node))
             g.add_edge(config.EdgeClass(scheme_node, target_atom))
 
+    for edge_id, edge in edge_edges.items():
+        if (target_scheme := g.scheme_nodes.get(edge.target)) and (
+            atom_node := g.atom_nodes.get(edge.source)
+        ):
+            source_scheme = config.SchemeNodeClass(id=edge_id, scheme=Attack.DEFAULT)
+            g.add_edge(config.EdgeClass(atom_node, source_scheme))
+            g.add_edge(config.EdgeClass(source_scheme, target_scheme))
+
     for edge in scheme_edges.values():
         if (scheme_node := g.scheme_nodes.get(edge.target)) and (
             atom_node := g.atom_nodes.get(edge.source)
         ):
             g.add_edge(config.EdgeClass(atom_node, scheme_node))
-
-    for edge_id, edge in edge_edges.items():
-        if (target_scheme := g.scheme_nodes.get(edge.target)) and (
-            atom_node := g.atom_nodes.get(edge.source)
-        ):
-            source_scheme = config.SchemeNodeClass(id=edge_id)
-            g.add_edge(config.EdgeClass(atom_node, source_scheme))
-            g.add_edge(config.EdgeClass(source_scheme, target_scheme))
 
     return g
