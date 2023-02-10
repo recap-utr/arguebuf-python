@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0-beta.22](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.21...v2.0.0-beta.22) (2023-02-10)
+
+
+### Bug Fixes
+
+* allow comparing nodes/edges to None ([821d574](https://github.com/recap-utr/arguebuf-python/commit/821d574b1700f4c9489cdc015ac6dccfa777d08c))
+* **microtexts:** properly parse scheme edges ([122ca44](https://github.com/recap-utr/arguebuf-python/commit/122ca44250e33ed175faacf824208db7fd8028b3))
+
 ## [2.0.0-beta.21](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.20...v2.0.0-beta.21) (2023-02-08)
 
 
