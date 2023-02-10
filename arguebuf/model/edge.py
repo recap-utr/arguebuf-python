@@ -61,7 +61,10 @@ class Edge:
     def __post_init__(self):
         pass
 
-    def __eq__(self, other: Edge) -> bool:
+    def __eq__(self, other: t.Optional[Edge]) -> bool:
+        if other is None:
+            return False
+
         return (
             self.id == other.id
             and self.source == other.source

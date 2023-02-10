@@ -74,6 +74,9 @@ class AbstractNode(ABC):
         pass
 
     def __eq__(self, other: AbstractNode) -> bool:
+        if other is None:
+            return False
+
         return self.id == other.id
 
     def __hash__(self) -> int:
