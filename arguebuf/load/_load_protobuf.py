@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing as t
 
 from arg_services.graph.v1 import graph_pb2
+from google.protobuf.json_format import MessageToDict
 
 from arguebuf import dt
 from arguebuf.model import Graph, utils
@@ -40,7 +41,7 @@ def load_protobuf(
                 resource.source,
                 dt.from_protobuf(resource.timestamp),
                 metadata_from_protobuf(resource.metadata, config),
-                dict(resource.userdata.items()),
+                MessageToDict(resource.userdata),
                 resource_id,
             )
         )
@@ -55,7 +56,7 @@ def load_protobuf(
                 participant.location,
                 participant.description,
                 metadata_from_protobuf(participant.metadata, config),
-                dict(participant.userdata.items()),
+                MessageToDict(participant.userdata),
                 participant_id,
             )
         )
@@ -65,7 +66,7 @@ def load_protobuf(
             config.AnalystClass(
                 analyst.name,
                 analyst.email,
-                dict(analyst.userdata.items()),
+                MessageToDict(analyst.userdata),
                 analyst_id,
             )
         )
@@ -88,7 +89,7 @@ def load_protobuf(
     if major_claim and isinstance(major_claim, AtomNode):
         g._major_claim = major_claim
 
-    g.userdata.update(obj.userdata)
+    g.userdata = MessageToDict(obj.userdata)
     g.metadata = metadata_from_protobuf(obj.metadata, config)
     g.library_version = obj.library_version
     g.schema_version = obj.schema_version
@@ -109,7 +110,7 @@ def atom_from_protobuf(
         reference_from_protobuf(obj.atom.reference, resources, config),
         participants.get(obj.atom.participant),
         metadata_from_protobuf(obj.metadata, config),
-        dict(obj.userdata.items()),
+        MessageToDict(obj.userdata),
         id=id,
     )
 
@@ -135,7 +136,7 @@ def scheme_from_protobuf(id: str, obj: graph_pb2.Node, config: Config) -> Scheme
         scheme,
         list(obj.scheme.premise_descriptors),
         metadata_from_protobuf(obj.metadata, config),
-        dict(obj.userdata.items()),
+        MessageToDict(obj.userdata),
         id=id,
     )
 
@@ -152,7 +153,7 @@ def edge_from_protobuf(
             nodes[obj.source],
             nodes[obj.target],
             metadata_from_protobuf(obj.metadata, config),
-            dict(obj.userdata.items()),
+            MessageToDict(obj.userdata),
             id=id,
         )
     else:
