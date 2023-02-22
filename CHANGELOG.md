@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.23](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.22...v2.0.0-beta.23) (2023-02-22)
+
+
+### Bug Fixes
+
+* **protobuf:** properly parse userdata structs ([87a19f3](https://github.com/recap-utr/arguebuf-python/commit/87a19f3849d6d4e57cb3c4af0672042aa18abdf3))
+
 ## [2.0.0-beta.22](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.21...v2.0.0-beta.22) (2023-02-10)
 
 
