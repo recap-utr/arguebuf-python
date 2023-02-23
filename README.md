@@ -1,4 +1,4 @@
-# Arguebuf
+# Arguebuf Python
 
 Arguebuf is a format for serializing argument graphs and specified using Protobuf.
 The complete specification and documentation is available at the [Buf Schema Registry](https://buf.build/recap/arg-services/docs/main:arg_services.graph.v1).
@@ -137,3 +137,7 @@ ag.dump.file(graph, "./graph.json")
 # Save the graph as AIF
 ag.dump.file(graph, "./graph.json", ag.GraphFormat.AIF)
 ```
+
+## Development
+
+To pull the testing data, make sure to install [DVC](https://dvc.org/doc/install) and run `dvc pull` in the root directory of the repository.
