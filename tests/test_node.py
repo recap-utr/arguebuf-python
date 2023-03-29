@@ -294,7 +294,6 @@ def test_xaif_node_SN(data, id, text, type):
     assert isinstance(node.metadata, ag.Metadata)
 
 
-
 '''
 aif_data_SchemeNode = [
     (

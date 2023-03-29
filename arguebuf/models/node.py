@@ -364,9 +364,9 @@ class Node(ABC):
     @classmethod
     @abstractmethod
     def from_xAif(
-            cls,
-            obj: xaif.AifNode,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: xaif.AifNode,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Node:
         """Generate Node object from xAif Node format."""
 
@@ -567,9 +567,9 @@ class AtomNode(Node):
 
     @classmethod
     def from_xAif(
-            cls,
-            obj: xaif.AifNode,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: xaif.AifNode,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> AtomNode:
         """Generate AtomNode object from xAif Node object."""
         timestamp = pendulum.now()
@@ -849,9 +849,9 @@ class SchemeNode(Node):
 
     @classmethod
     def from_xAif(
-            cls,
-            obj: xaif.AifNode,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: xaif.AifNode,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> t.Optional[SchemeNode]:
         """Generate SchemeNode object from xAif Node object."""
 

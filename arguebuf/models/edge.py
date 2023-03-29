@@ -197,9 +197,9 @@ class Edge:
 
     @classmethod
     def from_xAif(
-            cls,
-            obj: xaif.AifEdge,
-            nodes: t.Mapping[str, Node],
+        cls,
+        obj: xaif.AifEdge,
+        nodes: t.Mapping[str, Node],
     ) -> t.Optional[Edge]:
         """Generate Edge object from xAif Edge format."""
         source_id = obj.get("fromID")

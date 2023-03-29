@@ -864,13 +864,13 @@ class Graph:
 
     @classmethod
     def from_xAif(
-            cls,
-            obj: xaif.Graph,
-            name: t.Optional[str] = None,
-            atom_class: t.Type[AtomNode] = AtomNode,
-            scheme_class: t.Type[SchemeNode] = SchemeNode,
-            edge_class: t.Type[Edge] = Edge,
-            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+        cls,
+        obj: xaif.Graph,
+        name: t.Optional[str] = None,
+        atom_class: t.Type[AtomNode] = AtomNode,
+        scheme_class: t.Type[SchemeNode] = SchemeNode,
+        edge_class: t.Type[Edge] = Edge,
+        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
     ) -> Graph:
         """
         Generate Graph structure from xAif argument graph file
