@@ -16,7 +16,7 @@ from arguebuf.models.metadata import Metadata
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, argdown_json, ova, sadface
+from arguebuf.schema import aif, argdown_json, ova, sadface, xaif
 from arguebuf.services import dt, utils
 
 NO_SCHEME_LABEL = "Unknown"
@@ -363,6 +363,15 @@ class Node(ABC):
 
     @classmethod
     @abstractmethod
+    def from_xAif(
+            cls,
+            obj: xaif.AifNode,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Node:
+        """Generate Node object from xAif Node format."""
+
+    @classmethod
+    @abstractmethod
     def from_sadface(
         cls,
         obj: sadface.Node,
@@ -549,6 +558,21 @@ class AtomNode(Node):
         timestamp = (
             dt.from_format(obj.get("timestamp"), aif.DATE_FORMAT) or pendulum.now()
         )
+
+        return cls(
+            id=obj["nodeID"],
+            metadata=Metadata(timestamp, timestamp),
+            text=utils.parse(obj["text"], nlp),
+        )
+
+    @classmethod
+    def from_xAif(
+            cls,
+            obj: xaif.AifNode,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> AtomNode:
+        """Generate AtomNode object from xAif Node object."""
+        timestamp = pendulum.now()
 
         return cls(
             id=obj["nodeID"],
@@ -814,6 +838,36 @@ class SchemeNode(Node):
             timestamp = (
                 dt.from_format(obj.get("timestamp"), aif.DATE_FORMAT) or pendulum.now()
             )
+
+            return cls(
+                id=obj["nodeID"],
+                metadata=Metadata(timestamp, timestamp),
+                scheme=scheme,
+            )
+
+        return None
+
+    @classmethod
+    def from_xAif(
+            cls,
+            obj: xaif.AifNode,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> t.Optional[SchemeNode]:
+        """Generate SchemeNode object from xAif Node object."""
+
+        aif_type = obj["type"]
+        aif_scheme: str = obj.get("scheme", obj["text"])
+
+        if aif_type in aif2scheme:
+            scheme = aif2scheme[t.cast(aif.SchemeType, aif_type)]
+
+            # TODO: Handle formatting like capitalization, spaces, underscores, etc.
+            # TODO: Araucaria does not use spaces between scheme names
+            # aif_scheme = re.sub("([A-Z])", r" \1", aif_scheme)
+            if scheme and (found_scheme := text2scheme[type(scheme)].get(aif_scheme)):
+                scheme = found_scheme
+
+            timestamp = pendulum.now()
 
             return cls(
                 id=obj["nodeID"],

@@ -12,7 +12,7 @@ from arg_services.graph.v1 import graph_pb2
 from arguebuf.models import Userdata
 from arguebuf.models.metadata import Metadata
 from arguebuf.models.node import Node
-from arguebuf.schema import aif, argdown_json, ova, sadface
+from arguebuf.schema import aif, argdown_json, ova, sadface, xaif
 from arguebuf.services import dt, utils
 
 log = logging.getLogger(__name__)
@@ -194,6 +194,27 @@ class Edge:
             "toID": str(self.target.id),
             "formEdgeID": None,
         }
+
+    @classmethod
+    def from_xAif(
+            cls,
+            obj: xaif.AifEdge,
+            nodes: t.Mapping[str, Node],
+    ) -> t.Optional[Edge]:
+        """Generate Edge object from xAif Edge format."""
+        source_id = obj.get("fromID")
+        target_id = obj.get("toID")
+
+        if source_id in nodes and target_id in nodes:
+            return cls(
+                id=str(obj["edgeID"]),
+                source=nodes[source_id],
+                target=nodes[target_id],
+            )
+        else:
+            _warn_missing_nodes(obj["edgeID"], source_id, target_id)
+
+        return None
 
     @classmethod
     def from_protobuf(

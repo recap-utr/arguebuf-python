@@ -25,6 +25,21 @@ aif_data_AtomNode = [
     )
 ]
 
+xaif_data_AtomNode = [
+    (
+        """
+        {
+            "nodeID": "1196586_164813044708340528",
+            "text": "there is an even chance (49%) that Shane Jeffries is involved in corporate espionage",
+            "type": "I"
+        }
+        """,
+        "1196586_164813044708340528",
+        "there is an even chance (49%) that Shane Jeffries is involved in corporate espionage",
+        ag.AtomNode,
+    )
+]
+
 ova_data_AtomNode = [
     (
         """
@@ -107,6 +122,20 @@ argdown_json_data_AtomNode = [
         ag.AtomNode,
     )
 ]
+
+
+@pytest.mark.parametrize("data,id,text,type", xaif_data_AtomNode)
+def test_xaif_node_AN(data, id, text, type):
+    data_json = json.loads(data)
+    node = ag.AtomNode.from_xAif(data_json)
+
+    assert node.id == id
+    assert node.text == text
+    assert isinstance(node, type)
+    assert node.reference is None
+    assert node.userdata == {}
+    assert isinstance(node.to_aif(), Dict)
+    assert isinstance(node.to_protobuf(), graph_pb2.Node)
 
 
 @pytest.mark.parametrize("data,id,text,type", argdown_json_data_AtomNode)
@@ -236,6 +265,34 @@ def test_aml_node_SN(data, id, type, name):
     assert node.scheme == name
     assert isinstance(node.metadata, ag.Metadata)
     assert isinstance(node.to_protobuf(), graph_pb2.Node)
+
+
+xaif_data_SchemeNode = [
+    (
+        """
+        {
+            "nodeID": "1201647_164813044708340528",
+            "text": "Default Inference",
+            "type": "RA"
+        }
+        """,
+        "1201647_164813044708340528",
+        "Default Inference",
+        ag.SchemeNode,
+    )
+]
+
+
+@pytest.mark.parametrize("data,id,text,type", xaif_data_SchemeNode)
+def test_xaif_node_SN(data, id, text, type):
+    data_json = json.loads(data)
+    node = ag.SchemeNode.from_xAif(data_json)
+
+    assert node.id == id
+    assert node.scheme == Support.DEFAULT
+    assert isinstance(node, type)
+    assert isinstance(node.metadata, ag.Metadata)
+
 
 
 '''

@@ -21,6 +21,20 @@ aif_data = [
     )
 ]
 
+xaif_data = [
+    (
+        """
+        {
+            "edgeID": 204,
+            "fromID": "323_164813044708340528",
+            "toID": "324_164813044708340528"
+        }
+        """,
+        "204",
+        "323_164813044708340528",
+        "324_164813044708340528",
+    )
+]
 
 ova_data = [
     (
@@ -126,6 +140,28 @@ argdown_json_data = [
         "n0",
     )
 ]
+
+
+@pytest.mark.parametrize("data,id,start,end", xaif_data)
+def test_xaif_edge(data, id, start, end):
+    data_json = json.loads(data)
+    edge = ag.Edge.from_xAif(
+        data_json,
+        {
+            start: ag.AtomNode(id=start, text=""),
+            end: ag.AtomNode(id=end, text=""),
+        },
+    )
+
+    assert edge
+    assert edge.id == id
+    assert isinstance(edge.source, ag.AtomNode)
+    assert isinstance(edge.target, ag.AtomNode)
+    assert edge.source.id == start
+    assert edge.target.id == end
+    assert edge.metadata is not None
+    assert edge.userdata == {}
+    assert isinstance(edge.to_protobuf(), graph_pb2.Edge)
 
 
 @pytest.mark.parametrize("data,id,start,end", argdown_json_data)

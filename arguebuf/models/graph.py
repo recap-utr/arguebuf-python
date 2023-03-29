@@ -26,7 +26,7 @@ from arguebuf.models.node import AtomNode, Attack, Node, Rephrase, SchemeNode, S
 from arguebuf.models.participant import Participant
 from arguebuf.models.reference import Reference
 from arguebuf.models.resource import Resource
-from arguebuf.schema import aif, aml, argdown_json, ova, sadface
+from arguebuf.schema import aif, aml, argdown_json, ova, sadface, xaif
 from arguebuf.services import dt, utils
 from arguebuf.services.utils import ImmutableDict, ImmutableSet
 
@@ -861,6 +861,38 @@ class Graph:
             "edges": [edge.to_aif() for edge in self._edges.values()],
             "locutions": [],
         }
+
+    @classmethod
+    def from_xAif(
+            cls,
+            obj: xaif.Graph,
+            name: t.Optional[str] = None,
+            atom_class: t.Type[AtomNode] = AtomNode,
+            scheme_class: t.Type[SchemeNode] = SchemeNode,
+            edge_class: t.Type[Edge] = Edge,
+            nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    ) -> Graph:
+        """
+        Generate Graph structure from xAif argument graph file
+        """
+        g = cls(name)
+        obj = obj["AIF"]
+
+        for aif_node in obj["nodes"]:
+            node = (
+                atom_class.from_xAif(aif_node, nlp)
+                if aif_node["type"] == "I"
+                else scheme_class.from_xAif(aif_node, nlp)
+            )
+
+            if node:
+                g.add_node(node)
+
+        for aif_edge in obj["edges"]:
+            if edge := edge_class.from_xAif(aif_edge, g._nodes):
+                g.add_edge(edge)
+
+        return g
 
     def to_protobuf(self) -> graph_pb2.Graph:
         """Export structure of Graph instance to PROTOBUF argument graph format."""
