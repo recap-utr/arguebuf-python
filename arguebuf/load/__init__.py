@@ -16,9 +16,11 @@ from ._load_path import load_file as file
 from ._load_path import load_folder as folder
 from ._load_protobuf import load_protobuf as protobuf
 from ._load_sadface import load_sadface as sadface
+from ._load_xaif import load_xaif as xaif
 
 __all__ = (
     "aif",
+    "xaif",
     "aml",
     "argdown",
     "brat",
