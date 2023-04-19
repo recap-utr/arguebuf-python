@@ -17,9 +17,7 @@ __all__ = ("load_xaif",)
 
 
 def load_xaif(
-        obj: xaif.Graph,
-        name: t.Optional[str] = None,
-        config: Config = DefaultConfig
+    obj: xaif.Graph, name: t.Optional[str] = None, config: Config = DefaultConfig
 ) -> Graph:
     """
     Generate Graph structure from xAif argument graph file
@@ -44,10 +42,7 @@ def load_xaif(
     return g
 
 
-def scheme_from_xaif(
-        obj: xaif.AifNode,
-        config: Config
-) -> t.Optional[SchemeNode]:
+def scheme_from_xaif(obj: xaif.AifNode, config: Config) -> t.Optional[SchemeNode]:
     """Generate SchemeNode object from xAif Node object."""
 
     aif_type = obj["type"]
@@ -73,10 +68,7 @@ def scheme_from_xaif(
     return None
 
 
-def atom_from_xaif(
-        obj: xaif.AifNode,
-        config: Config
-) -> AtomNode:
+def atom_from_xaif(obj: xaif.AifNode, config: Config) -> AtomNode:
     """Generate AtomNode object from xAif Node object."""
     timestamp = pendulum.now()
 
@@ -88,9 +80,7 @@ def atom_from_xaif(
 
 
 def edge_from_xaif(
-        obj: xaif.AifEdge,
-        nodes: t.Mapping[str, AbstractNode],
-        config: Config
+    obj: xaif.AifEdge, nodes: t.Mapping[str, AbstractNode], config: Config
 ) -> t.Optional[Edge]:
     """Generate Edge object from xAif Edge format."""
     source_id = obj.get("fromID")

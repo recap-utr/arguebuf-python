@@ -8,11 +8,11 @@ from arguebuf.schemas.d2 import D2Graph, D2Edge, D2Node, D2Style
 
 
 def dump_d2(
-        graph: Graph,
-        wrap_col: t.Optional[int] = None,
-        atom_label: t.Optional[t.Callable[[AtomNode], str]] = None,
-        scheme_label: t.Optional[t.Callable[[SchemeNode], str]] = None,
-        max_nodes: t.Optional[int] = None,
+    graph: Graph,
+    wrap_col: t.Optional[int] = None,
+    atom_label: t.Optional[t.Callable[[AtomNode], str]] = None,
+    scheme_label: t.Optional[t.Callable[[SchemeNode], str]] = None,
+    max_nodes: t.Optional[int] = None,
 ) -> D2Graph:
     if len(graph.nodes) > (max_nodes or 1000):
         return None
@@ -45,11 +45,11 @@ def dump_d2(
 
 
 def _dump_node(
-        node: AtomNode,
-        g: D2Graph,
-        major_claim: bool,
-        wrap_col: int,
-        label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
+    node: AtomNode,
+    g: D2Graph,
+    major_claim: bool,
+    wrap_col: int,
+    label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
 ) -> None:
     label: str = label_func(node) if label_func else node.label
 
@@ -74,7 +74,7 @@ def _dump_node(
         "style": nodeStyle,
     }
 
-    g['nodes'].append(n)
+    g["nodes"].append(n)
 
 
 def _dump_edge(edge: Edge, g: D2Graph) -> None:
