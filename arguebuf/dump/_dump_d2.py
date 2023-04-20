@@ -64,12 +64,14 @@ def _dump_node(
         fill=color.bg,
     )
 
-    g.nodes.append(D2Node(
-        id=node.id,
-        label=label,
-        shape="rectangle",
-        style=nodeStyle,
-    ))
+    g.nodes.append(
+        D2Node(
+            id=node.id,
+            label=label,
+            shape="rectangle",
+            style=nodeStyle,
+        )
+    )
 
 
 def _dump_edge(edge: Edge, g: D2Graph) -> None:

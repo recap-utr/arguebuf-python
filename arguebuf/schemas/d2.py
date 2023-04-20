@@ -2,7 +2,9 @@ import typing as t
 
 
 class D2Style:
-    def __init__(self, font_color: str, bold: bool, stroke: str, stroke_width: int, fill: str):
+    def __init__(
+        self, font_color: str, bold: bool, stroke: str, stroke_width: int, fill: str
+    ):
         self.font_color: str = font_color
         self.bold = bold
         self.stroke = stroke
@@ -39,7 +41,7 @@ class D2Graph:
 
     def __write_node(self, node: D2Node) -> str:
         str = ""
-        label = node.label.replace("\"", "\\\"")
+        label = node.label.replace('"', '\\"')
         str += node.id + ": {\n"
         str += "label: " + label + "\n"
         str += "shape: " + node.shape + "\n"
@@ -48,11 +50,11 @@ class D2Graph:
 
     def __write_style(self, style: D2Style) -> str:
         str = "{\n"
-        str += "font-color: " + "\"" + style.font_color + "\"" + "\n"
+        str += "font-color: " + '"' + style.font_color + '"' + "\n"
         str += "bold: " + style.bold.__str__() + "\n"
-        str += "stroke: " + "\"" + style.stroke + "\"" + "\n"
+        str += "stroke: " + '"' + style.stroke + '"' + "\n"
         str += "stroke-width: " + style.stroke_width.__str__() + "\n"
-        str += "fill: " + "\"" + style.fill + "\"" + "\n}"
+        str += "fill: " + '"' + style.fill + '"' + "\n}"
         return str
 
     def __write_edge(self, edge: D2Edge) -> str:
