@@ -8,12 +8,14 @@ from ._dump_networkx import dump_networkx as networkx
 from ._dump_path import dump_file as file
 from ._dump_path import dump_file as folder
 from ._dump_protobuf import dump_protobuf as protobuf
+from ._dump_d2 import dump_d2 as d2
 
 __all__ = (
     "file",
     "folder",
     "networkx",
     "graphviz",
+    "d2",
     "aif",
     "protobuf",
     "dict",
