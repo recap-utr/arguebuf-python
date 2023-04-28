@@ -229,3 +229,4 @@ poetry.toml
 .vscode/
 .idea/
 _readthedocs/
+.direnv/
