@@ -11,20 +11,18 @@ FORMATS = ["png", "pdf", "svg"]
 
 def d2(
     graph: D2Graph,
-    dir: t.Union[Path, str] = "",
-    format: str = "svg",
-    filename: str = "graph",
+    path: t.Union[Path, str],
 ) -> None:
     """Visualize a Graph instance using a D2 backend. Make sure that a D2 Executable path is set on your machine for visualization."""
 
-    if format not in FORMATS:
+    if isinstance(path, str):
+        path = Path(path)
+
+    if path.suffix.removeprefix(".") not in FORMATS:
         raise ValueError(
             "You need to provide a path with a file ending supported by d2:"
             f" {FORMATS}"
         )
-
-    if isinstance(dir, str):
-        dir = Path(dir)
 
     # Create temporary file
     tmp = NamedTemporaryFile(delete=False, mode="w")
@@ -33,7 +31,6 @@ def d2(
     finally:
         tmp.close()
         # run d2 command and produce the output file
-        path = os.path.join(str(dir), filename + "." + format)
-        run(["d2", tmp.name, path])
+        run(["d2", tmp.name, str(path)])
         # remove temporary file
         os.unlink(tmp.name)
