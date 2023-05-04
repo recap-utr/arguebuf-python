@@ -10,10 +10,10 @@ FORMATS = ["png", "pdf", "svg"]
 
 
 def d2(
-        graph: D2Graph,
-        dir: t.Union[Path, str] = "",
-        format: str = "svg",
-        filename: str = "graph",
+    graph: D2Graph,
+    dir: t.Union[Path, str] = "",
+    format: str = "svg",
+    filename: str = "graph",
 ) -> None:
     """Visualize a Graph instance using a D2 backend. Make sure that a D2 Executable path is set on your machine for visualization."""
 
