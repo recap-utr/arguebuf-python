@@ -8,7 +8,9 @@ def test_render_graph():
     # Create atom nodes
     an1 = ag.AtomNode(text="Lincoln Chafee just isn't presidential material")
     an2 = ag.AtomNode(text="Chafee is president material")
-    an3 = ag.AtomNode(text="if elections weren't just popularity contests Chafee would probably do just fine")
+    an3 = ag.AtomNode(
+        text="if elections weren't just popularity contests Chafee would probably do just fine"
+    )
     an4 = ag.AtomNode(text="Chafee is just not figurehead material")
     an5 = ag.AtomNode(text="Chafee does have good positions")
     an6 = ag.AtomNode(text="chafee seems more like a cool college professor")
