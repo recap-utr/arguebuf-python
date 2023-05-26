@@ -230,3 +230,4 @@ poetry.toml
 .idea/
 _readthedocs/
 .direnv/
+/result
