@@ -43,6 +43,9 @@ class Color:
         self.border = border or self.bg
 
 
+COLOR_MONOCHROME = Color(bg="#ffffff", fg="#000000", border="#000000")
+
+
 scheme2color: t.Dict[t.Type[Scheme], Color] = {
     Support: Color(bg="#4CAF50"),
     Attack: Color(bg="#F44336"),
@@ -98,7 +101,7 @@ class AbstractNode(ABC):
         """Generate a matching node label (e.g., for graphviz)"""
 
     @abstractmethod
-    def color(self, major_claim: bool) -> Color:
+    def color(self, major_claim: bool, monochrome: bool) -> Color:
         """Get the color used in OVA based on `category`."""
 
 
@@ -165,8 +168,10 @@ class AtomNode(AbstractNode, t.Generic[TextType]):
             metadata=Metadata(timestamp, timestamp),
         )
 
-    def color(self, major_claim: bool) -> Color:
+    def color(self, major_claim: bool, monochrome: bool) -> Color:
         """Get the color for rendering the node."""
+        if monochrome:
+            return COLOR_MONOCHROME
 
         return Color(bg="#0D47A1") if major_claim else Color(bg="#2196F3")
 
@@ -218,8 +223,10 @@ class SchemeNode(AbstractNode):
 
         return label
 
-    def color(self, major_claim: bool) -> Color:
+    def color(self, major_claim: bool, monochrome: bool) -> Color:
         """Get the color used in OVA based on `category`."""
+        if monochrome:
+            return COLOR_MONOCHROME
 
         return scheme2color[type(self.scheme)] if self.scheme else Color(bg="#009688")
 

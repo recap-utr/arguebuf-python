@@ -50,6 +50,7 @@ def dump_graphviz(
     edge_attr: t.Optional[t.Mapping[str, str]] = None,
     edge_style: t.Optional[EdgeStyle] = None,
     max_nodes: t.Optional[int] = None,
+    monochrome: bool = False,
 ) -> t.Optional[GraphvizGraph]:
     """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
 
@@ -86,10 +87,11 @@ def dump_graphviz(
             **node_attr,
         }
     )
-    gv_graph.edge_attr.update({"color": "#9E9E9E", **edge_attr})
+    gv_graph.edge_attr.update(
+        {"color": "#000000" if monochrome else "#9E9E9E", **edge_attr}
+    )
     gv_graph.graph_attr.update(
         {
-            # "bgcolor": "#000000",
             "rankdir": "BT",
             "margin": "0",
             "nodesep": str(nodesep or 0.25),
@@ -107,14 +109,11 @@ def dump_graphviz(
             graph.major_claim == node,
             label_func=atom_label,
             wrap_col=wrap_col or 36,
+            monochrome=monochrome,
         )
 
     for node in graph._scheme_nodes.values():
-        _dump_scheme(
-            node,
-            gv_graph,
-            label_func=scheme_label,
-        )
+        _dump_scheme(node, gv_graph, label_func=scheme_label, monochrome=monochrome)
 
     for edge in graph._edges.values():
         _dump_edge(edge, gv_graph)
@@ -127,10 +126,11 @@ def _dump_atom(
     g: GraphvizGraph,
     major_claim: bool,
     wrap_col: int,
+    monochrome: bool,
     label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
 ) -> None:
     """Submethod used to export Graph object g into GV Graph format."""
-    color = node.color(major_claim)
+    color = node.color(major_claim, monochrome)
     label = label_func(node) if label_func else node.label
 
     # TODO: Improve wrapping
@@ -149,11 +149,12 @@ def _dump_atom(
 def _dump_scheme(
     node: SchemeNode,
     g: GraphvizGraph,
+    monochrome: bool,
     label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
 ) -> None:
     """Submethod used to export Graph object g into GV Graph format."""
 
-    color = node.color(major_claim=False)
+    color = node.color(False, monochrome)
     label = label_func(node) if label_func else node.label
 
     add_gv_node(

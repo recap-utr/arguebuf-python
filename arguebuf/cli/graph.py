@@ -75,6 +75,7 @@ def render(
     max_nodes: t.Optional[int] = None,
     prog: str = "dot",
     dpi: int = 300,
+    monochrome: bool = False,
 ) -> None:
     if not output_folder:
         output_folder = input_folder
@@ -116,6 +117,7 @@ def render(
                     scheme_label=_strip_node_labels if strip_node_labels else None,
                     edge_style=edge_style,
                     max_nodes=max_nodes,
+                    monochrome=monochrome,
                 )
                 ag.render.graphviz(gv, path_pair.target, prog, dpi)
 
@@ -180,8 +182,7 @@ def statistics(
     total_scheme_nodes = sum(scheme_nodes)
     total_edges = sum(edges)
 
-    typer.echo(
-        f"""Total Graphs: {total_graphs}
+    typer.echo(f"""Total Graphs: {total_graphs}
 
 Total Atom Nodes: {total_atom_nodes}
 Total Scheme Nodes: {total_scheme_nodes}
@@ -197,5 +198,4 @@ Max. Edges: {max(edges)}
 
 Min. Atom Nodes: {min(atom_nodes)}
 Min. Scheme Nodes: {min(scheme_nodes)}
-Min. Edges: {min(edges)}"""
-    )
+Min. Edges: {min(edges)}""")
