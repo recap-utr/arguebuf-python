@@ -12,11 +12,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: webfactory/ssh-agent@v0.7.0
+      - uses: de-vri-es/setup-git-credentials@v2
         with:
-          ssh-private-key: |
-            ${{ secrets.SSH_ARGUEBASE_PUBLIC }}
-            ${{ secrets.SSH_ARGUEBASE_PRIVATE }}
+          credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
@@ -26,6 +24,12 @@ jobs:
         with:
           version: ${{ env.DVC_VERSION }}
       - run: dvc pull --force --verbose
+      - uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "git@github.com:"
+          replace: "https://github.com/"
+          regex: false
+          include: "**/*.dvc"
       - run: pip install poetry==${{ env.POETRY_VERSION }}
       - run: poetry config virtualenvs.in-project true
       - run: poetry install
