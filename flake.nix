@@ -48,7 +48,9 @@
           default = app;
         };
         devShells.default = pkgs.mkShell {
-          packages = with pkgs; [graphviz d2 poetry python];
+          packages = [poetry python];
+          buildInputs = with pkgs; [stdenv.cc.cc.lib];
+          propagatedBuildInputs = with pkgs; [graphviz d2];
           shellHook = ''
             export POETRY_VIRTUALENVS_IN_PROJECT=1
             ${lib.getExe poetry} env use ${lib.getExe python}
