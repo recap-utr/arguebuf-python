@@ -158,6 +158,7 @@ def test_xaif_edge(data, id, start, end):
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
+        DefaultConfig,
     )
 
     assert edge
