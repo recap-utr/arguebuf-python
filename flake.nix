@@ -30,6 +30,7 @@
         ...
       }: let
         python = pkgs.python311;
+        poetry = pkgs.poetry;
       in {
         packages = let
           inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication;
@@ -53,7 +54,7 @@
           default = app;
         };
         devenv.shells.default = {
-          packages = with pkgs; [graphviz d2 stdenv.cc.cc.lib];
+          packages = with pkgs; [graphviz d2 stdenv.cc.cc];
           languages.python = {
             enable = true;
             package = python;
@@ -66,6 +67,16 @@
             };
           };
         };
+        # devShells.default = pkgs.mkShell {
+        #   packages = [poetry python];
+        #   propagatedBuildInputs = with pkgs; [graphviz d2];
+        #   POETRY_VIRTUALENVS_IN_PROJECT = true;
+        #   LD_LIBRARY_PATH = lib.makeLibraryPath [pkgs.stdenv.cc.cc];
+        #   shellHook = ''
+        #     ${lib.getExe poetry} env use ${lib.getExe python}
+        #     ${lib.getExe poetry} install --all-extras --no-root
+        #   '';
+        # };
       };
     };
 }
