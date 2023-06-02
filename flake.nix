@@ -7,16 +7,22 @@
       url = "github:nix-community/poetry2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs = inputs @ {
     flake-parts,
     nixpkgs,
     poetry2nix,
+    devenv,
     systems,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = import systems;
+      imports = [devenv.flakeModule];
       perSystem = {
         pkgs,
         lib,
@@ -24,7 +30,6 @@
         ...
       }: let
         python = pkgs.python311;
-        poetry = pkgs.poetry;
       in {
         packages = let
           inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication;
@@ -47,15 +52,19 @@
           arguebuf = app;
           default = app;
         };
-        devShells.default = pkgs.mkShell {
-          packages = [poetry python];
-          buildInputs = with pkgs; [stdenv.cc.cc.lib];
-          propagatedBuildInputs = with pkgs; [graphviz d2];
-          shellHook = ''
-            export POETRY_VIRTUALENVS_IN_PROJECT=1
-            ${lib.getExe poetry} env use ${lib.getExe python}
-            ${lib.getExe poetry} install --all-extras --no-root
-          '';
+        devenv.shells.default = {
+          packages = with pkgs; [graphviz d2];
+          languages.python = {
+            enable = true;
+            package = python;
+            poetry = {
+              enable = true;
+              install = {
+                enable = true;
+                allExtras = true;
+              };
+            };
+          };
         };
       };
     };
