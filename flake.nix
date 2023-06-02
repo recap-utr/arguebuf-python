@@ -53,7 +53,7 @@
           default = app;
         };
         devenv.shells.default = {
-          packages = with pkgs; [graphviz d2];
+          packages = with pkgs; [graphviz d2 stdenv.cc.cc.lib];
           languages.python = {
             enable = true;
             package = python;
