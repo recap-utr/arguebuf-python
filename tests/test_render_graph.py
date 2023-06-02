@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import arguebuf as ag
 
 
-def test_render_graph():
+def test_render_graph(tmp_path: Path):
     # Create test graph
     g = ag.Graph("Test")
 
@@ -67,7 +69,7 @@ def test_render_graph():
 
     # Render d2 graph and graphviz graph
     if d2_graph is not None:
-        ag.render.d2(d2_graph, "test_d2.png")
+        ag.render.d2(d2_graph, tmp_path / "test_d2.png")
 
     if graphviz_graph is not None:
-        ag.render.graphviz(graphviz_graph, "test_graphviz.png")
+        ag.render.graphviz(graphviz_graph, tmp_path / "test_graphviz.png")
