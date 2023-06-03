@@ -50,6 +50,7 @@
         devShells.default = pkgs.mkShell {
           packages = [poetry python];
           propagatedBuildInputs = with pkgs; [graphviz d2];
+          buildInputs = with pkgs; [stdenv.cc.cc];
           POETRY_VIRTUALENVS_IN_PROJECT = true;
           shellHook = ''
             export LD_LIBRARY_PATH=${lib.makeLibraryPath [pkgs.stdenv.cc.cc]};
