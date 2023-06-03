@@ -50,15 +50,12 @@
         devShells.default = pkgs.mkShell {
           packages = [poetry python];
           propagatedBuildInputs = with pkgs; [graphviz d2];
-          buildInputs = with pkgs; [stdenv.cc.cc];
+          buildInputs = with pkgs; [gccStdenv];
           POETRY_VIRTUALENVS_IN_PROJECT = true;
+          LD_LIBRARY_PATH = lib.makeLibraryPath [pkgs.stdenv.cc.cc];
           shellHook = ''
-            export LD_LIBRARY_PATH=${lib.makeLibraryPath [pkgs.stdenv.cc.cc]};
             ${lib.getExe poetry} env use ${lib.getExe python}
             ${lib.getExe poetry} install --all-extras --no-root
-          '';
-          postShellHook = ''
-            unset LD_LIBRARY_PATH;
           '';
         };
       };
