@@ -25,7 +25,7 @@ jobs:
         with:
           cache-store: "false"
       - run: dvc pull --force --verbose
-      - run: poetry run pytest
+      - run: poetry run python -m pytest
   release:
     runs-on: ubuntu-latest
     needs: test
