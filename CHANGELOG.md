@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.0-beta.24](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.23...v2.0.0-beta.24) (2023-06-04)
+
+
+### Features
+
+* add d2 export functionality ([#33](https://github.com/recap-utr/arguebuf-python/issues/33)) ([4292011](https://github.com/recap-utr/arguebuf-python/commit/42920112b341c3eb4128b1f26004be6d9564db91))
+* add d2 renderer ([#35](https://github.com/recap-utr/arguebuf-python/issues/35)) ([e4dd6e2](https://github.com/recap-utr/arguebuf-python/commit/e4dd6e20a441118d8d9caff75f7f642f72602697))
+* add support for parsing xAIF argument graphs ([#32](https://github.com/recap-utr/arguebuf-python/issues/32)) ([813b9f9](https://github.com/recap-utr/arguebuf-python/commit/813b9f94066aee25a91dc01385fd528457f48e1c))
+* allow exporting/rendering monochrome graphs ([6937a8a](https://github.com/recap-utr/arguebuf-python/commit/6937a8abe7fd6f2ed594187781f9abcbdb1c44ef))
+
 ## [2.0.0-beta.23](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.22...v2.0.0-beta.23) (2023-02-22)
 
 
