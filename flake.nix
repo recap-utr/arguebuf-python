@@ -21,6 +21,7 @@
         pkgs,
         lib,
         system,
+        self',
         ...
       }: let
         python = pkgs.python311;
@@ -46,11 +47,16 @@
         in {
           arguebuf = app;
           default = app;
+          releaseEnv = pkgs.buildEnv {
+            name = "release-env";
+            paths = [poetry python];
+          };
         };
         devShells.default = pkgs.mkShell {
           packages = [poetry python];
           propagatedBuildInputs = with pkgs; [graphviz d2];
           POETRY_VIRTUALENVS_IN_PROJECT = true;
+          LD_LIBRARY_PATH = lib.makeLibraryPath [pkgs.stdenv.cc.cc];
           shellHook = ''
             ${lib.getExe poetry} env use ${lib.getExe python}
             ${lib.getExe poetry} install --all-extras --no-root

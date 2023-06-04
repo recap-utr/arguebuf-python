@@ -12,6 +12,7 @@ jobs:
         with:
           credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
       - uses: actions/checkout@v3
+      - uses: DeterminateSystems/nix-installer-action@v3
       - uses: jacobtomlinson/gha-find-replace@v2
         with:
           find: "git@github.com:"
@@ -21,20 +22,16 @@ jobs:
       - uses: iterative/setup-dvc@v1
         with:
           version: 2.55.0
-      - uses: JRMurr/direnv-nix-action@v4.1.0
-        with:
-          cache-store: "false"
-      - run: dvc pull --force --verbose
-      - run: poetry run python -m pytest
+      - run: dvc pull --force
+      - run: nix develop -c poetry run pytest
   release:
     runs-on: ubuntu-latest
     needs: test
     if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
     steps:
       - uses: actions/checkout@v3
-      - uses: JRMurr/direnv-nix-action@v4.1.0
-        with:
-          cache-store: "false"
+      - uses: DeterminateSystems/nix-installer-action@v3
+      - run: nix profile install .#releaseEnv
       - uses: cihelper/action-semanticrelease-poetry@v1
         id: semanticrelease
       - uses: pypa/gh-action-pypi-publish@release/v1
