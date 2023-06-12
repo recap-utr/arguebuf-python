@@ -26,27 +26,15 @@
       }: let
         python = pkgs.python311;
         poetry = pkgs.poetry;
+        inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication;
       in {
-        packages = let
-          inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication;
-          app = mkPoetryApplication {
+        packages = {
+          default = mkPoetryApplication {
             inherit python;
             projectDir = ./.;
             preferWheels = true;
-            # overrides = overrides.withDefaults (self: super: {
-            #   protobuf = super.protobuf.override {
-            #     preferWheel = false;
-            #   };
-            #   arg-services = (super.arg-services.override {
-            #     preferWheel = true;
-            #   }) // (super.arg-services.overridePythonAttrs (old: {
-            #     propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ super.poetry ];
-            #   }));
-            # });
           };
-        in {
-          arguebuf = app;
-          default = app;
+          arguebuf = self'.packages.default;
           releaseEnv = pkgs.buildEnv {
             name = "release-env";
             paths = [poetry python];
