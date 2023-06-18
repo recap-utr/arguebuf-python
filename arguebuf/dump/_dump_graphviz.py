@@ -102,7 +102,7 @@ def dump_graphviz(
         }
     )
 
-    for node in graph._atom_nodes.values():
+    for node in graph.atom_nodes.values():
         _dump_atom(
             node,
             gv_graph,
@@ -112,10 +112,10 @@ def dump_graphviz(
             monochrome=monochrome,
         )
 
-    for node in graph._scheme_nodes.values():
+    for node in graph.scheme_nodes.values():
         _dump_scheme(node, gv_graph, label_func=scheme_label, monochrome=monochrome)
 
-    for edge in graph._edges.values():
+    for edge in graph.edges.values():
         _dump_edge(edge, gv_graph)
 
     return gv_graph
