@@ -36,7 +36,13 @@
           arguebuf = self'.packages.default;
           releaseEnv = pkgs.buildEnv {
             name = "release-env";
-            paths = [poetry python];
+            paths = [poetry];
+          };
+          setupTestEnv = pkgs.writeShellApplication {
+            name = "setup-test-env";
+            text = ''
+              ${lib.getExe pkgs.dvc} pull --force
+            '';
           };
         };
         devShells.default = pkgs.mkShell {
