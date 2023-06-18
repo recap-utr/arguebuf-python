@@ -26,10 +26,9 @@
       }: let
         python = pkgs.python311;
         poetry = pkgs.poetry;
-        inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication;
       in {
         packages = {
-          default = mkPoetryApplication {
+          default = poetry2nix.legacyPackages.${system}.mkPoetryApplication {
             inherit python;
             projectDir = ./.;
             preferWheels = true;
