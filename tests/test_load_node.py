@@ -7,10 +7,10 @@ import pytest
 import arguebuf as ag
 from arguebuf.load._config import DefaultConfig
 from arguebuf.load._load_aif import atom_from_aif
-from arguebuf.load._load_xaif import atom_from_xaif, scheme_from_xaif
 from arguebuf.load._load_aml import atom_from_aml, scheme_from_aml
 from arguebuf.load._load_ova import atom_from_ova
 from arguebuf.load._load_sadface import atom_from_sadface, scheme_from_sadface
+from arguebuf.load._load_xaif import atom_from_xaif, scheme_from_xaif
 from arguebuf.model.node import Support
 
 aif_data_AtomNode = [
@@ -43,7 +43,10 @@ xaif_data_AtomNode = [
         }
         """,
         "1196586_164813044708340528",
-        "there is an even chance (49%) that Shane Jeffries is involved in corporate espionage",
+        (
+            "there is an even chance (49%) that Shane Jeffries is involved in corporate"
+            " espionage"
+        ),
         ag.AtomNode,
     )
 ]
@@ -263,6 +266,7 @@ def test_xaif_node_SN(data, id, text, type):
     data_json = json.loads(data)
     node = scheme_from_xaif(data_json, DefaultConfig)
 
+    assert node is not None
     assert node.id == id
     assert node.scheme == Support.DEFAULT
     assert isinstance(node, type)
