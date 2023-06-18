@@ -2,7 +2,7 @@ import typing as t
 
 from arguebuf.model import Graph
 from arguebuf.model.edge import Edge
-from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
+from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.schemas.d2 import D2Edge, D2Graph, D2Node, D2Style
 
 
@@ -21,8 +21,8 @@ def dump_d2(
         edges=[],
     )
 
-    for node in graph._atom_nodes.values():
-        _dump_node(
+    for node in graph.atom_nodes.values():
+        _dump_atom(
             node,
             d2_graph,
             major_claim=graph.major_claim == node,
@@ -30,8 +30,8 @@ def dump_d2(
             monochrome=monochrome,
         )
 
-    for node in graph._scheme_nodes.values():
-        _dump_node(
+    for node in graph.scheme_nodes.values():
+        _dump_scheme(
             node,
             d2_graph,
             label_func=scheme_label,
@@ -39,25 +39,21 @@ def dump_d2(
             monochrome=monochrome,
         )
 
-    for edge in graph._edges.values():
+    for edge in graph.edges.values():
         _dump_edge(edge, d2_graph)
 
     return d2_graph
 
 
-def _dump_node(
-    node: AbstractNode,
+def _dump_atom(
+    node: AtomNode,
     g: D2Graph,
     major_claim: bool,
     monochrome: bool,
-    label_func: t.Optional[t.Callable[[AbstractNode], str]] = None,
+    label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
 ) -> None:
     label: str = label_func(node) if label_func else node.label
-    label = label.replace("\n", "")
-    if type(node) == AtomNode:
-        color = node.color(major_claim, monochrome)
-    else:
-        color = node.color(False, monochrome)
+    color = node.color(major_claim, monochrome)
 
     nodeStyle: D2Style = D2Style(
         font_color=color.fg,
@@ -70,7 +66,35 @@ def _dump_node(
     g.nodes.append(
         D2Node(
             id=node.id,
-            label=label,
+            label=label.replace("\n", ""),
+            shape="rectangle",
+            style=nodeStyle,
+        )
+    )
+
+
+def _dump_scheme(
+    node: SchemeNode,
+    g: D2Graph,
+    major_claim: bool,
+    monochrome: bool,
+    label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
+) -> None:
+    label: str = label_func(node) if label_func else node.label
+    color = node.color(False, monochrome)
+
+    nodeStyle: D2Style = D2Style(
+        font_color=color.fg,
+        stroke_width=2,
+        bold=False,
+        stroke=color.border,
+        fill=color.bg,
+    )
+
+    g.nodes.append(
+        D2Node(
+            id=node.id,
+            label=label.replace("\n", ""),
             shape="rectangle",
             style=nodeStyle,
         )
