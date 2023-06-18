@@ -23,9 +23,9 @@ def load_xaif(
     Generate Graph structure from xAif argument graph file
     """
     g = config.GraphClass(name)
-    obj = obj["AIF"]
+    aif_graph = obj["AIF"]
 
-    for aif_node in obj["nodes"]:
+    for aif_node in aif_graph["nodes"]:
         node = (
             atom_from_xaif(aif_node, config)
             if aif_node["type"] == "I"
@@ -35,7 +35,7 @@ def load_xaif(
         if node:
             g.add_node(node)
 
-    for aif_edge in obj["edges"]:
+    for aif_edge in aif_graph["edges"]:
         if edge := edge_from_xaif(aif_edge, g.nodes, config):
             g.add_edge(edge)
 
