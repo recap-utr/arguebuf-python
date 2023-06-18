@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0-beta.25](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.24...v2.0.0-beta.25) (2023-06-18)
+
+
+### Bug Fixes
+
+* rename vars in load xaif due to type errors ([fdd5d7f](https://github.com/recap-utr/arguebuf-python/commit/fdd5d7f16be88defba472cf5fc69c99459788b50))
+* resolve d2 rendering type warnings ([8885875](https://github.com/recap-utr/arguebuf-python/commit/8885875887ed8c584e9cf2e8878942217b3cd3c0))
+
 ## [2.0.0-beta.24](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.23...v2.0.0-beta.24) (2023-06-04)
 
 
