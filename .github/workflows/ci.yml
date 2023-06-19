@@ -23,7 +23,7 @@ jobs:
           include: "**/*.dvc"
       - uses: iterative/setup-dvc@v1
         with:
-          version: "3.1.0"
+          version: "3.0.0"
       - run: dvc pull --force
       - run: nix develop -c poetry run pytest
   release:
