@@ -38,11 +38,9 @@
             name = "release-env";
             paths = [poetry];
           };
-          setupTestEnv = pkgs.writeShellApplication {
-            name = "setup-test-env";
-            text = ''
-              ${lib.getExe pkgs.dvc} pull --force
-            '';
+          testEnv = pkgs.buildEnv {
+            name = "test-env";
+            paths = with pkgs; [dvc];
           };
         };
         devShells.default = pkgs.mkShell {

@@ -15,13 +15,14 @@ jobs:
           credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
       - uses: actions/checkout@v3
       - uses: DeterminateSystems/nix-installer-action@v3
+      - run: nix profile install .#testEnv
       - uses: jacobtomlinson/gha-find-replace@v2
         with:
           find: "git@github.com:"
           replace: "https://github.com/"
           regex: false
           include: "**/*.dvc"
-      - run: nix run .#setupTestEnv
+      - run: dvc pull --force
       - run: nix develop -c poetry run pytest
   release:
     runs-on: ubuntu-latest
