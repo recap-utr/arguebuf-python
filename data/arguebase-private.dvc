@@ -1,12 +1,13 @@
-md5: 42eb428faf1bbabb69f67573c54e3749
+md5: 2b43e0baef5dc80643fc133b31cd79c4
 frozen: true
 deps:
 - path: .
   repo:
     url: git@github.com:recap-utr/arguebase-private.git
-    rev_lock: 0711598c5357bf9477630857ad706cb86ef458ee
+    rev_lock: 63c5fd6e8449b74287f7c7c9bbd55e0f0be38d53
 outs:
-- md5: 9895a2ba818449626018be787b6d28b7.dir
+- md5: 6e94bcb1e037de8f5f1286a47ac56a5a.dir
   size: 99094753
   nfiles: 1208
   path: arguebase-private
+  hash: md5
