@@ -10,3 +10,4 @@ outs:
   size: 99094753
   nfiles: 1208
   path: arguebase-private
+  hash: md5
