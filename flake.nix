@@ -38,10 +38,6 @@
             name = "release-env";
             paths = [poetry];
           };
-          testEnv = pkgs.buildEnv {
-            name = "test-env";
-            paths = with pkgs; [dvc];
-          };
         };
         devShells.default = pkgs.mkShell {
           packages = [poetry python];
