@@ -26,10 +26,11 @@
       }: let
         python = pkgs.python311;
         poetry = pkgs.poetry;
+        propagatedBuildInputs = with pkgs; [graphviz d2];
       in {
         packages = {
           default = poetry2nix.legacyPackages.${system}.mkPoetryApplication {
-            inherit python;
+            inherit python propagatedBuildInputs;
             projectDir = ./.;
             preferWheels = true;
           };
@@ -40,8 +41,8 @@
           };
         };
         devShells.default = pkgs.mkShell {
+          inherit propagatedBuildInputs;
           packages = [poetry python];
-          propagatedBuildInputs = with pkgs; [graphviz d2];
           POETRY_VIRTUALENVS_IN_PROJECT = true;
           LD_LIBRARY_PATH = lib.makeLibraryPath [pkgs.stdenv.cc.cc];
           shellHook = ''
