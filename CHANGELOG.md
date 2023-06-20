@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0-beta.26](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.25...v2.0.0-beta.26) (2023-06-20)
+
+
+### Bug Fixes
+
+* revert to older arguebase revisions ([0876dc0](https://github.com/recap-utr/arguebuf-python/commit/0876dc00fd3c2c09d2b6b3c927c3cbe101f4c6b1))
+
 ## [2.0.0-beta.25](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0-beta.24...v2.0.0-beta.25) (2023-06-18)
 
 
