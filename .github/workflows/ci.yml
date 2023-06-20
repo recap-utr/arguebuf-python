@@ -35,7 +35,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v3
-      - uses: DeterminateSystems/nix-installer-action@v3
+      - uses: DeterminateSystems/nix-installer-action@v4
       - run: nix profile install .#releaseEnv
       - uses: cihelper/action-semanticrelease-poetry@v1
         id: semanticrelease
