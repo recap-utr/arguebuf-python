@@ -14,8 +14,8 @@ jobs:
         with:
           credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
       - uses: actions/checkout@v3
-      - uses: DeterminateSystems/nix-installer-action@v3
-      - uses: jacobtomlinson/gha-find-replace@v2
+      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: jacobtomlinson/gha-find-replace@v3
         with:
           find: "git@github.com:"
           replace: "https://github.com/"
