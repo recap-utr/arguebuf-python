@@ -33,7 +33,7 @@ deepdiff = { extras = ["murmur"], version = "^6.3.0" }
 lxml-stubs = "^0.4.0"
 
 [tool.poetry.group.docs.dependencies]
-pdoc = { version = "^13.1.1" }
+pdoc = "^14.0.0"
 
 [tool.poetry.extras]
 cli = ["typer", "deepl", "multimethod"]
