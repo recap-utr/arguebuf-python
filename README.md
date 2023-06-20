@@ -39,7 +39,7 @@ One of the claims is called _major claim_ and represents the overall claim of th
 In many cases (but not all), this major claim is located right at the top of the graph
 Here is a rather simple example.
 
-TODO: Example
+![Exemplary argument graph](./static/programmatic.png)
 
 Claims, premises and the major claim are represented as _atom nodes_ while relations between them are represented by _scheme nodes_.
 The set of nodes $V = A \cup S$ is composed of the set of atom nodes $A$ and the set of scheme nodes $S$.
