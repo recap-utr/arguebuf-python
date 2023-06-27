@@ -182,7 +182,8 @@ def statistics(
     total_scheme_nodes = sum(scheme_nodes)
     total_edges = sum(edges)
 
-    typer.echo(f"""Total Graphs: {total_graphs}
+    typer.echo(
+        f"""Total Graphs: {total_graphs}
 
 Total Atom Nodes: {total_atom_nodes}
 Total Scheme Nodes: {total_scheme_nodes}
@@ -198,4 +199,5 @@ Max. Edges: {max(edges)}
 
 Min. Atom Nodes: {min(atom_nodes)}
 Min. Scheme Nodes: {min(scheme_nodes)}
-Min. Edges: {min(edges)}""")
+Min. Edges: {min(edges)}"""
+    )
