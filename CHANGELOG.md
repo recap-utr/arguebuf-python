@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/recap-utr/arguebuf-python/compare/v2.1.0...v2.1.1) (2023-07-13)
+
+
+### Bug Fixes
+
+* add xaif format to export config ([5bb7ff9](https://github.com/recap-utr/arguebuf-python/commit/5bb7ff9f5282dc4e3d85516f57fb420acd684288))
+
 ## [2.1.0](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0...v2.1.0) (2023-07-13)
 
 
