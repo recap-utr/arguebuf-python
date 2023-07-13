@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.0](https://github.com/recap-utr/arguebuf-python/compare/v2.0.0...v2.1.0) (2023-07-13)
+
+
+### Features
+
+* add xaif export feature ([7cf4046](https://github.com/recap-utr/arguebuf-python/commit/7cf4046bbee567dba6a296e6418ac8f10a0d2285))
+
+
+### Bug Fixes
+
+* update xaif schema to latest version ([dc45599](https://github.com/recap-utr/arguebuf-python/commit/dc45599558930ace600134c7b18821fe44afc628))
+
 ## [2.0.0](https://github.com/recap-utr/arguebuf-python/compare/v1.2.4...v2.0.0) (2023-06-20)
 
 
