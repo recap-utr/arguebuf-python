@@ -9,6 +9,7 @@ __all__ = ("Format", "Config")
 class Format(str, Enum):
     ARGUEBUF = "arguebuf"
     AIF = "aif"
+    XAIF = "xaif"
 
 
 @dataclass
