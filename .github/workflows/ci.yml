@@ -14,7 +14,7 @@ jobs:
         with:
           credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v5
+      - uses: DeterminateSystems/nix-installer-action@v6
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - uses: jacobtomlinson/gha-find-replace@v3
         with:
@@ -36,7 +36,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v5
+      - uses: DeterminateSystems/nix-installer-action@v6
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - run: nix profile install .#releaseEnv
       - uses: cihelper/action-semanticrelease-poetry@v1
