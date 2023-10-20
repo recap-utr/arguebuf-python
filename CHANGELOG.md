@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.2](https://github.com/recap-utr/arguebuf-python/compare/v2.1.1...v2.1.2) (2023-10-20)
+
+
+### Bug Fixes
+
+* add docker image for cli ([b8e6b2c](https://github.com/recap-utr/arguebuf-python/commit/b8e6b2cb6bb8fc16f3b20ec1c1a813957003afa0))
+* bump deps ([03e5de3](https://github.com/recap-utr/arguebuf-python/commit/03e5de32c97c651e5736c8138656ca82b39f4305))
+
 ## [2.1.1](https://github.com/recap-utr/arguebuf-python/compare/v2.1.0...v2.1.1) (2023-07-13)
 
 
