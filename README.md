@@ -25,6 +25,15 @@ Afterwards, you can execute it by calling `arguebuf`, for example:
 
 `arguebuf --help`
 
+Alternatively, you can use the Docker image available at `ghcr.io/recap-utr/arguebuf-python`.
+To use it, mount a folder to the container and pass the options as the command.
+
+`docker run --rm -v $(pwd)/data:/data ghcr.io/recap-utr/arguebuf-python:latest --rm`
+
+If you use the `nix` package manager, you can run it as follows:
+
+`nix run github:recap-utr/arguebuf-python -- --help`
+
 ## Theoretical Foundations
 
 An argument graph is way to represent _structured_ argumentation.
