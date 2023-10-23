@@ -613,3 +613,17 @@ class Graph(t.Generic[TextType]):
                 )
 
             self.remove_node(scheme)
+
+    def remove_branch(self, element: t.Union[AbstractNode, Edge, str]) -> None:
+        """Remove an element and all its descendants from the graph.
+
+        If the element is a string, it is interpreted as the id of a node.
+        """
+
+        if isinstance(element, str):
+            element = self.nodes[element]
+        if isinstance(element, Edge):
+            element = element.source
+
+        for descendant in self.incoming_nodes(element):
+            self.remove_branch(descendant)

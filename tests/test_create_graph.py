@@ -28,6 +28,27 @@ def test_strip_scheme_nodes():
     assert len(g.edges) == 3
 
 
+def test_remove_branch():
+    g = ag.Graph()
+    a1 = ag.AtomNode("")
+    a2 = ag.AtomNode("")
+    a3 = ag.AtomNode("")
+    a4 = ag.AtomNode("")
+    s1 = ag.SchemeNode()
+    s2 = ag.SchemeNode()
+
+    g.add_edge(ag.Edge(a1, s1))
+    g.add_edge(ag.Edge(s1, s2))
+    g.add_edge(ag.Edge(s2, a4))
+    g.add_edge(ag.Edge(a2, s1))
+    g.add_edge(ag.Edge(a3, s2))
+
+    g.remove_branch(s2)
+
+    assert len(g.nodes) == 1
+    assert len(g.edges) == 0
+
+
 def test_create_graph(tmp_path: Path):
     g = ag.Graph("Test")
 
