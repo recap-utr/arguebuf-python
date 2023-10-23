@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.2.0](https://github.com/recap-utr/arguebuf-python/compare/v2.1.2...v2.2.0) (2023-10-23)
+
+
+### Features
+
+* **graph:** allow to remove an entire branch ([c03caba](https://github.com/recap-utr/arguebuf-python/commit/c03caba7c7d02828c72d3b66256434cf363d2ba7))
+
+
+### Bug Fixes
+
+* make remove_branch actually work ([ca9dbae](https://github.com/recap-utr/arguebuf-python/commit/ca9dbaea534300b4c0ed6e97c426cb70fdb32fe4))
+
 ## [2.1.2](https://github.com/recap-utr/arguebuf-python/compare/v2.1.1...v2.1.2) (2023-10-20)
 
 
