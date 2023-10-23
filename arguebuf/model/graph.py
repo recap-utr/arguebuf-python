@@ -625,5 +625,8 @@ class Graph(t.Generic[TextType]):
         if isinstance(element, Edge):
             element = element.source
 
-        for descendant in self.incoming_nodes(element):
+        descendants = list(self.incoming_nodes(element))
+        self.remove_node(element)
+
+        for descendant in descendants:
             self.remove_branch(descendant)
