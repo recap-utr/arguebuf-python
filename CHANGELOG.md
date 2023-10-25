@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/recap-utr/arguebuf-python/compare/v2.2.0...v2.3.0) (2023-10-25)
+
+
+### Features
+
+* add methods for sibling/child/parent nodes ([32fbc0c](https://github.com/recap-utr/arguebuf-python/commit/32fbc0c9b177922dc15ad2f180fb8e221da9064f))
+
 ## [2.2.0](https://github.com/recap-utr/arguebuf-python/compare/v2.1.2...v2.2.0) (2023-10-23)
 
 
