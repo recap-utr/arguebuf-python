@@ -138,6 +138,25 @@ class Graph(t.Generic[TextType]):
 
         return outgoing_atom_nodes
 
+    child_nodes = incoming_nodes
+    parent_nodes = outgoing_nodes
+
+    def sibling_nodes(
+        self, node: t.Union[str, AbstractNode]
+    ) -> t.AbstractSet[AbstractNode]:
+        if isinstance(node, str):
+            node = self._nodes[node]
+
+        parent_nodes = self.parent_nodes(node)
+        sibling_nodes = set()
+
+        for parent_node in parent_nodes:
+            sibling_nodes.update(self.child_nodes(parent_node))
+
+        sibling_nodes.remove(node)
+
+        return sibling_nodes
+
     def incoming_edges(self, node: t.Union[str, AbstractNode]) -> t.AbstractSet[Edge]:
         if isinstance(node, str):
             node = self._nodes[node]
