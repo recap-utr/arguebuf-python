@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/recap-utr/arguebuf-python/compare/v2.3.0...v2.3.1) (2023-10-26)
+
+
+### Bug Fixes
+
+* use poetry2nix again after upstream fixes ([3a402e7](https://github.com/recap-utr/arguebuf-python/commit/3a402e748bce6a1826c0d7ada43ddf37a093b6bd))
+
 ## [2.3.0](https://github.com/recap-utr/arguebuf-python/compare/v2.2.0...v2.3.0) (2023-10-25)
 
 
