@@ -1,5 +1,4 @@
 ---
-# https://github.com/readthedocs/readthedocs.org/issues/4912
 version: 2
 formats: all
 build:
@@ -8,9 +7,9 @@ build:
     python: "3.11"
   commands:
     - asdf plugin add poetry
-    - asdf install poetry 1.4.2
-    - asdf global poetry 1.4.2
+    - asdf install poetry 1.6.1
+    - asdf global poetry 1.6.1
     - poetry config virtualenvs.create false
     - poetry install --with docs
-    - poetry run pdoc -d google --math -o _readthedocs/html/ arguebuf
-    - cp -rf ./static ./_readthedocs/html/
+    - poetry run pdoc -d google -t pdoc-template --math -o _readthedocs/html/ arguebuf
+    - cp -rf ./assets ./_readthedocs/html/
