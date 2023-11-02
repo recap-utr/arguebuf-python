@@ -23,6 +23,7 @@ __all__ = (
     "SchemeNode",
     "AtomOrSchemeNode",
     "NO_SCHEME_LABEL",
+    "NodeType",
 )
 
 
@@ -232,3 +233,4 @@ class SchemeNode(AbstractNode):
 
 
 AtomOrSchemeNode = t.Union[AtomNode, SchemeNode]
+NodeType = t.TypeVar("NodeType", AtomNode, SchemeNode, AbstractNode)
