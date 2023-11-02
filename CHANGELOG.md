@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0](https://github.com/recap-utr/arguebuf-python/compare/v2.3.1...v2.4.0) (2023-11-02)
+
+
+### Features
+
+* add method to determine sibling distances ([a3538de](https://github.com/recap-utr/arguebuf-python/commit/a3538de9fc64e8238f398c61c5f340cbf1d3141b))
+
+
+### Bug Fixes
+
+* expose NodeType generic type variable ([9d0c891](https://github.com/recap-utr/arguebuf-python/commit/9d0c8910d93b27b3a0ea8ef7fdeaffe0561d00cf))
+
 ## [2.3.1](https://github.com/recap-utr/arguebuf-python/compare/v2.3.0...v2.3.1) (2023-10-26)
 
 
