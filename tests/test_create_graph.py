@@ -6,14 +6,14 @@ from arg_services.graph.v1 import graph_pb2
 import arguebuf as ag
 
 
-def test_strip_scheme_nodes():
+def generate_graph() -> ag.Graph:
     g = ag.Graph()
-    a1 = ag.AtomNode("")
-    a2 = ag.AtomNode("")
-    a3 = ag.AtomNode("")
-    a4 = ag.AtomNode("")
-    s1 = ag.SchemeNode()
-    s2 = ag.SchemeNode()
+    a1 = ag.AtomNode("", id="a1")
+    a2 = ag.AtomNode("", id="a2")
+    a3 = ag.AtomNode("", id="a3")
+    a4 = ag.AtomNode("", id="a4")
+    s1 = ag.SchemeNode(id="s1")
+    s2 = ag.SchemeNode(id="s2")
 
     g.add_edge(ag.Edge(a1, s1))
     g.add_edge(ag.Edge(s1, s2))
@@ -21,6 +21,11 @@ def test_strip_scheme_nodes():
     g.add_edge(ag.Edge(a2, s1))
     g.add_edge(ag.Edge(a3, s2))
 
+    return g
+
+
+def test_strip_scheme_nodes():
+    g = generate_graph()
     g.strip_scheme_nodes()
 
     assert len(g.nodes) == 4
@@ -29,21 +34,8 @@ def test_strip_scheme_nodes():
 
 
 def test_remove_branch():
-    g = ag.Graph()
-    a1 = ag.AtomNode("")
-    a2 = ag.AtomNode("")
-    a3 = ag.AtomNode("")
-    a4 = ag.AtomNode("")
-    s1 = ag.SchemeNode()
-    s2 = ag.SchemeNode()
-
-    g.add_edge(ag.Edge(a1, s1))
-    g.add_edge(ag.Edge(s1, s2))
-    g.add_edge(ag.Edge(s2, a4))
-    g.add_edge(ag.Edge(a2, s1))
-    g.add_edge(ag.Edge(a3, s2))
-
-    g.remove_branch(s2)
+    g = generate_graph()
+    g.remove_branch("s2")
 
     assert len(g.nodes) == 1
     assert len(g.edges) == 0
