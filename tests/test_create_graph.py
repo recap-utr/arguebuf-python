@@ -41,6 +41,39 @@ def test_remove_branch():
     assert len(g.edges) == 0
 
 
+def test_sibling_nodes():
+    g = ag.Graph()
+
+    a1 = ag.AtomNode("", id="a1")
+    a2 = ag.AtomNode("", id="a2")
+    a3 = ag.AtomNode("", id="a3")
+    a4 = ag.AtomNode("", id="a4")
+    a5 = ag.AtomNode("", id="a5")
+    a6 = ag.AtomNode("", id="a6")
+    s1 = ag.SchemeNode(id="s1")
+    s2 = ag.SchemeNode(id="s2")
+    s3 = ag.SchemeNode(id="s3")
+    s4 = ag.SchemeNode(id="s4")
+    s5 = ag.SchemeNode(id="s5")
+
+    g.add_edge(ag.Edge(a1, s1))
+    g.add_edge(ag.Edge(a2, s2))
+    g.add_edge(ag.Edge(s1, a3))
+    g.add_edge(ag.Edge(s2, a3))
+    g.add_edge(ag.Edge(a3, s3))
+    g.add_edge(ag.Edge(s3, a4))
+    g.add_edge(ag.Edge(s4, a4))
+    g.add_edge(ag.Edge(a5, s4))
+    g.add_edge(ag.Edge(s5, a5))
+    g.add_edge(ag.Edge(a6, s5))
+
+    siblings = g.sibling_node_distances(a2)
+
+    assert len(siblings) == 3
+    assert siblings[a1] == 2
+    assert siblings[a6] == 4
+
+
 def test_create_graph(tmp_path: Path):
     g = ag.Graph("Test")
 

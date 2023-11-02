@@ -141,21 +141,64 @@ class Graph(t.Generic[TextType]):
     child_nodes = incoming_nodes
     parent_nodes = outgoing_nodes
 
-    def sibling_nodes(
-        self, node: t.Union[str, AbstractNode]
-    ) -> t.AbstractSet[AbstractNode]:
+    def sibling_node_distances(
+        self,
+        node: t.Union[str, AbstractNode],
+        max_levels: t.Optional[int] = None,
+        node_type: t.Type[AbstractNode] = AbstractNode,
+    ) -> dict[AbstractNode, int]:
+        """Find all sibling nodes of a node and their distance in the graph"""
+
         if isinstance(node, str):
             node = self._nodes[node]
 
-        parent_nodes = self.parent_nodes(node)
-        sibling_nodes = set()
+        # visited: set[AbstractNode] = set()
+        sibling_nodes: dict[AbstractNode, int] = {}
+        parent_nodes: dict[AbstractNode, int] = {
+            parent: 1 for parent in self.parent_nodes(node)
+        }
 
-        for parent_node in parent_nodes:
-            sibling_nodes.update(self.child_nodes(parent_node))
+        while parent_nodes:
+            parent, level = parent_nodes.popitem()
+            child_nodes = self.child_nodes(parent)
+            grandparent_nodes = self.parent_nodes(parent)
 
-        sibling_nodes.remove(node)
+            parent_nodes.update(
+                {parent: level + 1 for parent in grandparent_nodes}
+                if (max_levels is None or level < max_levels)
+                and len(grandparent_nodes) > 0
+                else {}
+            )
+
+            for _ in range(level - 1):
+                if len(child_nodes) == 0:
+                    break
+
+                next_child_nodes: set[AbstractNode] = set()
+
+                for child_node in child_nodes:
+                    next_child_nodes.update(self.child_nodes(child_node))
+
+                child_nodes = next_child_nodes
+
+            sibling_nodes.update(
+                {
+                    child_node: level
+                    for child_node in child_nodes
+                    if isinstance(child_node, node_type)
+                    and child_node not in sibling_nodes
+                }
+            )
 
         return sibling_nodes
+
+    def sibling_nodes(
+        self,
+        node: t.Union[str, AbstractNode],
+        max_levels: t.Optional[int] = 1,
+        node_type: t.Type[AbstractNode] = AbstractNode,
+    ) -> t.AbstractSet[AbstractNode]:
+        return self.sibling_node_distances(node, max_levels, node_type).keys()
 
     def incoming_edges(self, node: t.Union[str, AbstractNode]) -> t.AbstractSet[Edge]:
         if isinstance(node, str):
