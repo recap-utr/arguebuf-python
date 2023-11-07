@@ -239,13 +239,13 @@ optimize = ["orjson"]
 
 [[package]]
 name = "deepl"
-version = "1.16.0"
+version = "1.16.1"
 description = "Python library for the DeepL API."
 optional = true
 python-versions = ">=3.6.2,<4"
 files = [
-    {file = "deepl-1.16.0-py3-none-any.whl", hash = "sha256:2ac279bb249a5f486702a125b51ebe71b57d9603b9afc61afe1b22ccdf0af756"},
-    {file = "deepl-1.16.0.tar.gz", hash = "sha256:009f5b7ae95d00e9fdc80a3c3550e49e95a44c6d4f2802c0d588d48c2d199b7c"},
+    {file = "deepl-1.16.1-py3-none-any.whl", hash = "sha256:17bd19a28850a10513377afc1b0e28ee907502e4a4a547d616bfa9cf65dfd4ea"},
+    {file = "deepl-1.16.1.tar.gz", hash = "sha256:b34d4a8644c9e62a7a9c24acfe80a07717bd0a3b2be77b633a10d5d4fe748dcd"},
 ]
 
 [package.dependencies]
