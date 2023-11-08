@@ -13,8 +13,8 @@ packages = [{ include = "arguebuf" }]
 arguebuf = "arguebuf.cli.app:cli"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-arg-services = "^1.4"
+python = "^3.10"
+arg-services = "^1.5"
 networkx = ">=2.8, <4.0"
 pendulum = "^2.1"
 graphviz = "^0.20"
