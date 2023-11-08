@@ -44,7 +44,7 @@ doctest_optionflags = "NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 
 [tool.ruff]
 # https://docs.astral.sh/ruff/rules/
-target-version = "py39"
+target-version = "py310"
 select = ["B", "E", "F", "W"]
 ignore = ["E501"]
 
