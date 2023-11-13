@@ -156,8 +156,8 @@ def test_create_graph(tmp_path: Path):
     g.add_resource(r2)
     g.add_resource(ag.Resource("Resource2"))
     assert len(g.resources) == 3
-    g.atom_nodes
-    g.scheme_nodes
+    assert len(g.atom_nodes) > 0
+    assert len(g.scheme_nodes) > 0
     g.incoming_nodes(n3)
     g.incoming_atom_nodes(n2)
     g.outgoing_nodes(n3)
@@ -171,30 +171,30 @@ def test_create_graph(tmp_path: Path):
     # e4 = "Hallo ich bin keine Kante"
     # g.add_edge(e4)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.add_edge(e12)
 
     # r10 = "Hallo ich bin keine Quelle"
     # g.add_resource(r10)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.add_resource(r2)
 
     # g.remove_resource(r10)
     g.remove_resource(r2)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.remove_resource(r2)
 
     # p3 = "Hallo ich bin kein Teilnehmer"
     # g.add_participant(p3)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.add_participant(p1)
     # g.remove_participant(p3)
     g.remove_participant(p1)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.remove_participant(p1)
 
     assert len(g.participants) == 0

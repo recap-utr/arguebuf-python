@@ -46,7 +46,7 @@ class PathPair:
                 files_out.append(file_out)
 
             pairs.extend(
-                cls(file_in, file_out) for file_in, file_out in zip(files_in, files_out)
+                cls(file_in, file_out) for file_in, file_out in zip(files_in, files_out, strict=True)
             )
 
         else:
