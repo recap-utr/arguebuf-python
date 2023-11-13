@@ -2,8 +2,6 @@ import typing as t
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-import pendulum
-
 from arguebuf.model import utils
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.participant import Participant
@@ -11,7 +9,6 @@ from arguebuf.model.reference import Reference
 from arguebuf.model.scheme import Attack, Preference, Rephrase, Scheme, Support
 from arguebuf.model.typing import TextType
 from arguebuf.model.userdata import Userdata
-from arguebuf.schemas import argdown
 
 NO_SCHEME_LABEL = "Unknown"
 
@@ -152,20 +149,6 @@ class AtomNode(AbstractNode, t.Generic[TextType]):
 
     def __repr__(self):
         return utils.class_repr(self, [self._id, self.plain_text])
-
-    @classmethod
-    def from_argdown_json(
-        cls,
-        obj: argdown.Node,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> "AtomNode":
-        """Generate AtomNode object from Argdown JSON Node object."""
-        timestamp = pendulum.now()
-        return cls(
-            id=obj["id"],
-            text=utils.parse(obj["labelText"], nlp),
-            metadata=Metadata(timestamp, timestamp),
-        )
 
     def color(self, major_claim: bool, monochrome: bool) -> Color:
         """Get the color for rendering the node."""
