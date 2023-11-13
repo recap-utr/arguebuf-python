@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.5.0](https://github.com/recap-utr/arguebuf-python/compare/v2.4.0...v2.5.0) (2023-11-13)
+
+
+### Features
+
+* allow removing empty scheme branches ([0add380](https://github.com/recap-utr/arguebuf-python/commit/0add380c998fa5a3f8ac9b33511c3e11582df554))
+
+
+### Bug Fixes
+
+* create atom node from argdown in its loader ([8660747](https://github.com/recap-utr/arguebuf-python/commit/8660747c13e0f4ff524c58ccb435c1e3db01a5cf))
+
 ## [2.4.0](https://github.com/recap-utr/arguebuf-python/compare/v2.3.1...v2.4.0) (2023-11-02)
 
 
