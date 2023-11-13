@@ -654,7 +654,7 @@ class Graph(t.Generic[TextType]):
 
         del self._analysts._store[analyst.id]
 
-    def strip_scheme_nodes(self) -> None:
+    def remove_scheme_nodes(self) -> None:
         """Remove scheme nodes from graph to connect atom nodes directly
 
         Can be useful to analyze the structure of atom nodes
@@ -675,6 +675,8 @@ class Graph(t.Generic[TextType]):
                 )
 
             self.remove_node(scheme)
+
+    strip_scheme_nodes = remove_scheme_nodes
 
     def remove_branch(self, element: t.Union[AbstractNode, Edge, str]) -> None:
         """Remove an element and all its descendants from the graph.
