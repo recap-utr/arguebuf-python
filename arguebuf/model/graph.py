@@ -678,6 +678,19 @@ class Graph(t.Generic[TextType]):
 
     strip_scheme_nodes = remove_scheme_nodes
 
+    def remove_empty_scheme_branches(self) -> None:
+        """Remove scheme nodes from graph where scheme is None"""
+
+        scheme_nodes = {
+            node for node in self.scheme_nodes.values() if node.scheme is None
+        }
+
+        while scheme_nodes:
+            scheme_node = scheme_nodes.pop()
+
+            if scheme_node.id in self.scheme_nodes:
+                self.remove_branch(scheme_node)
+
     def remove_branch(self, element: t.Union[AbstractNode, Edge, str]) -> None:
         """Remove an element and all its descendants from the graph.
 
