@@ -1,5 +1,3 @@
-from __future__ import absolute_import, annotations
-
 import typing as t
 from collections import abc
 from uuid import uuid1
@@ -36,7 +34,7 @@ def parse(text: t.Optional[str], nlp: t.Optional[t.Callable[[str], t.Any]]) -> t
     return text
 
 
-def type_error(actual: t.Type, expected: t.Type) -> str:
+def type_error(actual: type, expected: type) -> str:
     return (
         f"Expected type '{expected}', but got '{actual}'. Make sure that you are"
         " passing the correct method arguments."

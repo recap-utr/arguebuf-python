@@ -59,7 +59,7 @@ def load_argdown(
 def edge_from_argdown(
     obj: argdown.Edge,
     nodes: t.Mapping[str, AbstractNode],
-    edge_class: t.Type[Edge] = Edge,
+    edge_class: type[Edge] = Edge,
 ) -> t.Optional[Edge]:
     """Generate Edge object from Argdown JSON Edge format."""
 

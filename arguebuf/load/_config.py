@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import typing as t
 from dataclasses import dataclass
 
@@ -19,15 +17,15 @@ __all__ = ("Config",)
 @dataclass
 class Config(t.Generic[TextType]):
     nlp: t.Optional[t.Callable[[str], TextType]] = None
-    GraphClass: t.Type[Graph] = Graph
-    AtomNodeClass: t.Type[AtomNode] = AtomNode
-    SchemeNodeClass: t.Type[SchemeNode] = SchemeNode
-    EdgeClass: t.Type[Edge] = Edge
-    AnalystClass: t.Type[Analyst] = Analyst
-    MetadataClass: t.Type[Metadata] = Metadata
-    ParticipantClass: t.Type[Participant] = Participant
-    ReferenceClass: t.Type[Reference] = Reference
-    ResourceClass: t.Type[Resource] = Resource
+    GraphClass: type[Graph] = Graph
+    AtomNodeClass: type[AtomNode] = AtomNode
+    SchemeNodeClass: type[SchemeNode] = SchemeNode
+    EdgeClass: type[Edge] = Edge
+    AnalystClass: type[Analyst] = Analyst
+    MetadataClass: type[Metadata] = Metadata
+    ParticipantClass: type[Participant] = Participant
+    ReferenceClass: type[Reference] = Reference
+    ResourceClass: type[Resource] = Resource
 
 
 DefaultConfig = Config[str]()

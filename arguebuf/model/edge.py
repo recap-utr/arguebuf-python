@@ -1,5 +1,3 @@
-from __future__ import absolute_import, annotations
-
 import logging
 import typing as t
 
@@ -61,7 +59,7 @@ class Edge:
     def __post_init__(self):
         pass
 
-    def __eq__(self, other: t.Optional[Edge]) -> bool:
+    def __eq__(self, other: t.Optional["Edge"]) -> bool:
         if other is None:
             return False
 

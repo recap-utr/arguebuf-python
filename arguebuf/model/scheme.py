@@ -1,5 +1,3 @@
-from __future__ import absolute_import, annotations
-
 import typing as t
 from enum import Enum
 
@@ -140,13 +138,13 @@ preference2protobuf = {
 }
 protobuf2preference = {value: key for key, value in preference2protobuf.items()}
 
-scheme2aif: t.Dict[t.Type[Scheme], aif.SchemeType] = {
+scheme2aif: dict[type[Scheme], aif.SchemeType] = {
     Support: "RA",
     Attack: "CA",
     Rephrase: "MA",
     Preference: "PA",
 }
-aif2scheme: t.Dict[aif.SchemeType, t.Optional[Scheme]] = {
+aif2scheme: dict[aif.SchemeType, t.Optional[Scheme]] = {
     "RA": Support.DEFAULT,
     "CA": Attack.DEFAULT,
     "MA": Rephrase.DEFAULT,
@@ -154,7 +152,7 @@ aif2scheme: t.Dict[aif.SchemeType, t.Optional[Scheme]] = {
     "": None,
 }
 
-text2support: t.Dict[str, Support] = {
+text2support: dict[str, Support] = {
     "Alternatives": Support.ALTERNATIVES,
     "Analogy": Support.ANALOGY,
     "Arbitrary Verbal Classification": Support.VERBAL_CLASSIFICATION,
@@ -252,13 +250,13 @@ text2support: t.Dict[str, Support] = {
     "Witness Testimony": Support.WITNESS_TESTIMONY,
 }
 
-text2scheme: t.Dict[
-    t.Type[Scheme],
+text2scheme: dict[
+    type[Scheme],
     t.Union[
-        t.Dict[str, Support],
-        t.Dict[str, Attack],
-        t.Dict[str, Rephrase],
-        t.Dict[str, Preference],
+        dict[str, Support],
+        dict[str, Attack],
+        dict[str, Rephrase],
+        dict[str, Preference],
     ],
 ] = {
     Support: text2support,

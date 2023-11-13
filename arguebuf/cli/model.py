@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,7 +17,7 @@ class PathPair:
         path_out: Path,
         input_glob: t.Optional[str],
         output_suffix: t.Optional[str],
-    ) -> t.List[PathPair]:
+    ) -> list["PathPair"]:
         pairs: list[PathPair] = []
 
         if path_in.is_file():
@@ -59,7 +57,7 @@ class PathPair:
         return pairs
 
     @staticmethod
-    def label(path_pair: t.Optional[PathPair]) -> str:
+    def label(path_pair: t.Optional["PathPair"]) -> str:
         """Generate a string for representing a path pair.
 
         Args:

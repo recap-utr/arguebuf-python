@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import re
 import typing as t
 from collections.abc import Iterable
@@ -35,7 +33,7 @@ DEFAULT_GLOB = "*"
 @dataclass
 class FilesystemFilter:
     name: str
-    kwargs: t.Dict[str, str]
+    kwargs: dict[str, str]
 
     def __init__(self, name: str, **kwargs: str) -> None:
         self.name = name
@@ -46,7 +44,7 @@ class FilesystemFilter:
         return format2glob.get(self.kwargs.get("format"), DEFAULT_GLOB)
 
     @classmethod
-    def from_path(cls, path: Path) -> FilesystemFilter:
+    def from_path(cls, path: Path) -> "FilesystemFilter":
         kwargs: dict[str, str] = {}
         entries = path.name.replace(" ", "").split(",")
 
@@ -61,7 +59,7 @@ class FilesystemFilter:
 class CasebaseFilter:
     name: re.Pattern
     cases: t.Optional[re.Pattern]
-    kwargs: t.Dict[str, re.Pattern]
+    kwargs: dict[str, re.Pattern]
 
     def __init__(self, name: str, cases: t.Optional[str] = None, **kwargs: str):
         self.name = re.compile(name)
@@ -81,7 +79,7 @@ class CasebaseFilter:
         )
 
     @classmethod
-    def from_protobuf(cls, filter: CasebaseFilterProto) -> CasebaseFilter:
+    def from_protobuf(cls, filter: CasebaseFilterProto) -> "CasebaseFilter":
         return cls(filter.name, filter.cases, **filter.kwargs)
 
 
@@ -90,7 +88,7 @@ CasebaseFilterType = t.Union[CasebaseFilter, CasebaseFilterProto]
 
 def convert_filters(
     filters: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType], None]
-) -> t.List[CasebaseFilter]:
+) -> list[CasebaseFilter]:
     if filters is None:
         return []
 

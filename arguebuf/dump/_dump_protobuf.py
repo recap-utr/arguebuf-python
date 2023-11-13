@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import importlib.metadata
 
 from arg_services.graph.v1 import graph_pb2

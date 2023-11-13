@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from arguebuf.model import AbstractNode, AtomNode, Edge, Graph, SchemeNode
 from arguebuf.model.node import NO_SCHEME_LABEL
 from arguebuf.model.scheme import scheme2aif

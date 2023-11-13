@@ -1,5 +1,3 @@
-from __future__ import absolute_import, annotations
-
 import itertools
 import logging
 import typing as t
@@ -145,7 +143,7 @@ class Graph(t.Generic[TextType]):
         self,
         node: t.Union[str, AbstractNode],
         max_levels: t.Optional[int] = None,
-        node_type: t.Type[AbstractNode] = AbstractNode,
+        node_type: type[AbstractNode] = AbstractNode,
     ) -> dict[AbstractNode, int]:
         """Find all sibling nodes of a node and their distance in the graph"""
 
@@ -196,7 +194,7 @@ class Graph(t.Generic[TextType]):
         self,
         node: t.Union[str, AbstractNode],
         max_levels: t.Optional[int] = 1,
-        node_type: t.Type[AbstractNode] = AbstractNode,
+        node_type: type[AbstractNode] = AbstractNode,
     ) -> t.AbstractSet[AbstractNode]:
         return self.sibling_node_distances(node, max_levels, node_type).keys()
 
@@ -257,7 +255,7 @@ class Graph(t.Generic[TextType]):
         return None
 
     @property
-    def root_nodes(self) -> t.Set[AtomNode]:
+    def root_nodes(self) -> set[AtomNode]:
         """Find all nodes with no outgoing edges"""
         return {
             node
@@ -266,7 +264,7 @@ class Graph(t.Generic[TextType]):
         }
 
     @property
-    def leaf_nodes(self) -> t.Set[AtomNode]:
+    def leaf_nodes(self) -> set[AtomNode]:
         """Find all nodes with no incoming edges"""
         return {
             node

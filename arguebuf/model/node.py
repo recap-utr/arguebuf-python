@@ -1,5 +1,3 @@
-from __future__ import absolute_import, annotations
-
 import typing as t
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -47,7 +45,7 @@ class Color:
 COLOR_MONOCHROME = Color(bg="#ffffff", fg="#000000", border="#000000")
 
 
-scheme2color: t.Dict[t.Type[Scheme], Color] = {
+scheme2color: dict[type[Scheme], Color] = {
     Support: Color(bg="#4CAF50"),
     Attack: Color(bg="#F44336"),
     Rephrase: Color(bg="#009688"),
@@ -77,7 +75,7 @@ class AbstractNode(ABC):
     def __post_init__(self):
         pass
 
-    def __eq__(self, other: AbstractNode) -> bool:
+    def __eq__(self, other: "AbstractNode") -> bool:
         if other is None:
             return False
 
@@ -160,7 +158,7 @@ class AtomNode(AbstractNode, t.Generic[TextType]):
         cls,
         obj: argdown.Node,
         nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> AtomNode:
+    ) -> "AtomNode":
         """Generate AtomNode object from Argdown JSON Node object."""
         timestamp = pendulum.now()
         return cls(
@@ -188,12 +186,12 @@ class SchemeNode(AbstractNode):
     )
 
     scheme: t.Optional[Scheme]
-    premise_descriptors: t.List[str]
+    premise_descriptors: list[str]
 
     def __init__(
         self,
         scheme: t.Optional[Scheme] = None,
-        premise_descriptors: t.Optional[t.List[str]] = None,
+        premise_descriptors: t.Optional[list[str]] = None,
         metadata: t.Optional[Metadata] = None,
         userdata: t.Optional[Userdata] = None,
         id: t.Optional[str] = None,
