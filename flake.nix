@@ -23,6 +23,9 @@
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = import systems;
+      imports = [
+        flake-parts.flakeModules.easyOverlay
+      ];
       perSystem = {
         pkgs,
         lib,
@@ -37,6 +40,9 @@
         _module.args.pkgs = import nixpkgs {
           inherit system;
           overlays = [poetry2nix.overlays.default];
+        };
+        overlayAttrs = {
+          inherit (self'.packages) arguebuf;
         };
         packages = {
           default = pkgs.poetry2nix.mkPoetryApplication {
