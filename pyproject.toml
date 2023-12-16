@@ -16,7 +16,7 @@ arguebuf = "arguebuf.cli.app:cli"
 python = "^3.10"
 arg-services = "^1.5"
 networkx = ">=2.8, <4.0"
-pendulum = "^2.1"
+pendulum = "^3.0.0"
 graphviz = "^0.20"
 lxml = "^4.9"
 typer = { version = "^0.9", extras = ["all"], optional = true }
