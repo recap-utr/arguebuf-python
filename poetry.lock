@@ -816,12 +816,12 @@ plugins = ["importlib-metadata"]
 
 [[package]]
 name = "pygraphviz"
-version = "1.11"
+version = "1.12"
 description = "Python interface to Graphviz"
 optional = true
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 files = [
-    {file = "pygraphviz-1.11.zip", hash = "sha256:a97eb5ced266f45053ebb1f2c6c6d29091690503e3a5c14be7f908b37b06f2d4"},
+    {file = "pygraphviz-1.12.tar.gz", hash = "sha256:8b0b9207954012f3b670e53b8f8f448a28d12bdbbcf69249313bd8dbe680152f"},
 ]
 
 [[package]]
