@@ -10,21 +10,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: de-vri-es/setup-git-credentials@v2
-        with:
-          credentials: ${{ secrets.GH_PULL_CREDENTIALS }}
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v9
       - uses: DeterminateSystems/magic-nix-cache-action@v2
-      - uses: jacobtomlinson/gha-find-replace@v3
-        with:
-          find: "git@github.com:"
-          replace: "https://github.com/"
-          regex: false
-          include: "**/*.dvc"
-      - uses: iterative/setup-dvc@v1
-        with:
-          version: "2.58.2"
+      - run: nix profile install .#testEnv
       - run: dvc pull --force
       - run: nix develop -c poetry run pytest
   release:

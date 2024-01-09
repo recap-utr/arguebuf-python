@@ -60,6 +60,10 @@
               cmd = [];
             };
           };
+          testEnv = pkgs.buildEnv {
+            name = "test-env";
+            paths = with pkgs; [dvc];
+          };
           releaseEnv = pkgs.buildEnv {
             name = "release-env";
             paths = [poetry];

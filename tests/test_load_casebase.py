@@ -6,36 +6,35 @@ from deepdiff import DeepDiff
 
 import arguebuf as ag
 
-ARGUEBASE_PRIVATE = Path("data", "arguebase-private")
-ARGUEBASE_PUBLIC = Path("data", "arguebase-public")
+ARGUEBASE = Path("data", "arguebase")
 
 
-def test_convert_kialo():
-    graphs = ag.load.casebase(
-        ag.load.CasebaseFilter("kialo", r"^the-"),
-        basepath=ARGUEBASE_PRIVATE,
-    )
-    assert len(graphs) == 27
+# def test_convert_kialo():
+#     graphs = ag.load.casebase(
+#         ag.load.CasebaseFilter("kialo", r"^the-"),
+#         basepath=ARGUEBASE_PRIVATE,
+#     )
+#     assert len(graphs) == 27
 
-    for graph in graphs.values():
-        _test_generic(graph)
+#     for graph in graphs.values():
+#         _test_generic(graph)
 
 
-def test_convert_ova():
-    graphs = ag.load.casebase(
-        ag.load.CasebaseFilter("recap", format="ova", lang="de"),
-        basepath=ARGUEBASE_PRIVATE,
-    )
-    assert len(graphs) == 100
+# def test_convert_ova():
+#     graphs = ag.load.casebase(
+#         ag.load.CasebaseFilter("recap", format="ova", lang="de"),
+#         basepath=ARGUEBASE_PRIVATE,
+#     )
+#     assert len(graphs) == 100
 
-    for graph in graphs.values():
-        _test_generic(graph)
+#     for graph in graphs.values():
+#         _test_generic(graph)
 
 
 def test_convert_aif():
     graphs = ag.load.casebase(
         ag.load.CasebaseFilter("microtexts", format="aif"),
-        basepath=ARGUEBASE_PUBLIC,
+        basepath=ARGUEBASE,
     )
     assert len(graphs) == 110
 
@@ -49,7 +48,7 @@ def test_convert_arggraph():
         ag.load.CasebaseFilter(
             r"microtexts", r"^micro_[bc]", format="arggraph", lang="en"
         ),
-        basepath=ARGUEBASE_PUBLIC,
+        basepath=ARGUEBASE,
     )
     assert len(graphs) == 62 + 171
 
