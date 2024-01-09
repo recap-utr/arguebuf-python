@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.1](https://github.com/recap-utr/arguebuf-python/compare/v2.5.0...v2.5.1) (2024-01-09)
+
+
+### Bug Fixes
+
+* **cli:** allow changing node label strip char ([e47f857](https://github.com/recap-utr/arguebuf-python/commit/e47f8574d4feffe04e57341cfed9a9175f0607f3))
+* use different mono colors for node types ([b69a313](https://github.com/recap-utr/arguebuf-python/commit/b69a3137b4378bac88796ab1b6de169f4b290271))
+
 ## [2.5.0](https://github.com/recap-utr/arguebuf-python/compare/v2.4.0...v2.5.0) (2023-11-13)
 
 
