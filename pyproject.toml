@@ -14,25 +14,25 @@ arguebuf = "arguebuf.cli.app:cli"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arg-services = "^1.5"
-networkx = ">=2.8, <4.0"
-pendulum = "^2.1"
+arg-services = "^1.6"
+networkx = "^3.2"
+pendulum = "^3.0"
 graphviz = "^0.20"
-lxml = "^4.9"
+lxml = "^5.1"
 typer = { version = "^0.9", extras = ["all"], optional = true }
-deepl = { version = "^1.15", optional = true }
-pygraphviz = { version = "^1.11", optional = true }
+deepl = { version = "^1.16", optional = true }
+pygraphviz = { version = "^1.12", optional = true }
 multimethod = { version = "^1.10", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4"
 pytest-cov = "^4.1"
-pytest-xdist = "^3.3"
-deepdiff = { version = "^6.6", extras = ["murmur"] }
+pytest-xdist = "^3.5"
+deepdiff = { version = "^6.7", extras = ["murmur"] }
 lxml-stubs = "^0.4"
 
 [tool.poetry.group.docs.dependencies]
-pdoc = "^14.1"
+pdoc = "^14.3"
 
 [tool.poetry.extras]
 cli = ["typer", "deepl", "multimethod"]

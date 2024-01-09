@@ -1,7 +1,7 @@
 import typing as t
 from dataclasses import dataclass, field
 
-from pendulum.datetime import DateTime
+import pendulum
 
 from arguebuf.model import utils
 from arguebuf.model.metadata import Metadata
@@ -15,7 +15,7 @@ class Resource:
     text: t.Any
     title: t.Optional[str] = None
     source: t.Optional[str] = None
-    timestamp: t.Optional[DateTime] = None
+    timestamp: t.Optional[pendulum.DateTime] = None
     metadata: Metadata = field(default_factory=Metadata)
     userdata: Userdata = field(default_factory=dict)
     _id: str = field(default_factory=utils.uuid)
