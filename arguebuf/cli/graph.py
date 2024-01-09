@@ -50,8 +50,18 @@ def translate(
                 )
 
 
-def _strip_node_labels(node: ag.AbstractNode) -> str:
-    return "".join(char if char.isspace() else "–" for char in node.label)
+def node_label_formatter(
+    strip_labels: bool, strip_labels_char: t.Optional[str]
+) -> t.Callable[[ag.AbstractNode], str] | None:
+    _replace_char = "–" if strip_labels_char is None else strip_labels_char
+
+    def _node_label(node: ag.AbstractNode) -> str:
+        return "".join(char if char.isspace() else _replace_char for char in node.label)
+
+    if strip_labels:
+        return _node_label
+
+    return None
 
 
 @cli.command()
@@ -62,11 +72,12 @@ def render(
     output_format: str = ".pdf",
     strip_scheme_nodes: bool = False,
     strip_node_labels: bool = False,
+    strip_node_labels_char: t.Optional[str] = None,
     edge_style: t.Optional[ag.schemas.graphviz.EdgeStyle] = None,
     nodesep: t.Optional[float] = None,
     ranksep: t.Optional[float] = None,
     node_wrap_col: t.Optional[int] = None,
-    node_margin: t.Tuple[float, float] = (0, 0),
+    node_margin: tuple[float, float] = (0, 0),
     font_name: t.Optional[str] = None,
     font_size: t.Optional[float] = None,
     clean: bool = False,
@@ -113,8 +124,12 @@ def render(
                     ),
                     font_name=font_name,
                     font_size=font_size,
-                    atom_label=_strip_node_labels if strip_node_labels else None,
-                    scheme_label=_strip_node_labels if strip_node_labels else None,
+                    atom_label=node_label_formatter(
+                        strip_node_labels, strip_node_labels_char
+                    ),
+                    scheme_label=node_label_formatter(
+                        strip_node_labels, strip_node_labels_char
+                    ),
                     edge_style=edge_style,
                     max_nodes=max_nodes,
                     monochrome=monochrome,
