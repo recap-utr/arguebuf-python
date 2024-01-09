@@ -9,4 +9,4 @@ outs:
 - md5: 4142efab643ef5d8f31be79f21f2ed46.dir
   size: 35951840
   nfiles: 5847
-  path: arguebase-public
+  path: arguebase
