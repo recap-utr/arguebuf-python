@@ -1,4 +1,3 @@
-from __future__ import annotations
 import typing as t
 from dataclasses import dataclass, field
 from typing import List
