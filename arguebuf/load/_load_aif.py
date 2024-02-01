@@ -205,7 +205,7 @@ def process_each_hanging_node(
                                         if not are_nodes_connected(
                                             hanging_node, argument_node
                                         ):
-                                            new_node_id = id = utils.uuid()
+                                            new_node_id = utils.uuid()
                                             new_node = {
                                                 "nodeID": new_node_id,
                                                 "text": "Default Rephrase",
@@ -217,7 +217,7 @@ def process_each_hanging_node(
                                             obj["nodes"].append(new_node)
 
                                             # Create edges connecting hanging_node -> new_node and new_node -> ArgumentNode
-                                            new_edge_1_id = id = utils.uuid()
+                                            new_edge_1_id = utils.uuid()
                                             new_edge_1 = {
                                                 "edgeID": new_edge_1_id,
                                                 "fromID": hanging_node.node_id,
@@ -225,7 +225,7 @@ def process_each_hanging_node(
                                             }
                                             obj["edges"].append(new_edge_1)
 
-                                            new_edge_2_id = id = utils.uuid()
+                                            new_edge_2_id = utils.uuid()
                                             new_edge_2 = {
                                                 "edgeID": new_edge_2_id,
                                                 "fromID": new_node_id,
