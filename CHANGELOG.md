@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.2](https://github.com/recap-utr/arguebuf-python/compare/v2.5.1...v2.5.2) (2024-02-01)
+
+
+### Bug Fixes
+
+* export resource timestamp to protobuf ([57b1a8d](https://github.com/recap-utr/arguebuf-python/commit/57b1a8dc2e07fd433dbac46ab0042f1c21eec2ed))
+
 ## [2.5.1](https://github.com/recap-utr/arguebuf-python/compare/v2.5.0...v2.5.1) (2024-01-09)
 
 
