@@ -182,4 +182,6 @@ def resource_to_protobuf(obj: Resource) -> graph_pb2.Resource:
     if source := obj.source:
         proto.source = source
 
+    dt.to_protobuf(obj.timestamp, proto.timestamp)
+
     return proto
