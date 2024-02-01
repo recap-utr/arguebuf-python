@@ -308,7 +308,7 @@ def load_aif(
     obj: aif.Graph,
     name: t.Optional[str] = None,
     config: Config = DefaultConfig,
-    process_hanging_nodes_flag: bool = True,
+    reconstruct_dialog: bool = True,
 ) -> Graph:
     """Generate Graph structure from AIF argument graph file
     (reference: http://www.wi2.uni-trier.de/shared/publications/2019_LenzOllingerSahitajBergmann_ICCBR.pdf)
