@@ -317,7 +317,7 @@ def load_aif(
     g = config.GraphClass(name)
 
     # Process hanging nodes
-    if process_hanging_nodes_flag:
+    if reconstruct_dialog:
         obj = process_hanging_nodes(obj)
 
     for aif_node in obj["nodes"]:
