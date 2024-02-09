@@ -4,7 +4,7 @@ import typing as t
 class Node(t.TypedDict):
     id: str
     title: str  # title of argument/statement
-    type: str  # check if "argument-map-node", or "statment-map-node"
+    type: str  # check if "argument-map-node", or "statement-map-node"
     labelTitle: str  # title of argument/statement
     labelText: str  # text of argument/statement
 
