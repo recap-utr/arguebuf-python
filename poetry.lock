@@ -645,13 +645,13 @@ files = [
 
 [[package]]
 name = "multimethod"
-version = "1.11.1"
+version = "1.11.2"
 description = "Multiple argument dispatching."
 optional = true
 python-versions = ">=3.9"
 files = [
-    {file = "multimethod-1.11.1-py3-none-any.whl", hash = "sha256:939703e1667725169722269f3bb6d078ce414526a16475028ea3eb3b8a5fc4ef"},
-    {file = "multimethod-1.11.1.tar.gz", hash = "sha256:e2bfd270a30ee4b56e64b94b8353ed10f7e7aa769cedf6cb8f1d429ce50d72ea"},
+    {file = "multimethod-1.11.2-py3-none-any.whl", hash = "sha256:cb338f09395c0ee87d36c7691cdd794d13d8864358082cf1205f812edd5ce05a"},
+    {file = "multimethod-1.11.2.tar.gz", hash = "sha256:7f2a4863967142e6db68632fef9cd79053c09670ba0c5f113301e245140bba5c"},
 ]
 
 [[package]]
