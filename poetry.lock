@@ -221,20 +221,20 @@ toml = ["tomli"]
 
 [[package]]
 name = "deepdiff"
-version = "6.7.1"
+version = "7.0.0"
 description = "Deep Difference and Search of any Python object/data. Recreate objects by adding adding deltas to each other."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "deepdiff-6.7.1-py3-none-any.whl", hash = "sha256:58396bb7a863cbb4ed5193f548c56f18218060362311aa1dc36397b2f25108bd"},
-    {file = "deepdiff-6.7.1.tar.gz", hash = "sha256:b367e6fa6caac1c9f500adc79ada1b5b1242c50d5f716a1a4362030197847d30"},
+    {file = "deepdiff-7.0.0-py3-none-any.whl", hash = "sha256:f7bbb845f83ad6b9453a4ab07c579bdc6f1df712edc515740455a9b88c2bc41a"},
+    {file = "deepdiff-7.0.0.tar.gz", hash = "sha256:4e07da4f2a1ae069b7465d264715764f3b36ce181ec89f47050ead61711b1e9a"},
 ]
 
 [package.dependencies]
-ordered-set = ">=4.0.2,<4.2.0"
+ordered-set = ">=4.1.0,<4.2.0"
 
 [package.extras]
-cli = ["click (==8.1.3)", "pyyaml (==6.0.1)"]
+cli = ["click (==8.1.7)", "pyyaml (==6.0.1)"]
 optimize = ["orjson"]
 
 [[package]]
@@ -482,7 +482,6 @@ files = [
     {file = "lxml-5.1.1-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:2992480a25434d2df31413136ef87effab14d43b07f1f54c5012c4f6c7530144"},
     {file = "lxml-5.1.1-cp37-cp37m-win32.whl", hash = "sha256:1d0270d33fbde6e1c6758ff58e2e284144f5331aa05dfe7f44ceafdf4e9d31aa"},
     {file = "lxml-5.1.1-cp37-cp37m-win_amd64.whl", hash = "sha256:dec3491aa69a91ed07f5e6bc033e2b1a9424447ad5312ee69ac973e94d79083a"},
-    {file = "lxml-5.1.1-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:87b67d8620c2725d666e5d88ddba56bcdb1f52211a2e7d22f951b67c35f7f627"},
     {file = "lxml-5.1.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:5bd2595ebe95214446e00a1ab94571f778b126e17736ea222c07505c4e092289"},
     {file = "lxml-5.1.1-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:bfbdadc3cfe552331ecb0bbdcabf148d1697c73aa4321151e0e6c1704eeb76a7"},
     {file = "lxml-5.1.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:52358249292bc155af681a9240ec3d944c1195f0124aa10ec4e3635adc1e10a1"},
@@ -1087,4 +1086,4 @@ graphviz = ["pygraphviz"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "278b1fe0e5d240635dde7a4ae0027917efc74251b7bae45e2275c2c1a1cfef58"
+content-hash = "1d6c6c2f50c392d20e209aa79035a1a20fbb41dae6e58bc32853a13d09025295"
