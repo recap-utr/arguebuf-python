@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.3](https://github.com/recap-utr/arguebuf-python/compare/v2.5.2...v2.5.3) (2024-06-26)
+
+
+### Bug Fixes
+
+* **deps:** bump pdoc due to security issue ([0a2d183](https://github.com/recap-utr/arguebuf-python/commit/0a2d183b1205be6245b04bbf9ea322c9486082d7))
+
 ## [2.5.2](https://github.com/recap-utr/arguebuf-python/compare/v2.5.1...v2.5.2) (2024-02-01)
 
 
