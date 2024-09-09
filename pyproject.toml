@@ -28,7 +28,7 @@ multimethod = { version = "^1.10", optional = true }
 pytest = "^8.0.0"
 pytest-cov = "^5.0.0"
 pytest-xdist = "^3.5"
-deepdiff = { version = "^7.0.0", extras = ["murmur"] }
+deepdiff = { version = "^8.0.0", extras = ["murmur"] }
 lxml-stubs = "^0.5.0"
 
 [tool.poetry.group.docs.dependencies]
