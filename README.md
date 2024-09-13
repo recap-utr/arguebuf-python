@@ -28,7 +28,7 @@ Afterwards, you can execute it by calling `arguebuf`, for example:
 Alternatively, you can use the Docker image available at `ghcr.io/recap-utr/arguebuf-python`.
 To use it, mount a folder to the container and pass the options as the command.
 
-`docker run --rm -v $(pwd)/data:/data ghcr.io/recap-utr/arguebuf-python:latest --rm`
+`docker run --rm -it -v $(pwd)/data:/data ghcr.io/recap-utr/arguebuf-python:latest --help`
 
 If you use the `nix` package manager, you can run it as follows:
 
