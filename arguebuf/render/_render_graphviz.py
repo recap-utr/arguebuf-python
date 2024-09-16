@@ -33,7 +33,7 @@ def graphviz(
     if isinstance(graph, Graph):
         raise ValueError(
             "This method expects a graph in the 'DOT' format.Please use"
-            " 'arguebuf.to_graphviz(graph)' to convert your argument graph to the 'DOT'"
+            " 'arguebuf.dump.graphviz(graph)' to convert your argument graph to the 'DOT'"
             " format."
         )
     elif isinstance(graph, Digraph):
