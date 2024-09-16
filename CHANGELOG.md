@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.4](https://github.com/recap-utr/arguebuf-python/compare/v2.5.3...v2.5.4) (2024-09-16)
+
+
+### Bug Fixes
+
+* **graphviz:** update error message ([af751fc](https://github.com/recap-utr/arguebuf-python/commit/af751fc2977b74c1f60a83192a0003a13a0a030f))
+
 ## [2.5.3](https://github.com/recap-utr/arguebuf-python/compare/v2.5.2...v2.5.3) (2024-06-26)
 
 
