@@ -32,7 +32,7 @@
           pkgs,
           lib,
           system,
-          self',
+          config,
           ...
         }:
         let
@@ -49,21 +49,29 @@
             overlays = [ poetry2nix.overlays.default ];
           };
           overlayAttrs = {
-            inherit (self'.packages) arguebuf;
+            inherit (config.packages) arguebuf;
           };
           packages = {
-            default = pkgs.poetry2nix.mkPoetryApplication {
+            default = config.packages.arguebuf;
+            arguebuf = pkgs.poetry2nix.mkPoetryApplication {
               inherit python propagatedBuildInputs;
               projectDir = ./.;
               preferWheels = true;
+              meta = {
+                description = "Create and analyze argument graphs and serialize them via Protobuf";
+                license = lib.licenses.mit;
+                maintainers = with lib.maintainers; [ mirkolenz ];
+                platforms = with lib.platforms; darwin ++ linux;
+                homepage = "https://github.com/recap-utr/arguebuf-python";
+                mainProgram = "arguebuf";
+              };
             };
-            arguebuf = self'.packages.default;
             docker = pkgs.dockerTools.buildLayeredImage {
               name = "arguebuf";
               tag = "latest";
               created = "now";
               config = {
-                entrypoint = [ (lib.getExe self'.packages.default) ];
+                entrypoint = [ (lib.getExe config.packages.default) ];
                 cmd = [ ];
               };
             };
