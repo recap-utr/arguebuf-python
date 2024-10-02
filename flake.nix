@@ -51,6 +51,9 @@
           overlayAttrs = {
             inherit (config.packages) arguebuf;
           };
+          checks = {
+            inherit (config.packages) arguebuf;
+          };
           packages = {
             default = config.packages.arguebuf;
             arguebuf = pkgs.poetry2nix.mkPoetryApplication {
