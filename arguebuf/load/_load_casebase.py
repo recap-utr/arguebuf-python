@@ -87,7 +87,7 @@ CasebaseFilterType = t.Union[CasebaseFilter, CasebaseFilterProto]
 
 
 def convert_filters(
-    filters: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType], None]
+    filters: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType], None],
 ) -> list[CasebaseFilter]:
     if filters is None:
         return []
