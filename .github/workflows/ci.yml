@@ -16,6 +16,7 @@ jobs:
       - uses: iterative/setup-dvc@v1
       - run: dvc pull --force
       - run: nix develop -c poetry run pytest
+      - run: nix flake check --show-trace
   release:
     runs-on: ubuntu-latest
     needs: test
