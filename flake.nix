@@ -12,77 +12,90 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
-  outputs = inputs @ {
-    self,
-    flake-parts,
-    nixpkgs,
-    systems,
-    flocken,
-    poetry2nix,
-    ...
-  }:
-    flake-parts.lib.mkFlake {inherit inputs;} {
+  outputs =
+    inputs@{
+      self,
+      flake-parts,
+      nixpkgs,
+      systems,
+      flocken,
+      poetry2nix,
+      ...
+    }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import systems;
       imports = [
         flake-parts.flakeModules.easyOverlay
       ];
-      perSystem = {
-        pkgs,
-        lib,
-        system,
-        self',
-        ...
-      }: let
-        python = pkgs.python311;
-        poetry = pkgs.poetry;
-        propagatedBuildInputs = with pkgs; [graphviz d2];
-      in {
-        _module.args.pkgs = import nixpkgs {
-          inherit system;
-          overlays = [poetry2nix.overlays.default];
-        };
-        overlayAttrs = {
-          inherit (self'.packages) arguebuf;
-        };
-        packages = {
-          default = pkgs.poetry2nix.mkPoetryApplication {
-            inherit python propagatedBuildInputs;
-            projectDir = ./.;
-            preferWheels = true;
+      perSystem =
+        {
+          pkgs,
+          lib,
+          system,
+          self',
+          ...
+        }:
+        let
+          python = pkgs.python311;
+          poetry = pkgs.poetry;
+          propagatedBuildInputs = with pkgs; [
+            graphviz
+            d2
+          ];
+        in
+        {
+          _module.args.pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ poetry2nix.overlays.default ];
           };
-          arguebuf = self'.packages.default;
-          docker = pkgs.dockerTools.buildLayeredImage {
-            name = "arguebuf";
-            tag = "latest";
-            created = "now";
-            config = {
-              entrypoint = [(lib.getExe self'.packages.default)];
-              cmd = [];
+          overlayAttrs = {
+            inherit (self'.packages) arguebuf;
+          };
+          packages = {
+            default = pkgs.poetry2nix.mkPoetryApplication {
+              inherit python propagatedBuildInputs;
+              projectDir = ./.;
+              preferWheels = true;
+            };
+            arguebuf = self'.packages.default;
+            docker = pkgs.dockerTools.buildLayeredImage {
+              name = "arguebuf";
+              tag = "latest";
+              created = "now";
+              config = {
+                entrypoint = [ (lib.getExe self'.packages.default) ];
+                cmd = [ ];
+              };
+            };
+            releaseEnv = pkgs.buildEnv {
+              name = "release-env";
+              paths = [ poetry ];
             };
           };
-          releaseEnv = pkgs.buildEnv {
-            name = "release-env";
-            paths = [poetry];
+          legacyPackages.dockerManifest = flocken.legacyPackages.${system}.mkDockerManifest {
+            github = {
+              enable = true;
+              token = "$GH_TOKEN";
+            };
+            version = builtins.getEnv "VERSION";
+            images = with self.packages; [
+              x86_64-linux.docker
+              aarch64-linux.docker
+            ];
+          };
+          devShells.default = pkgs.mkShell {
+            inherit propagatedBuildInputs;
+            packages = [
+              poetry
+              python
+            ];
+            POETRY_VIRTUALENVS_IN_PROJECT = true;
+            LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.stdenv.cc.cc ];
+            shellHook = ''
+              ${lib.getExe poetry} env use ${lib.getExe python}
+              ${lib.getExe poetry} install --all-extras --no-root
+            '';
           };
         };
-        legacyPackages.dockerManifest = flocken.legacyPackages.${system}.mkDockerManifest {
-          github = {
-            enable = true;
-            token = "$GH_TOKEN";
-          };
-          version = builtins.getEnv "VERSION";
-          images = with self.packages; [x86_64-linux.docker aarch64-linux.docker];
-        };
-        devShells.default = pkgs.mkShell {
-          inherit propagatedBuildInputs;
-          packages = [poetry python];
-          POETRY_VIRTUALENVS_IN_PROJECT = true;
-          LD_LIBRARY_PATH = lib.makeLibraryPath [pkgs.stdenv.cc.cc];
-          shellHook = ''
-            ${lib.getExe poetry} env use ${lib.getExe python}
-            ${lib.getExe poetry} install --all-extras --no-root
-          '';
-        };
-      };
     };
 }
