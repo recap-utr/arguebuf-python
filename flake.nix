@@ -11,6 +11,10 @@
       url = "github:nix-community/poetry2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs =
     inputs@{
@@ -26,6 +30,7 @@
       systems = import systems;
       imports = [
         flake-parts.flakeModules.easyOverlay
+        inputs.treefmt-nix.flakeModule
       ];
       perSystem =
         {
@@ -50,6 +55,14 @@
           };
           overlayAttrs = {
             inherit (config.packages) arguebuf;
+          };
+          treefmt = {
+            projectRootFile = "flake.nix";
+            programs = {
+              ruff-check.enable = true;
+              ruff-format.enable = true;
+              nixfmt.enable = true;
+            };
           };
           checks = {
             inherit (config.packages) arguebuf;
@@ -99,6 +112,7 @@
             packages = [
               poetry
               python
+              config.treefmt.build.wrapper
             ];
             POETRY_VIRTUALENVS_IN_PROJECT = true;
             LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.stdenv.cc.cc ];
