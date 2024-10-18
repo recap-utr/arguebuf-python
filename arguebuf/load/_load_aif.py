@@ -1,5 +1,5 @@
 import typing as t
-from arguebuf.load.preprocess.preprocess_aif import process_hanging_nodes
+from arguebuf.load._preprocess_aif import process_hanging_nodes
 import pendulum
 from arguebuf import dt
 from arguebuf.model import Graph, utils
