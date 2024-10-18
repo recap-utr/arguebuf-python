@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arguebuf"
-version = "2.5.4"
+version = "2.6.0"
 description = "Create and analyze argument graphs and serialize them via Protobuf"
 authors = ["Mirko Lenz <info@mirko-lenz.de>"]
 license = "MIT"

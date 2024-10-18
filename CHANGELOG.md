@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.0](https://github.com/recap-utr/arguebuf-python/compare/v2.5.4...v2.6.0) (2024-10-18)
+
+
+### Features
+
+* **aif:** add dialog reconstruction ([#102](https://github.com/recap-utr/arguebuf-python/issues/102)) ([f0308bf](https://github.com/recap-utr/arguebuf-python/commit/f0308bf25030e9131aba8ab32b705ba732ffde75))
+
 ## [2.5.4](https://github.com/recap-utr/arguebuf-python/compare/v2.5.3...v2.5.4) (2024-09-16)
 
 
