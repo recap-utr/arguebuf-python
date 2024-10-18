@@ -1,5 +1,3 @@
-import typing as t
-
 from arguebuf.model import utils
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.userdata import Userdata
@@ -8,27 +6,27 @@ __all__ = ("Participant",)
 
 
 class Participant:
-    name: t.Optional[str]
-    username: t.Optional[str]
-    email: t.Optional[str]
-    url: t.Optional[str]
-    location: t.Optional[str]
-    description: t.Optional[str]
+    name: str | None
+    username: str | None
+    email: str | None
+    url: str | None
+    location: str | None
+    description: str | None
     metadata: Metadata
     userdata: Userdata
     _id: str
 
     def __init__(
         self,
-        name: t.Optional[str] = None,
-        username: t.Optional[str] = None,
-        email: t.Optional[str] = None,
-        url: t.Optional[str] = None,
-        location: t.Optional[str] = None,
-        description: t.Optional[str] = None,
-        metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
-        id: t.Optional[str] = None,
+        name: str | None = None,
+        username: str | None = None,
+        email: str | None = None,
+        url: str | None = None,
+        location: str | None = None,
+        description: str | None = None,
+        metadata: Metadata | None = None,
+        userdata: Userdata | None = None,
+        id: str | None = None,
     ) -> None:
         self.name = name
         self.username = username

@@ -1,5 +1,3 @@
-import typing as t
-
 from arguebuf.model import utils
 from arguebuf.model.userdata import Userdata
 
@@ -7,17 +5,17 @@ __all__ = ("Analyst",)
 
 
 class Analyst:
-    name: t.Optional[str]
-    email: t.Optional[str]
+    name: str | None
+    email: str | None
     userdata: Userdata
     _id: str
 
     def __init__(
         self,
-        name: t.Optional[str] = None,
-        email: t.Optional[str] = None,
-        userdata: t.Optional[Userdata] = None,
-        id: t.Optional[str] = None,
+        name: str | None = None,
+        email: str | None = None,
+        userdata: Userdata | None = None,
+        id: str | None = None,
     ) -> None:
         self.name = name
         self.email = email

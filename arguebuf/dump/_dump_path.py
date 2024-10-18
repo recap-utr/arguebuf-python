@@ -1,4 +1,3 @@
-import typing as t
 from pathlib import Path
 
 from arguebuf.model import Graph
@@ -9,9 +8,7 @@ from ._dump_io import dump_io
 __all__ = ("dump_file",)
 
 
-def dump_file(
-    graph: Graph, path: t.Union[Path, str], config: Config = DefaultConfig
-) -> None:
+def dump_file(graph: Graph, path: Path | str, config: Config = DefaultConfig) -> None:
     """Export structure of Graph instance into structure of File/Folder format."""
     if isinstance(path, str):
         path = Path(path)

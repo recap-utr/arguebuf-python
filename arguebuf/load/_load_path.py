@@ -1,4 +1,3 @@
-import typing as t
 from pathlib import Path
 
 from arguebuf.model import Graph
@@ -11,8 +10,8 @@ __all__ = ("load_file", "load_folder")
 
 
 def load_file(
-    file: t.Union[Path, str],
-    text_file: t.Optional[t.Union[Path, str]] = None,
+    file: Path | str,
+    text_file: Path | str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from a File."""
@@ -35,9 +34,9 @@ def load_file(
 
 
 def load_folder(
-    folder: t.Union[Path, str],
+    folder: Path | str,
     pattern: str,
-    text_folder: t.Optional[t.Union[Path, str]] = None,
+    text_folder: Path | str | None = None,
     text_suffix: str = ".txt",
     config: Config = DefaultConfig,
 ) -> dict[Path, Graph]:

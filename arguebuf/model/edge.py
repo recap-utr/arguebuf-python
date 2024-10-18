@@ -12,7 +12,7 @@ __all__ = ("warn_missing_nodes", "Edge")
 
 
 def warn_missing_nodes(
-    edge_id: t.Optional[str], source_id: t.Optional[str], target_id: t.Optional[str]
+    edge_id: str | None, source_id: str | None, target_id: str | None
 ) -> None:
     log.warning(
         f"Skipping edge '{edge_id}': Source '{source_id}' or target '{target_id}' not"
@@ -41,9 +41,9 @@ class Edge:
         self,
         source: AbstractNode,
         target: AbstractNode,
-        metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
-        id: t.Optional[str] = None,
+        metadata: Metadata | None = None,
+        userdata: Userdata | None = None,
+        id: str | None = None,
     ):
         # if isinstance(source, AtomNode) and isinstance(target, AtomNode):
         #     raise ValueError("Cannot create an edge between two atom nodes.")

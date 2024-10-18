@@ -19,7 +19,7 @@ __all__ = ("load_ova",)
 
 def load_ova(
     obj: ova.Graph,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from OVA argument graph file (reference: http://ova.uni-trier.de/)."""
@@ -105,7 +105,7 @@ def _inject_original_text(
 
 def edge_from_ova(
     obj: ova.Edge, nodes: t.Mapping[str, AbstractNode], config: Config
-) -> t.Optional[Edge]:
+) -> Edge | None:
     """Generate Edge object from OVA Edge format."""
     source_id = str(obj["from"]["id"])
     target_id = str(obj["to"]["id"])
@@ -124,7 +124,7 @@ def edge_from_ova(
     return None
 
 
-def scheme_from_ova(obj: ova.Node, config: Config) -> t.Optional[SchemeNode]:
+def scheme_from_ova(obj: ova.Node, config: Config) -> SchemeNode | None:
     """Generate SchemeNode object from OVA Node object."""
 
     ova_type = obj["type"]

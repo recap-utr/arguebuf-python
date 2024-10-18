@@ -1,4 +1,3 @@
-import typing as t
 from pathlib import Path
 
 from graphviz import ENGINES, FORMATS, Digraph
@@ -11,7 +10,7 @@ __all__ = ("graphviz",)
 
 def graphviz(
     graph: GraphvizGraph,
-    path: t.Union[Path, str],
+    path: Path | str,
     prog: str = "dot",
     dpi: int = 300,
 ) -> None:

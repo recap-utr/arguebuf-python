@@ -25,7 +25,7 @@ __all__ = ("load_protobuf",)
 
 def load_protobuf(
     obj: graph_pb2.Graph,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from PROTOBUF argument graph file.(Link?)"""
@@ -144,7 +144,7 @@ def edge_from_protobuf(
     obj: graph_pb2.Edge,
     nodes: t.Mapping[str, AbstractNode],
     config: Config,
-) -> t.Optional[Edge]:
+) -> Edge | None:
     """Generate Edge object from PROTOBUF Edge format."""
     if obj.source in nodes and obj.target in nodes:
         return config.EdgeClass(
@@ -172,7 +172,7 @@ def reference_from_protobuf(
     obj: graph_pb2.Reference,
     resources: t.Mapping[str, Resource],
     config: Config,
-) -> t.Optional[Reference]:
+) -> Reference | None:
     """Generate Resource object from PROTOBUF format Graph's Resource object."""
     if obj.text:
         if obj.resource:

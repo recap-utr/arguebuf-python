@@ -11,7 +11,7 @@ __all__ = ("load_kialo",)
 
 def load_kialo(
     obj: t.TextIO,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     if name_match := re.search(r"Discussion Title: (.*)", obj.readline()):
@@ -103,8 +103,8 @@ def load_kialo(
 def _kialo_atom_node(
     id: str,
     text: str,
-    nlp: t.Optional[t.Callable[[str], t.Any]],
-    atom_class: t.Type[AtomNode],
+    nlp: t.Callable[[str], t.Any] | None,
+    atom_class: type[AtomNode],
 ) -> AtomNode:
     # Remove backslashes before parentheses/brackets
     text = re.sub(r"\\([\[\]\(\)])", r"\1", text)

@@ -144,7 +144,7 @@ scheme2aif: dict[type[Scheme], aif.SchemeType] = {
     Rephrase: "MA",
     Preference: "PA",
 }
-aif2scheme: dict[aif.SchemeType, t.Optional[Scheme]] = {
+aif2scheme: dict[aif.SchemeType, Scheme | None] = {
     "RA": Support.DEFAULT,
     "CA": Attack.DEFAULT,
     "MA": Rephrase.DEFAULT,
@@ -252,12 +252,10 @@ text2support: dict[str, Support] = {
 
 text2scheme: dict[
     type[Scheme],
-    t.Union[
-        dict[str, Support],
-        dict[str, Attack],
-        dict[str, Rephrase],
-        dict[str, Preference],
-    ],
+    dict[str, Support]
+    | dict[str, Attack]
+    | dict[str, Rephrase]
+    | dict[str, Preference],
 ] = {
     Support: text2support,
     Attack: {},

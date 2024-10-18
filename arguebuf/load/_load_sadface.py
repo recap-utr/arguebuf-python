@@ -23,7 +23,7 @@ __all__ = ("load_sadface",)
 
 def load_sadface(
     obj: sadface.Graph,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from SADFace argument graph file
@@ -106,7 +106,7 @@ def scheme_from_sadface(obj: sadface.Node, config: Config) -> SchemeNode:
 
 def edge_from_sadface(
     obj: sadface.Edge, nodes: t.Mapping[str, AbstractNode], config: Config
-) -> t.Optional[Edge]:
+) -> Edge | None:
     """Generate Edge object from SADFace Edge format."""
     source_id = obj.get("source_id")
     target_id = obj.get("target_id")

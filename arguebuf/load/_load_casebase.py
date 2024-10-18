@@ -58,10 +58,10 @@ class FilesystemFilter:
 
 class CasebaseFilter:
     name: re.Pattern
-    cases: t.Optional[re.Pattern]
+    cases: re.Pattern | None
     kwargs: dict[str, re.Pattern]
 
-    def __init__(self, name: str, cases: t.Optional[str] = None, **kwargs: str):
+    def __init__(self, name: str, cases: str | None = None, **kwargs: str):
         self.name = re.compile(name)
         self.cases = re.compile(cases) if cases is not None else None
         self.kwargs = {}
@@ -87,7 +87,7 @@ CasebaseFilterType = t.Union[CasebaseFilter, CasebaseFilterProto]
 
 
 def convert_filters(
-    filters: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType], None],
+    filters: CasebaseFilterType | t.Iterable[CasebaseFilterType] | None,
 ) -> list[CasebaseFilter]:
     if filters is None:
         return []
@@ -106,9 +106,9 @@ def convert_filters(
 
 
 def load_casebase(
-    include: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType]],
-    exclude: t.Union[CasebaseFilterType, t.Iterable[CasebaseFilterType], None] = None,
-    basepath: t.Union[Path, str] = ".",
+    include: CasebaseFilterType | t.Iterable[CasebaseFilterType],
+    exclude: CasebaseFilterType | t.Iterable[CasebaseFilterType] | None = None,
+    basepath: Path | str = ".",
     glob: str = "*/*",
     config: Config = DefaultConfig,
     strict_equal: bool = False,

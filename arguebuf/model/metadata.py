@@ -1,5 +1,3 @@
-import typing as t
-
 import pendulum
 
 __all__ = ("Metadata",)
@@ -12,8 +10,8 @@ class Metadata:
 
     def __init__(
         self,
-        created: t.Optional[pendulum.DateTime] = None,
-        updated: t.Optional[pendulum.DateTime] = None,
+        created: pendulum.DateTime | None = None,
+        updated: pendulum.DateTime | None = None,
     ) -> None:
         now = pendulum.now()
 

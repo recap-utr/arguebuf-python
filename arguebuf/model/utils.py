@@ -19,7 +19,7 @@ def xstr(data: t.Any) -> str:
     return "" if data is None else str(data)
 
 
-def parse(text: t.Optional[str], nlp: t.Optional[t.Callable[[str], t.Any]]) -> t.Any:
+def parse(text: str | None, nlp: t.Callable[[str], t.Any] | None) -> t.Any:
     if nlp:
         if text is None:
             return nlp("")
@@ -66,7 +66,7 @@ class ImmutableList(abc.Sequence[_T]):
 
     _store: t.MutableSequence[_T]
 
-    def __init__(self, items: t.Optional[t.MutableSequence[_T]] = None):
+    def __init__(self, items: t.MutableSequence[_T] | None = None):
         self._store = items or []
 
     def __len__(self) -> int:
@@ -80,7 +80,7 @@ class ImmutableList(abc.Sequence[_T]):
     def __getitem__(self, key: slice) -> t.Sequence[_T]:
         pass  # Don't put code here
 
-    def __getitem__(self, key: t.Union[int, slice]) -> t.Union[_T, t.Sequence[_T]]:
+    def __getitem__(self, key: int | slice) -> _T | t.Sequence[_T]:
         return self._store.__getitem__(key)
 
     def __repr__(self) -> str:
@@ -97,7 +97,7 @@ class ImmutableSet(abc.Set[_T]):
 
     _store: t.MutableSet[_T]
 
-    def __init__(self, items: t.Optional[t.MutableSet[_T]] = None):
+    def __init__(self, items: t.MutableSet[_T] | None = None):
         self._store = items or set()
 
     def __len__(self) -> int:
@@ -123,7 +123,7 @@ class ImmutableDict(t.Mapping[_T, _U]):
 
     _store: t.MutableMapping[_T, _U]
 
-    def __init__(self, items: t.Optional[t.MutableMapping[_T, _U]] = None):
+    def __init__(self, items: t.MutableMapping[_T, _U] | None = None):
         self._store = items or {}
 
     def __len__(self) -> int:

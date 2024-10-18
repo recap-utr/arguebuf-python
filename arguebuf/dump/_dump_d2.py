@@ -8,11 +8,11 @@ from arguebuf.schemas.d2 import D2Edge, D2Graph, D2Node, D2Style
 
 def dump_d2(
     graph: Graph,
-    atom_label: t.Optional[t.Callable[[AtomNode], str]] = None,
-    scheme_label: t.Optional[t.Callable[[SchemeNode], str]] = None,
-    max_nodes: t.Optional[int] = None,
+    atom_label: t.Callable[[AtomNode], str] | None = None,
+    scheme_label: t.Callable[[SchemeNode], str] | None = None,
+    max_nodes: int | None = None,
     monochrome: bool = False,
-) -> t.Optional[D2Graph]:
+) -> D2Graph | None:
     if len(graph.nodes) > (max_nodes or 1000):
         return None
 
@@ -50,7 +50,7 @@ def _dump_atom(
     g: D2Graph,
     major_claim: bool,
     monochrome: bool,
-    label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
+    label_func: t.Callable[[AtomNode], str] | None = None,
 ) -> None:
     label: str = label_func(node) if label_func else node.label
     color = node.color(major_claim, monochrome)
@@ -78,7 +78,7 @@ def _dump_scheme(
     g: D2Graph,
     major_claim: bool,
     monochrome: bool,
-    label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
+    label_func: t.Callable[[SchemeNode], str] | None = None,
 ) -> None:
     label: str = label_func(node) if label_func else node.label
     color = node.color(False, monochrome)

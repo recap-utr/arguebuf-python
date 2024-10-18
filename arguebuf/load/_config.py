@@ -16,7 +16,7 @@ __all__ = ("Config",)
 
 @dataclass
 class Config(t.Generic[TextType]):
-    nlp: t.Optional[t.Callable[[str], TextType]] = None
+    nlp: t.Callable[[str], TextType] | None = None
     GraphClass: type[Graph] = Graph
     AtomNodeClass: type[AtomNode] = AtomNode
     SchemeNodeClass: type[SchemeNode] = SchemeNode

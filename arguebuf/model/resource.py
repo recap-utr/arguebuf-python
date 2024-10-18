@@ -13,9 +13,9 @@ __all__ = ("Resource",)
 @dataclass()
 class Resource:
     text: t.Any
-    title: t.Optional[str] = None
-    source: t.Optional[str] = None
-    timestamp: t.Optional[pendulum.DateTime] = None
+    title: str | None = None
+    source: str | None = None
+    timestamp: pendulum.DateTime | None = None
     metadata: Metadata = field(default_factory=Metadata)
     userdata: Userdata = field(default_factory=dict)
     _id: str = field(default_factory=utils.uuid)

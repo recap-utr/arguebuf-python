@@ -11,12 +11,10 @@ __all__ = ("dump_networkx",)
 
 def dump_networkx(
     graph: Graph,
-    graph_attrs: t.Optional[t.MutableMapping[str, t.Callable[[Graph], t.Any]]] = None,
-    atom_attrs: t.Optional[t.MutableMapping[str, t.Callable[[AtomNode], t.Any]]] = None,
-    scheme_attrs: t.Optional[
-        t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]]
-    ] = None,
-    edge_attrs: t.Optional[t.MutableMapping[str, t.Callable[[Edge], t.Any]]] = None,
+    graph_attrs: t.MutableMapping[str, t.Callable[[Graph], t.Any]] | None = None,
+    atom_attrs: t.MutableMapping[str, t.Callable[[AtomNode], t.Any]] | None = None,
+    scheme_attrs: t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]] | None = None,
+    edge_attrs: t.MutableMapping[str, t.Callable[[Edge], t.Any]] | None = None,
 ) -> nx.DiGraph:
     """Transform the argument graph for use with the library `NetworkX`
 
@@ -69,7 +67,7 @@ def dump_networkx(
 def edge_to_nx(
     edge: Edge,
     g: nx.DiGraph,
-    attrs: t.Optional[t.MutableMapping[str, t.Callable[[Edge], t.Any]]] = None,
+    attrs: t.MutableMapping[str, t.Callable[[Edge], t.Any]] | None = None,
 ) -> None:
     """Submethod used to export Graph object g into NX Graph format."""
 
@@ -86,7 +84,7 @@ def edge_to_nx(
 def node_to_nx(
     node: AbstractNode,
     g: nx.DiGraph,
-    attrs: t.Optional[t.MutableMapping[str, t.Callable[[AbstractNode], t.Any]]] = None,
+    attrs: t.MutableMapping[str, t.Callable[[AbstractNode], t.Any]] | None = None,
 ) -> None:
     """Submethod used to export Graph object g into NX Graph format."""
     if attrs is None:

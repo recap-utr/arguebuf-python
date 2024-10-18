@@ -11,7 +11,7 @@ __all__ = ("load_brat",)
 
 def load_brat(
     obj: t.TextIO,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from BRAT argument graph file (reference: https://brat.nlplab.org/)"""

@@ -15,7 +15,7 @@ __all__ = ("load_io",)
 def load_io(
     obj: t.TextIO,
     suffix: str,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from IO argument graph file(Link?)."""

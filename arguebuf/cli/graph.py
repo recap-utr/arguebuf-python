@@ -19,7 +19,7 @@ def translate(
     target_lang: str,
     auth_key: str,
     input_glob: str,
-    output_folder: t.Optional[Path] = None,
+    output_folder: Path | None = None,
     output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
@@ -51,7 +51,7 @@ def translate(
 
 
 def node_label_formatter(
-    strip_labels: bool, strip_labels_char: t.Optional[str]
+    strip_labels: bool, strip_labels_char: str | None
 ) -> t.Callable[[ag.AbstractNode], str] | None:
     _replace_char = "–" if strip_labels_char is None else strip_labels_char
 
@@ -68,22 +68,22 @@ def node_label_formatter(
 def render(
     input_folder: Path,
     input_glob: str,
-    output_folder: t.Optional[Path] = None,
+    output_folder: Path | None = None,
     output_format: str = ".pdf",
     strip_scheme_nodes: bool = False,
     strip_node_labels: bool = False,
-    strip_node_labels_char: t.Optional[str] = None,
-    edge_style: t.Optional[ag.schemas.graphviz.EdgeStyle] = None,
-    nodesep: t.Optional[float] = None,
-    ranksep: t.Optional[float] = None,
-    node_wrap_col: t.Optional[int] = None,
+    strip_node_labels_char: str | None = None,
+    edge_style: ag.schemas.graphviz.EdgeStyle | None = None,
+    nodesep: float | None = None,
+    ranksep: float | None = None,
+    node_wrap_col: int | None = None,
     node_margin: tuple[float, float] = (0, 0),
-    font_name: t.Optional[str] = None,
-    font_size: t.Optional[float] = None,
+    font_name: str | None = None,
+    font_size: float | None = None,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
-    max_nodes: t.Optional[int] = None,
+    max_nodes: int | None = None,
     prog: str = "dot",
     dpi: int = 300,
     monochrome: bool = False,
@@ -141,12 +141,12 @@ def render(
 def convert(
     input_folder: Path,
     input_glob: str,
-    output_folder: t.Optional[Path] = None,
+    output_folder: Path | None = None,
     output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
-    text_folder: t.Optional[Path] = None,
+    text_folder: Path | None = None,
     text_suffix: str = ".txt",
 ) -> None:
     if not output_folder:

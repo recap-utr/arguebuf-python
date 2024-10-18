@@ -9,8 +9,8 @@ class Node(t.TypedDict):
     text: str
     type: NodeType
     name: str
-    sources: t.List[str]
-    metadata: t.Dict[str, t.Any]
+    sources: list[str]
+    metadata: dict[str, t.Any]
 
 
 class Edge(t.TypedDict):
@@ -36,6 +36,6 @@ class Metadata(t.TypedDict):
 
 
 class Graph(t.TypedDict):
-    nodes: t.List[Node]
-    edges: t.List[Edge]
+    nodes: list[Node]
+    edges: list[Edge]
     metadata: Metadata

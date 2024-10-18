@@ -7,15 +7,15 @@ __all__ = ("Reference",)
 
 
 class Reference:
-    _resource: t.Optional[Resource]
-    offset: t.Optional[int]
+    _resource: Resource | None
+    offset: int | None
     text: t.Any
 
     def __init__(
         self,
-        resource: t.Optional[Resource] = None,
-        offset: t.Optional[int] = None,
-        text: t.Optional[t.Any] = None,
+        resource: Resource | None = None,
+        offset: int | None = None,
+        text: t.Any | None = None,
     ) -> None:
         self._resource = resource
         self.offset = offset
@@ -27,5 +27,5 @@ class Reference:
         return utils.xstr(self.text)
 
     @property
-    def resource(self) -> t.Optional[Resource]:
+    def resource(self) -> Resource | None:
         return self._resource

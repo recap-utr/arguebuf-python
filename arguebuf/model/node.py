@@ -30,9 +30,9 @@ class Color:
 
     def __init__(
         self,
-        bg: t.Optional[str] = None,
-        fg: t.Optional[str] = None,
-        border: t.Optional[str] = None,
+        bg: str | None = None,
+        fg: str | None = None,
+        border: str | None = None,
     ) -> None:
         self.bg = bg or "#000000"
         self.fg = fg or "#ffffff"
@@ -60,9 +60,9 @@ class AbstractNode(ABC):
 
     def __init__(
         self,
-        metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
-        id: t.Optional[str] = None,
+        metadata: Metadata | None = None,
+        userdata: Userdata | None = None,
+        id: str | None = None,
     ):
         self._id = id or utils.uuid()
         self.metadata = metadata or Metadata()
@@ -113,17 +113,17 @@ class AtomNode(AbstractNode, t.Generic[TextType]):
     )
 
     text: TextType
-    _reference: t.Optional[Reference]
-    _participant: t.Optional[Participant]
+    _reference: Reference | None
+    _participant: Participant | None
 
     def __init__(
         self,
         text: TextType,
-        reference: t.Optional[Reference] = None,
-        participant: t.Optional[Participant] = None,
-        metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
-        id: t.Optional[str] = None,
+        reference: Reference | None = None,
+        participant: Participant | None = None,
+        metadata: Metadata | None = None,
+        userdata: Userdata | None = None,
+        id: str | None = None,
     ):
         super().__init__(metadata, userdata, id)
         self.text = text
@@ -141,11 +141,11 @@ class AtomNode(AbstractNode, t.Generic[TextType]):
         return self.plain_text
 
     @property
-    def reference(self) -> t.Optional[Reference]:
+    def reference(self) -> Reference | None:
         return self._reference
 
     @property
-    def participant(self) -> t.Optional[Participant]:
+    def participant(self) -> Participant | None:
         return self._participant
 
     def __repr__(self):
@@ -169,16 +169,16 @@ class SchemeNode(AbstractNode):
         "premise_descriptors",
     )
 
-    scheme: t.Optional[Scheme]
+    scheme: Scheme | None
     premise_descriptors: list[str]
 
     def __init__(
         self,
-        scheme: t.Optional[Scheme] = None,
-        premise_descriptors: t.Optional[list[str]] = None,
-        metadata: t.Optional[Metadata] = None,
-        userdata: t.Optional[Userdata] = None,
-        id: t.Optional[str] = None,
+        scheme: Scheme | None = None,
+        premise_descriptors: list[str] | None = None,
+        metadata: Metadata | None = None,
+        userdata: Userdata | None = None,
+        id: str | None = None,
     ):
         super().__init__(metadata, userdata, id)
         self.scheme = scheme

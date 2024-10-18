@@ -19,9 +19,7 @@ class Translator:
         self.target_lang = target_lang
         self.translator = DeepLTranslator(auth_key)
 
-    def _deepl_translate(
-        self, text: t.Union[str, t.Iterable[str]]
-    ) -> t.Union[str, list[str]]:
+    def _deepl_translate(self, text: str | t.Iterable[str]) -> str | list[str]:
         result = self.translator.translate_text(
             text,
             source_lang=self.source_lang,

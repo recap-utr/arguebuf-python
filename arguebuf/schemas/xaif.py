@@ -10,7 +10,7 @@ class AifNode(t.TypedDict):
 
 
 class AifEdge(t.TypedDict):
-    edgeID: t.Union[str, int]
+    edgeID: str | int
     fromID: str
     toID: str
 
@@ -32,11 +32,11 @@ class AifParticipant(t.TypedDict):
 
 
 class Aif(t.TypedDict):
-    nodes: t.List[AifNode]
-    edges: t.List[AifEdge]
-    schemefulfillments: t.List[AifSchemeFulfillment]
-    locutions: t.List[AifLocution]
-    participants: t.List[AifParticipant]
+    nodes: list[AifNode]
+    edges: list[AifEdge]
+    schemefulfillments: list[AifSchemeFulfillment]
+    locutions: list[AifLocution]
+    participants: list[AifParticipant]
 
 
 class OvaNode(t.TypedDict):
@@ -57,8 +57,8 @@ class Ova(t.TypedDict):
     firstname: str
     surname: str
     url: str
-    nodes: t.List[OvaNode]
-    edges: t.List[OvaEdge]
+    nodes: list[OvaNode]
+    edges: list[OvaEdge]
 
 
 class Graph(t.TypedDict):

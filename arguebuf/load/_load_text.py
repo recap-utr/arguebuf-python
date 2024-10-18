@@ -11,7 +11,7 @@ __all__ = ("load_text",)
 
 def load_text(
     obj: t.TextIO,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     first_line = obj.readline()

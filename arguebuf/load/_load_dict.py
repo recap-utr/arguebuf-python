@@ -16,7 +16,7 @@ __all__ = ("load_dict",)
 
 def load_dict(
     obj: t.Mapping[str, t.Any],
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from DICT argument graph file(Link?)."""

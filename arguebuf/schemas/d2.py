@@ -1,6 +1,3 @@
-import typing as t
-
-
 class D2Style:
     def __init__(
         self, font_color: str, bold: bool, stroke: str, stroke_width: int, fill: str
@@ -27,7 +24,7 @@ class D2Edge:
 
 
 class D2Graph:
-    def __init__(self, nodes: t.List[D2Node], edges: t.List[D2Edge]):
+    def __init__(self, nodes: list[D2Node], edges: list[D2Edge]):
         self.nodes = nodes
         self.edges = edges
 

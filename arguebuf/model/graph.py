@@ -57,10 +57,10 @@ class Graph(t.Generic[TextType]):
     _outgoing_edges: ImmutableDict[AbstractNode, ImmutableSet[Edge]]
     _resources: ImmutableDict[str, Resource]
     _participants: ImmutableDict[str, Participant]
-    _major_claim: t.Optional[AtomNode]
+    _major_claim: AtomNode | None
     _analysts: ImmutableDict[str, Analyst]
-    library_version: t.Optional[str]
-    schema_version: t.Optional[int]
+    library_version: str | None
+    schema_version: int | None
     metadata: Metadata
     userdata: Userdata
 
@@ -80,17 +80,13 @@ class Graph(t.Generic[TextType]):
     def scheme_nodes(self) -> t.Mapping[str, SchemeNode]:
         return self._scheme_nodes
 
-    def incoming_nodes(
-        self, node: t.Union[str, AbstractNode]
-    ) -> t.AbstractSet[AbstractNode]:
+    def incoming_nodes(self, node: str | AbstractNode) -> t.AbstractSet[AbstractNode]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._incoming_nodes[node]
 
-    def incoming_atom_nodes(
-        self, node: t.Union[str, AbstractNode]
-    ) -> t.AbstractSet[AtomNode]:
+    def incoming_atom_nodes(self, node: str | AbstractNode) -> t.AbstractSet[AtomNode]:
         if isinstance(node, str):
             node = self._nodes[node]
 
@@ -107,17 +103,13 @@ class Graph(t.Generic[TextType]):
 
         return incoming_atom_nodes
 
-    def outgoing_nodes(
-        self, node: t.Union[str, AbstractNode]
-    ) -> t.AbstractSet[AbstractNode]:
+    def outgoing_nodes(self, node: str | AbstractNode) -> t.AbstractSet[AbstractNode]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._outgoing_nodes[node]
 
-    def outgoing_atom_nodes(
-        self, node: t.Union[str, AbstractNode]
-    ) -> t.AbstractSet[AtomNode]:
+    def outgoing_atom_nodes(self, node: str | AbstractNode) -> t.AbstractSet[AtomNode]:
         if isinstance(node, str):
             node = self._nodes[node]
 
@@ -141,8 +133,8 @@ class Graph(t.Generic[TextType]):
 
     def sibling_node_distances(
         self,
-        node: t.Union[str, AbstractNode],
-        max_levels: t.Optional[int] = None,
+        node: str | AbstractNode,
+        max_levels: int | None = None,
         node_type: type[AbstractNode] = AbstractNode,
     ) -> dict[AbstractNode, int]:
         """Find all sibling nodes of a node and their distance in the graph"""
@@ -192,27 +184,25 @@ class Graph(t.Generic[TextType]):
 
     def sibling_nodes(
         self,
-        node: t.Union[str, AbstractNode],
-        max_levels: t.Optional[int] = 1,
+        node: str | AbstractNode,
+        max_levels: int | None = 1,
         node_type: type[AbstractNode] = AbstractNode,
     ) -> t.AbstractSet[AbstractNode]:
         return self.sibling_node_distances(node, max_levels, node_type).keys()
 
-    def incoming_edges(self, node: t.Union[str, AbstractNode]) -> t.AbstractSet[Edge]:
+    def incoming_edges(self, node: str | AbstractNode) -> t.AbstractSet[Edge]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._incoming_edges[node]
 
-    def outgoing_edges(self, node: t.Union[str, AbstractNode]) -> t.AbstractSet[Edge]:
+    def outgoing_edges(self, node: str | AbstractNode) -> t.AbstractSet[Edge]:
         if isinstance(node, str):
             node = self._nodes[node]
 
         return self._outgoing_edges[node]
 
-    def scheme_between(
-        self, premise: AtomNode, claim: AtomNode
-    ) -> t.Optional[SchemeNode]:
+    def scheme_between(self, premise: AtomNode, claim: AtomNode) -> SchemeNode | None:
         candidates = set(self._outgoing_nodes[premise]).intersection(
             self._incoming_nodes[claim]
         )
@@ -230,12 +220,12 @@ class Graph(t.Generic[TextType]):
         return self._resources
 
     @property
-    def major_claim(self) -> t.Optional[AtomNode]:
+    def major_claim(self) -> AtomNode | None:
         if self._major_claim:
             return self._major_claim
 
     @major_claim.setter
-    def major_claim(self, value: t.Union[str, AtomNode, None]) -> None:
+    def major_claim(self, value: str | AtomNode | None) -> None:
         if isinstance(value, str):
             value = self._atom_nodes[value]
         elif not (value is None or isinstance(value, AtomNode)):
@@ -245,7 +235,7 @@ class Graph(t.Generic[TextType]):
         # self._metadata.update()
 
     @property
-    def root_node(self) -> t.Optional[AtomNode]:
+    def root_node(self) -> AtomNode | None:
         """If there is a single node with no outgoing edges, return it, otherwise None"""
         candidates = self.root_nodes
 
@@ -280,7 +270,7 @@ class Graph(t.Generic[TextType]):
     def analysts(self) -> t.Mapping[str, Analyst]:
         return self._analysts
 
-    def __init__(self, name: t.Optional[str] = None):
+    def __init__(self, name: str | None = None):
         """Create a graph from scratch."""
 
         self.name = name or utils.uuid()
@@ -689,7 +679,7 @@ class Graph(t.Generic[TextType]):
             if scheme_node.id in self.scheme_nodes:
                 self.remove_branch(scheme_node)
 
-    def remove_branch(self, element: t.Union[AbstractNode, Edge, str]) -> None:
+    def remove_branch(self, element: AbstractNode | Edge | str) -> None:
         """Remove an element and all its descendants from the graph.
 
         If the element is a string, it is interpreted as the id of a node.

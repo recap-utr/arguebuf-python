@@ -1,7 +1,9 @@
 import typing as t
-from arguebuf.load._preprocess_aif import process_hanging_nodes
+
 import pendulum
+
 from arguebuf import dt
+from arguebuf.load._preprocess_aif import process_hanging_nodes
 from arguebuf.model import Graph, utils
 from arguebuf.model.edge import Edge, warn_missing_nodes
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
@@ -15,7 +17,7 @@ __all__ = ("load_aif",)
 
 def load_aif(
     obj: aif.Graph,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
     reconstruct_dialog: bool = False,
 ) -> Graph:
@@ -57,7 +59,7 @@ def atom_from_aif(obj: aif.Node, config: Config) -> AtomNode:
     )
 
 
-def scheme_from_aif(obj: aif.Node, config: Config) -> t.Optional[SchemeNode]:
+def scheme_from_aif(obj: aif.Node, config: Config) -> SchemeNode | None:
     """Generate SchemeNode object from AIF Node object."""
 
     aif_type = obj["type"]
@@ -87,7 +89,7 @@ def scheme_from_aif(obj: aif.Node, config: Config) -> t.Optional[SchemeNode]:
 
 def edge_from_aif(
     obj: aif.Edge, nodes: t.Mapping[str, AbstractNode], config: Config
-) -> t.Optional[Edge]:
+) -> Edge | None:
     """Generate Edge object from AIF Edge format."""
     source_id = obj.get("fromID")
     target_id = obj.get("toID")

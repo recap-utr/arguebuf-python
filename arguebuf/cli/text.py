@@ -3,6 +3,7 @@ import typing as t
 from pathlib import Path
 
 import typer
+
 from arguebuf.cli.translator import Translator
 
 from . import model
@@ -18,7 +19,7 @@ def translate(
     auth_key: str,
     input_glob: str,
     output_suffix: str,
-    output_folder: t.Optional[Path] = None,
+    output_folder: Path | None = None,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,

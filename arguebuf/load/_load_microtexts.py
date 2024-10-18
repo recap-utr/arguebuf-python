@@ -32,7 +32,7 @@ def transform_edges(elems: t.Iterable[t.Any]) -> dict[str, _Edge]:
 
 
 def load_microtexts(
-    obj: t.IO, name: t.Optional[str] = None, config: Config = DefaultConfig
+    obj: t.IO, name: str | None = None, config: Config = DefaultConfig
 ) -> Graph:
     """
     Generate Graph structure from AML argument graph file

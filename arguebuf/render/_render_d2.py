@@ -1,8 +1,8 @@
 import os
-from tempfile import NamedTemporaryFile
-import typing as t
 from pathlib import Path
 from subprocess import run
+from tempfile import NamedTemporaryFile
+
 from arguebuf.schemas.d2 import D2Graph
 
 __all__ = ("d2",)
@@ -11,7 +11,7 @@ FORMATS = ["png", "pdf", "svg"]
 
 def d2(
     graph: D2Graph,
-    path: t.Union[Path, str],
+    path: Path | str,
 ) -> None:
     """Visualize a Graph instance using a D2 backend. Make sure that a D2 Executable path is set on your machine for visualization."""
 

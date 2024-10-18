@@ -37,21 +37,21 @@ __all__ = ("dump_graphviz",)
 
 def dump_graphviz(
     graph: Graph,
-    nodesep: t.Optional[float] = None,
-    ranksep: t.Optional[float] = None,
-    wrap_col: t.Optional[int] = None,
-    margin: t.Optional[t.Tuple[float, float]] = None,
-    font_name: t.Optional[str] = None,
-    font_size: t.Optional[float] = None,
-    atom_label: t.Optional[t.Callable[[AtomNode], str]] = None,
-    scheme_label: t.Optional[t.Callable[[SchemeNode], str]] = None,
-    graph_attr: t.Optional[t.Mapping[str, str]] = None,
-    node_attr: t.Optional[t.Mapping[str, str]] = None,
-    edge_attr: t.Optional[t.Mapping[str, str]] = None,
-    edge_style: t.Optional[EdgeStyle] = None,
-    max_nodes: t.Optional[int] = None,
+    nodesep: float | None = None,
+    ranksep: float | None = None,
+    wrap_col: int | None = None,
+    margin: tuple[float, float] | None = None,
+    font_name: str | None = None,
+    font_size: float | None = None,
+    atom_label: t.Callable[[AtomNode], str] | None = None,
+    scheme_label: t.Callable[[SchemeNode], str] | None = None,
+    graph_attr: t.Mapping[str, str] | None = None,
+    node_attr: t.Mapping[str, str] | None = None,
+    edge_attr: t.Mapping[str, str] | None = None,
+    edge_style: EdgeStyle | None = None,
+    max_nodes: int | None = None,
     monochrome: bool = False,
-) -> t.Optional[GraphvizGraph]:
+) -> GraphvizGraph | None:
     """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
 
     if len(graph.nodes) > (max_nodes or 1000):
@@ -127,7 +127,7 @@ def _dump_atom(
     major_claim: bool,
     wrap_col: int,
     monochrome: bool,
-    label_func: t.Optional[t.Callable[[AtomNode], str]] = None,
+    label_func: t.Callable[[AtomNode], str] | None = None,
 ) -> None:
     """Submethod used to export Graph object g into GV Graph format."""
     color = node.color(major_claim, monochrome)
@@ -150,7 +150,7 @@ def _dump_scheme(
     node: SchemeNode,
     g: GraphvizGraph,
     monochrome: bool,
-    label_func: t.Optional[t.Callable[[SchemeNode], str]] = None,
+    label_func: t.Callable[[SchemeNode], str] | None = None,
 ) -> None:
     """Submethod used to export Graph object g into GV Graph format."""
 

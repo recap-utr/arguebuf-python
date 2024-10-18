@@ -15,8 +15,8 @@ class PathPair:
         cls,
         path_in: Path,
         path_out: Path,
-        input_glob: t.Optional[str],
-        output_suffix: t.Optional[str],
+        input_glob: str | None,
+        output_suffix: str | None,
     ) -> list["PathPair"]:
         pairs: list[PathPair] = []
 

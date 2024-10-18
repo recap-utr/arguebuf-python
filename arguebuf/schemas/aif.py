@@ -23,12 +23,12 @@ class Locution(t.TypedDict):
     nodeID: str
     personID: str
     timestamp: str
-    start: t.Optional[str]
-    end: t.Optional[str]
-    source: t.Optional[str]
+    start: str | None
+    end: str | None
+    source: str | None
 
 
 class Graph(t.TypedDict):
-    nodes: t.List[Node]
-    edges: t.List[Edge]
-    locutions: t.List[Locution]
+    nodes: list[Node]
+    edges: list[Edge]
+    locutions: list[Locution]

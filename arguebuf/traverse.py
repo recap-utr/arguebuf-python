@@ -10,7 +10,7 @@ def dfs(
     start: NodeType,
     connections: t.Callable[[AbstractNode], t.AbstractSet[NodeType]],
     include_start: bool = True,
-) -> t.List[NodeType]:
+) -> list[NodeType]:
     # Need to use a dict since a set does not preserve order
     visited: dict[NodeType, None] = {}
     stack: list[NodeType] = [start]
@@ -32,7 +32,7 @@ def bfs(
     start: NodeType,
     connections: t.Callable[[AbstractNode], t.AbstractSet[NodeType]],
     include_start: bool = True,
-) -> t.List[NodeType]:
+) -> list[NodeType]:
     # Need to use a dict since a set does not preserve order
     visited: dict[NodeType, None] = {}
     queue: list[NodeType] = [start]
@@ -54,9 +54,9 @@ def node_distance(
     start_node: AbstractNode,
     end_node: AbstractNode,
     connections: t.Callable[[AbstractNode], t.Iterable[AbstractNode]],
-    max_distance: t.Optional[int] = None,
+    max_distance: int | None = None,
     directed: bool = True,
-) -> t.Optional[int]:
+) -> int | None:
     """Get the distance between `start_node` and `end_node` in the graph.
 
     Args:
@@ -107,9 +107,9 @@ def _directed_node_distance(
     start_node: AbstractNode,
     end_node: AbstractNode,
     connections: t.Callable[[AbstractNode], t.Iterable[AbstractNode]],
-    max_distance: t.Optional[int] = None,
-) -> t.Optional[int]:
-    expansion: t.List[t.Tuple[AbstractNode, int]] = [
+    max_distance: int | None = None,
+) -> int | None:
+    expansion: list[tuple[AbstractNode, int]] = [
         (n, 1) for n in connections(start_node)
     ]
 

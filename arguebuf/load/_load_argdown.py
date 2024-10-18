@@ -15,7 +15,7 @@ __all__ = ("load_argdown",)
 
 def load_argdown(
     obj: argdown.Graph,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from JSON Argdown argument graph file
@@ -60,7 +60,7 @@ def edge_from_argdown(
     obj: argdown.Edge,
     nodes: t.Mapping[str, AbstractNode],
     edge_class: type[Edge] = Edge,
-) -> t.Optional[Edge]:
+) -> Edge | None:
     """Generate Edge object from Argdown JSON Edge format."""
 
     source_id = obj.get("from", obj.get("source"))
@@ -81,7 +81,7 @@ def edge_from_argdown(
 
 def atom_from_argdown(
     obj: argdown.Node,
-    nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    nlp: t.Callable[[str], t.Any] | None = None,
     node_class: type[AtomNode] = AtomNode,
 ) -> AtomNode:
     """Generate AtomNode object from Argdown JSON Node object."""

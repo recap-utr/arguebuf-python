@@ -14,7 +14,7 @@ __all__ = ("load_aml",)
 
 
 def load_aml(
-    obj: t.IO, name: t.Optional[str] = None, config: Config = DefaultConfig
+    obj: t.IO, name: str | None = None, config: Config = DefaultConfig
 ) -> Graph:
     """
     Generate Graph structure from AML argument graph file

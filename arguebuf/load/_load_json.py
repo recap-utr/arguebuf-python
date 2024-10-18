@@ -11,7 +11,7 @@ __all__ = ("load_json",)
 
 def load_json(
     obj: t.TextIO,
-    name: t.Optional[str] = None,
+    name: str | None = None,
     config: Config = DefaultConfig,
 ) -> Graph:
     """Generate Graph structure from JSON argument graph file(Link?)."""

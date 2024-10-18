@@ -18,8 +18,8 @@ class Edge(t.TypedDict):
 
 
 class Map(t.TypedDict):
-    nodes: t.List[Node]
-    edges: t.List[Edge]
+    nodes: list[Node]
+    edges: list[Edge]
 
 
 class Graph(t.TypedDict):
