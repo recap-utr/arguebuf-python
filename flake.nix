@@ -114,12 +114,12 @@
                 cmd = [ ];
               };
             };
-            releaseEnv = pkgs.buildEnv {
+            release-env = pkgs.buildEnv {
               name = "release-env";
               paths = [ poetry ];
             };
           };
-          legacyPackages.dockerManifest = flocken.legacyPackages.${system}.mkDockerManifest {
+          apps.docker-manifest.program = flocken.legacyPackages.${system}.mkDockerManifest {
             github = {
               enable = true;
               token = "$GH_TOKEN";
