@@ -69,10 +69,33 @@
           };
           packages = {
             default = config.packages.arguebuf;
+            arguebase = pkgs.fetchFromGitHub {
+              owner = "recap-utr";
+              repo = "arguebase-public";
+              rev = "468f32818cebe90a837427f4e5f471463159b637";
+              hash = "sha256-dF5vJBxVG4qJr+9ZJje27HXU1B+UmP9uzPh+ERUnRsg=";
+            };
+            link-arguebase = pkgs.writeShellScriptBin "link-arguebase" ''
+              mkdir -p data
+              rm -f data/arguebase
+              ln -sf ${config.packages.arguebase} data/arguebase
+            '';
             arguebuf = pkgs.poetry2nix.mkPoetryApplication {
-              inherit python propagatedBuildInputs;
+              inherit python;
               projectDir = ./.;
               preferWheels = true;
+              preCheck = ''
+                ${lib.getExe config.packages.link-arguebase}
+                PATH="${lib.makeBinPath propagatedBuildInputs}:$PATH"
+              '';
+              # postInstall = ''
+              #   wrapProgram $out/bin/arguebuf \
+              #     --prefix PATH : ${lib.makeBinPath propagatedBuildInputs}
+              # '';
+              nativeCheckInputs = with python.pkgs; [
+                pytestCheckHook
+                pytest-cov-stub
+              ];
               meta = {
                 description = "Create and analyze argument graphs and serialize them via Protobuf";
                 license = lib.licenses.mit;
@@ -107,18 +130,20 @@
               aarch64-linux.docker
             ];
           };
-          devShells.default = pkgs.mkShell {
+          devShells.default = pkgs.mkShell rec {
             inherit propagatedBuildInputs;
+            buildInputs = with pkgs; [ stdenv.cc.cc ];
             packages = [
               poetry
               python
               config.treefmt.build.wrapper
             ];
             POETRY_VIRTUALENVS_IN_PROJECT = true;
-            LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.stdenv.cc.cc ];
+            LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
             shellHook = ''
               ${lib.getExe poetry} env use ${lib.getExe python}
               ${lib.getExe poetry} install --all-extras --no-root
+              ${lib.getExe config.packages.link-arguebase}
             '';
           };
         };

@@ -13,9 +13,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v14
       - uses: DeterminateSystems/magic-nix-cache-action@v8
-      - uses: iterative/setup-dvc@v1
-      - run: dvc pull --force
-      - run: nix develop -c poetry run pytest
       - run: nix flake check --show-trace
   release:
     runs-on: ubuntu-latest

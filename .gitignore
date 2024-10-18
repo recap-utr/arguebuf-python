@@ -232,3 +232,4 @@ _readthedocs/
 .direnv/
 .devenv/
 /result
+/data/
