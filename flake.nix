@@ -41,7 +41,7 @@
           ...
         }:
         let
-          python = pkgs.python311;
+          python = pkgs.python312;
           poetry = pkgs.poetry;
           propagatedBuildInputs = with pkgs; [
             graphviz
