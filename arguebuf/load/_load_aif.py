@@ -1,7 +1,6 @@
 import typing as t
-
+from arguebuf.load._preprocess_aif import process_hanging_nodes
 import pendulum
-
 from arguebuf import dt
 from arguebuf.model import Graph, utils
 from arguebuf.model.edge import Edge, warn_missing_nodes
@@ -18,12 +17,17 @@ def load_aif(
     obj: aif.Graph,
     name: t.Optional[str] = None,
     config: Config = DefaultConfig,
+    reconstruct_dialog: bool = False,
 ) -> Graph:
     """Generate Graph structure from AIF argument graph file
     (reference: http://www.wi2.uni-trier.de/shared/publications/2019_LenzOllingerSahitajBergmann_ICCBR.pdf)
 
     """
     g = config.GraphClass(name)
+
+    # Process hanging nodes
+    if reconstruct_dialog:
+        obj = process_hanging_nodes(obj)
 
     for aif_node in obj["nodes"]:
         node = (
