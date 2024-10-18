@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Annotated
 
 import arg_services
 import grpc
@@ -17,10 +18,10 @@ class CasebaseService(casebase_pb2_grpc.CasebaseServiceServicer):
         self.glob = glob
 
     def Casebase(
-        self, req: casebase_pb2.CasebaseRequest, context: grpc.ServicerContext
+        self, request: casebase_pb2.CasebaseRequest, context: grpc.ServicerContext
     ) -> casebase_pb2.CasebaseResponse:
         cases = arguebuf.load.casebase(
-            req.include, req.exclude, self.basepath, self.glob
+            request.include, request.exclude, self.basepath, self.glob
         )
 
         return casebase_pb2.CasebaseResponse(
@@ -44,9 +45,9 @@ def add_services(casebase_service: CasebaseService):
 
 @cli.command()
 def start(
-    address: str = typer.Argument("127.0.0.1:50051"),
-    basepath: Path = typer.Option(Path(".")),
-    glob: str = typer.Option("*/*"),
+    address: Annotated[str, typer.Argument("127.0.0.1:50051")],
+    basepath: Annotated[Path, typer.Option(Path("."))],
+    glob: Annotated[str, typer.Option("*/*")],
 ):
     arg_services.serve(
         address,

@@ -83,7 +83,7 @@ class CasebaseFilter:
         return cls(filter.name, filter.cases, **filter.kwargs)
 
 
-CasebaseFilterType = t.Union[CasebaseFilter, CasebaseFilterProto]
+CasebaseFilterType = CasebaseFilter | CasebaseFilterProto
 
 
 def convert_filters(
