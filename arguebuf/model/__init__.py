@@ -14,7 +14,7 @@ from .analyst import Analyst
 from .edge import Edge
 from .graph import Graph
 from .metadata import Metadata
-from .node import AbstractNode, AtomNode, AtomOrSchemeNode, SchemeNode
+from .node import AbstractNode, AtomNode, AtomOrSchemeNode, NodeType, SchemeNode
 from .participant import Participant
 from .reference import Reference
 from .resource import Resource
@@ -49,6 +49,7 @@ __all__ = (
     "Reference",
     "AbstractNode",
     "AtomOrSchemeNode",
+    "NodeType",
     "Scheme",
     "Support",
     "Attack",

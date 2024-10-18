@@ -1,22 +1,19 @@
-from __future__ import annotations
-
 import typing as t
 
 import pendulum
-from pendulum.datetime import DateTime
 
 __all__ = ("Metadata",)
 
 
 class Metadata:
-    created: DateTime
-    updated: DateTime
+    created: pendulum.DateTime
+    updated: pendulum.DateTime
     # _analyst: t.Optional[Analyst] = None
 
     def __init__(
         self,
-        created: t.Optional[DateTime] = None,
-        updated: t.Optional[DateTime] = None,
+        created: t.Optional[pendulum.DateTime] = None,
+        updated: t.Optional[pendulum.DateTime] = None,
     ) -> None:
         now = pendulum.now()
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, annotations
-
 import itertools
 import logging
 import typing as t
@@ -138,6 +136,68 @@ class Graph(t.Generic[TextType]):
 
         return outgoing_atom_nodes
 
+    child_nodes = incoming_nodes
+    parent_nodes = outgoing_nodes
+
+    def sibling_node_distances(
+        self,
+        node: t.Union[str, AbstractNode],
+        max_levels: t.Optional[int] = None,
+        node_type: type[AbstractNode] = AbstractNode,
+    ) -> dict[AbstractNode, int]:
+        """Find all sibling nodes of a node and their distance in the graph"""
+
+        if isinstance(node, str):
+            node = self._nodes[node]
+
+        # visited: set[AbstractNode] = set()
+        sibling_nodes: dict[AbstractNode, int] = {}
+        parent_nodes: dict[AbstractNode, int] = {
+            parent: 1 for parent in self.parent_nodes(node)
+        }
+
+        while parent_nodes:
+            parent, level = parent_nodes.popitem()
+            child_nodes = self.child_nodes(parent)
+            grandparent_nodes = self.parent_nodes(parent)
+
+            parent_nodes.update(
+                {parent: level + 1 for parent in grandparent_nodes}
+                if (max_levels is None or level < max_levels)
+                and len(grandparent_nodes) > 0
+                else {}
+            )
+
+            for _ in range(level - 1):
+                if len(child_nodes) == 0:
+                    break
+
+                next_child_nodes: set[AbstractNode] = set()
+
+                for child_node in child_nodes:
+                    next_child_nodes.update(self.child_nodes(child_node))
+
+                child_nodes = next_child_nodes
+
+            sibling_nodes.update(
+                {
+                    child_node: level
+                    for child_node in child_nodes
+                    if isinstance(child_node, node_type)
+                    and child_node not in sibling_nodes
+                }
+            )
+
+        return sibling_nodes
+
+    def sibling_nodes(
+        self,
+        node: t.Union[str, AbstractNode],
+        max_levels: t.Optional[int] = 1,
+        node_type: type[AbstractNode] = AbstractNode,
+    ) -> t.AbstractSet[AbstractNode]:
+        return self.sibling_node_distances(node, max_levels, node_type).keys()
+
     def incoming_edges(self, node: t.Union[str, AbstractNode]) -> t.AbstractSet[Edge]:
         if isinstance(node, str):
             node = self._nodes[node]
@@ -195,7 +255,7 @@ class Graph(t.Generic[TextType]):
         return None
 
     @property
-    def root_nodes(self) -> t.Set[AtomNode]:
+    def root_nodes(self) -> set[AtomNode]:
         """Find all nodes with no outgoing edges"""
         return {
             node
@@ -204,7 +264,7 @@ class Graph(t.Generic[TextType]):
         }
 
     @property
-    def leaf_nodes(self) -> t.Set[AtomNode]:
+    def leaf_nodes(self) -> set[AtomNode]:
         """Find all nodes with no incoming edges"""
         return {
             node
@@ -592,7 +652,7 @@ class Graph(t.Generic[TextType]):
 
         del self._analysts._store[analyst.id]
 
-    def strip_scheme_nodes(self) -> None:
+    def remove_scheme_nodes(self) -> None:
         """Remove scheme nodes from graph to connect atom nodes directly
 
         Can be useful to analyze the structure of atom nodes
@@ -613,3 +673,35 @@ class Graph(t.Generic[TextType]):
                 )
 
             self.remove_node(scheme)
+
+    strip_scheme_nodes = remove_scheme_nodes
+
+    def remove_empty_scheme_branches(self) -> None:
+        """Remove scheme nodes from graph where scheme is None"""
+
+        scheme_nodes = {
+            node for node in self.scheme_nodes.values() if node.scheme is None
+        }
+
+        while scheme_nodes:
+            scheme_node = scheme_nodes.pop()
+
+            if scheme_node.id in self.scheme_nodes:
+                self.remove_branch(scheme_node)
+
+    def remove_branch(self, element: t.Union[AbstractNode, Edge, str]) -> None:
+        """Remove an element and all its descendants from the graph.
+
+        If the element is a string, it is interpreted as the id of a node.
+        """
+
+        if isinstance(element, str):
+            element = self.nodes[element]
+        if isinstance(element, Edge):
+            element = element.source
+
+        descendants = list(self.incoming_nodes(element))
+        self.remove_node(element)
+
+        for descendant in descendants:
+            self.remove_branch(descendant)

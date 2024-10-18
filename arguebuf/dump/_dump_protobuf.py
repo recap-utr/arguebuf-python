@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import importlib.metadata
 
 from arg_services.graph.v1 import graph_pb2
@@ -183,5 +181,7 @@ def resource_to_protobuf(obj: Resource) -> graph_pb2.Resource:
 
     if source := obj.source:
         proto.source = source
+
+    dt.to_protobuf(obj.timestamp, proto.timestamp)
 
     return proto

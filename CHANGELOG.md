@@ -1,5 +1,92 @@
 # Changelog
 
+## [2.5.4](https://github.com/recap-utr/arguebuf-python/compare/v2.5.3...v2.5.4) (2024-09-16)
+
+
+### Bug Fixes
+
+* **graphviz:** update error message ([af751fc](https://github.com/recap-utr/arguebuf-python/commit/af751fc2977b74c1f60a83192a0003a13a0a030f))
+
+## [2.5.3](https://github.com/recap-utr/arguebuf-python/compare/v2.5.2...v2.5.3) (2024-06-26)
+
+
+### Bug Fixes
+
+* **deps:** bump pdoc due to security issue ([0a2d183](https://github.com/recap-utr/arguebuf-python/commit/0a2d183b1205be6245b04bbf9ea322c9486082d7))
+
+## [2.5.2](https://github.com/recap-utr/arguebuf-python/compare/v2.5.1...v2.5.2) (2024-02-01)
+
+
+### Bug Fixes
+
+* export resource timestamp to protobuf ([57b1a8d](https://github.com/recap-utr/arguebuf-python/commit/57b1a8dc2e07fd433dbac46ab0042f1c21eec2ed))
+
+## [2.5.1](https://github.com/recap-utr/arguebuf-python/compare/v2.5.0...v2.5.1) (2024-01-09)
+
+
+### Bug Fixes
+
+* **cli:** allow changing node label strip char ([e47f857](https://github.com/recap-utr/arguebuf-python/commit/e47f8574d4feffe04e57341cfed9a9175f0607f3))
+* use different mono colors for node types ([b69a313](https://github.com/recap-utr/arguebuf-python/commit/b69a3137b4378bac88796ab1b6de169f4b290271))
+
+## [2.5.0](https://github.com/recap-utr/arguebuf-python/compare/v2.4.0...v2.5.0) (2023-11-13)
+
+
+### Features
+
+* allow removing empty scheme branches ([0add380](https://github.com/recap-utr/arguebuf-python/commit/0add380c998fa5a3f8ac9b33511c3e11582df554))
+
+
+### Bug Fixes
+
+* create atom node from argdown in its loader ([8660747](https://github.com/recap-utr/arguebuf-python/commit/8660747c13e0f4ff524c58ccb435c1e3db01a5cf))
+
+## [2.4.0](https://github.com/recap-utr/arguebuf-python/compare/v2.3.1...v2.4.0) (2023-11-02)
+
+
+### Features
+
+* add method to determine sibling distances ([a3538de](https://github.com/recap-utr/arguebuf-python/commit/a3538de9fc64e8238f398c61c5f340cbf1d3141b))
+
+
+### Bug Fixes
+
+* expose NodeType generic type variable ([9d0c891](https://github.com/recap-utr/arguebuf-python/commit/9d0c8910d93b27b3a0ea8ef7fdeaffe0561d00cf))
+
+## [2.3.1](https://github.com/recap-utr/arguebuf-python/compare/v2.3.0...v2.3.1) (2023-10-26)
+
+
+### Bug Fixes
+
+* use poetry2nix again after upstream fixes ([3a402e7](https://github.com/recap-utr/arguebuf-python/commit/3a402e748bce6a1826c0d7ada43ddf37a093b6bd))
+
+## [2.3.0](https://github.com/recap-utr/arguebuf-python/compare/v2.2.0...v2.3.0) (2023-10-25)
+
+
+### Features
+
+* add methods for sibling/child/parent nodes ([32fbc0c](https://github.com/recap-utr/arguebuf-python/commit/32fbc0c9b177922dc15ad2f180fb8e221da9064f))
+
+## [2.2.0](https://github.com/recap-utr/arguebuf-python/compare/v2.1.2...v2.2.0) (2023-10-23)
+
+
+### Features
+
+* **graph:** allow to remove an entire branch ([c03caba](https://github.com/recap-utr/arguebuf-python/commit/c03caba7c7d02828c72d3b66256434cf363d2ba7))
+
+
+### Bug Fixes
+
+* make remove_branch actually work ([ca9dbae](https://github.com/recap-utr/arguebuf-python/commit/ca9dbaea534300b4c0ed6e97c426cb70fdb32fe4))
+
+## [2.1.2](https://github.com/recap-utr/arguebuf-python/compare/v2.1.1...v2.1.2) (2023-10-20)
+
+
+### Bug Fixes
+
+* add docker image for cli ([b8e6b2c](https://github.com/recap-utr/arguebuf-python/commit/b8e6b2cb6bb8fc16f3b20ec1c1a813957003afa0))
+* bump deps ([03e5de3](https://github.com/recap-utr/arguebuf-python/commit/03e5de32c97c651e5736c8138656ca82b39f4305))
+
 ## [2.1.1](https://github.com/recap-utr/arguebuf-python/compare/v2.1.0...v2.1.1) (2023-07-13)
 
 

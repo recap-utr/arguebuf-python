@@ -6,14 +6,14 @@ from arg_services.graph.v1 import graph_pb2
 import arguebuf as ag
 
 
-def test_strip_scheme_nodes():
+def generate_graph() -> ag.Graph:
     g = ag.Graph()
-    a1 = ag.AtomNode("")
-    a2 = ag.AtomNode("")
-    a3 = ag.AtomNode("")
-    a4 = ag.AtomNode("")
-    s1 = ag.SchemeNode()
-    s2 = ag.SchemeNode()
+    a1 = ag.AtomNode("", id="a1")
+    a2 = ag.AtomNode("", id="a2")
+    a3 = ag.AtomNode("", id="a3")
+    a4 = ag.AtomNode("", id="a4")
+    s1 = ag.SchemeNode(id="s1")
+    s2 = ag.SchemeNode(id="s2")
 
     g.add_edge(ag.Edge(a1, s1))
     g.add_edge(ag.Edge(s1, s2))
@@ -21,11 +21,57 @@ def test_strip_scheme_nodes():
     g.add_edge(ag.Edge(a2, s1))
     g.add_edge(ag.Edge(a3, s2))
 
+    return g
+
+
+def test_strip_scheme_nodes():
+    g = generate_graph()
     g.strip_scheme_nodes()
 
     assert len(g.nodes) == 4
     assert len(g.scheme_nodes) == 0
     assert len(g.edges) == 3
+
+
+def test_remove_branch():
+    g = generate_graph()
+    g.remove_branch("s2")
+
+    assert len(g.nodes) == 1
+    assert len(g.edges) == 0
+
+
+def test_sibling_nodes():
+    g = ag.Graph()
+
+    a1 = ag.AtomNode("", id="a1")
+    a2 = ag.AtomNode("", id="a2")
+    a3 = ag.AtomNode("", id="a3")
+    a4 = ag.AtomNode("", id="a4")
+    a5 = ag.AtomNode("", id="a5")
+    a6 = ag.AtomNode("", id="a6")
+    s1 = ag.SchemeNode(id="s1")
+    s2 = ag.SchemeNode(id="s2")
+    s3 = ag.SchemeNode(id="s3")
+    s4 = ag.SchemeNode(id="s4")
+    s5 = ag.SchemeNode(id="s5")
+
+    g.add_edge(ag.Edge(a1, s1))
+    g.add_edge(ag.Edge(a2, s2))
+    g.add_edge(ag.Edge(s1, a3))
+    g.add_edge(ag.Edge(s2, a3))
+    g.add_edge(ag.Edge(a3, s3))
+    g.add_edge(ag.Edge(s3, a4))
+    g.add_edge(ag.Edge(s4, a4))
+    g.add_edge(ag.Edge(a5, s4))
+    g.add_edge(ag.Edge(s5, a5))
+    g.add_edge(ag.Edge(a6, s5))
+
+    siblings = g.sibling_node_distances(a2)
+
+    assert len(siblings) == 3
+    assert siblings[a1] == 2
+    assert siblings[a6] == 4
 
 
 def test_create_graph(tmp_path: Path):
@@ -110,8 +156,8 @@ def test_create_graph(tmp_path: Path):
     g.add_resource(r2)
     g.add_resource(ag.Resource("Resource2"))
     assert len(g.resources) == 3
-    g.atom_nodes
-    g.scheme_nodes
+    assert len(g.atom_nodes) > 0
+    assert len(g.scheme_nodes) > 0
     g.incoming_nodes(n3)
     g.incoming_atom_nodes(n2)
     g.outgoing_nodes(n3)
@@ -125,30 +171,30 @@ def test_create_graph(tmp_path: Path):
     # e4 = "Hallo ich bin keine Kante"
     # g.add_edge(e4)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.add_edge(e12)
 
     # r10 = "Hallo ich bin keine Quelle"
     # g.add_resource(r10)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.add_resource(r2)
 
     # g.remove_resource(r10)
     g.remove_resource(r2)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.remove_resource(r2)
 
     # p3 = "Hallo ich bin kein Teilnehmer"
     # g.add_participant(p3)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.add_participant(p1)
     # g.remove_participant(p3)
     g.remove_participant(p1)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         g.remove_participant(p1)
 
     assert len(g.participants) == 0

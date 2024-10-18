@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import typing as t
 from pathlib import Path
 
@@ -14,7 +12,7 @@ __all__ = ("dump_file",)
 def dump_file(
     graph: Graph, path: t.Union[Path, str], config: Config = DefaultConfig
 ) -> None:
-    """Export strucure of Graph instance into structure of File/Folder format."""
+    """Export structure of Graph instance into structure of File/Folder format."""
     if isinstance(path, str):
         path = Path(path)
 

@@ -2,10 +2,10 @@ import typing as t
 
 import pendulum
 
-from arguebuf.model import Graph
+from arguebuf.model import Graph, utils
 from arguebuf.model.edge import Edge, warn_missing_nodes
 from arguebuf.model.metadata import Metadata
-from arguebuf.model.node import AbstractNode, Attack, Support
+from arguebuf.model.node import AbstractNode, AtomNode, Attack, Support
 from arguebuf.schemas import argdown
 
 from ._config import Config, DefaultConfig
@@ -27,8 +27,8 @@ def load_argdown(
 
     # Every node in obj["nodes"] is a atom node
     for argdown_node in obj["map"]["nodes"]:
-        if node := config.AtomNodeClass.from_argdown_json(argdown_node, config.nlp):
-            g.add_node(node)
+        node = atom_from_argdown(argdown_node, config.nlp, config.AtomNodeClass)
+        g.add_node(node)
 
     for argdown_edge in obj["map"]["edges"]:
         if edge := edge_from_argdown(argdown_edge, g.nodes, config.EdgeClass):
@@ -59,7 +59,7 @@ def load_argdown(
 def edge_from_argdown(
     obj: argdown.Edge,
     nodes: t.Mapping[str, AbstractNode],
-    edge_class: t.Type[Edge] = Edge,
+    edge_class: type[Edge] = Edge,
 ) -> t.Optional[Edge]:
     """Generate Edge object from Argdown JSON Edge format."""
 
@@ -77,3 +77,17 @@ def edge_from_argdown(
         warn_missing_nodes(edge_id, source_id, target_id)
 
     return None
+
+
+def atom_from_argdown(
+    obj: argdown.Node,
+    nlp: t.Optional[t.Callable[[str], t.Any]] = None,
+    node_class: type[AtomNode] = AtomNode,
+) -> AtomNode:
+    """Generate AtomNode object from Argdown JSON Node object."""
+    timestamp = pendulum.now()
+    return node_class(
+        id=obj["id"],
+        text=utils.parse(obj["labelText"], nlp),
+        metadata=Metadata(timestamp, timestamp),
+    )

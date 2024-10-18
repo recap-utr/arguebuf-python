@@ -25,6 +25,15 @@ Afterwards, you can execute it by calling `arguebuf`, for example:
 
 `arguebuf --help`
 
+Alternatively, you can use the Docker image available at `ghcr.io/recap-utr/arguebuf-python`.
+To use it, mount a folder to the container and pass the options as the command.
+
+`docker run --rm -it -v $(pwd)/data:/data ghcr.io/recap-utr/arguebuf-python:latest --help`
+
+If you use the `nix` package manager, you can run it as follows:
+
+`nix run github:recap-utr/arguebuf-python -- --help`
+
 ## Theoretical Foundations
 
 An argument graph is way to represent _structured_ argumentation.
@@ -39,7 +48,7 @@ One of the claims is called _major claim_ and represents the overall claim of th
 In many cases (but not all), this major claim is located right at the top of the graph
 Here is a rather simple example.
 
-![Exemplary argument graph](./static/programmatic.png)
+![Exemplary argument graph](./assets/programmatic.png)
 
 Claims, premises and the major claim are represented as _atom nodes_ while relations between them are represented by _scheme nodes_.
 The set of nodes $V = A \cup S$ is composed of the set of atom nodes $A$ and the set of scheme nodes $S$.
@@ -109,12 +118,12 @@ graph.add_edge(ag.Edge(scheme2, claim))
 
 graph.major_claim = claim
 gv_graph = ag.dump.graphviz(graph)
-ag.render.graphviz(gv_graph, "./static/programmatic.png")
+ag.render.graphviz(gv_graph, "./assets/programmatic.png")
 ```
 
 With this code, we get the following output
 
-![Output of programmatic graph creation](./static/programmatic.png)
+![Output of programmatic graph creation](./assets/programmatic.png)
 
 ### Exporting Argument Graphs
 

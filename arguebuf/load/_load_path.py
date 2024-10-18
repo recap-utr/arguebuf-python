@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import typing as t
 from pathlib import Path
 
@@ -42,7 +40,7 @@ def load_folder(
     text_folder: t.Optional[t.Union[Path, str]] = None,
     text_suffix: str = ".txt",
     config: Config = DefaultConfig,
-) -> t.Dict[Path, Graph]:
+) -> dict[Path, Graph]:
     """Load all graphs matching the specified `pattern` in `path`.
 
     Args:

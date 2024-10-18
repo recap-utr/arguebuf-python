@@ -8,6 +8,7 @@ import arguebuf as ag
 from arguebuf.load._config import DefaultConfig
 from arguebuf.load._load_aif import atom_from_aif
 from arguebuf.load._load_aml import atom_from_aml, scheme_from_aml
+from arguebuf.load._load_argdown import atom_from_argdown
 from arguebuf.load._load_ova import atom_from_ova
 from arguebuf.load._load_sadface import atom_from_sadface, scheme_from_sadface
 from arguebuf.load._load_xaif import atom_from_xaif, scheme_from_xaif
@@ -141,7 +142,7 @@ argdown_json_data_AtomNode = [
 @pytest.mark.parametrize("data,id,text,type", argdown_json_data_AtomNode)
 def test_argdown_json_node_AN(data, id, text, type):
     data_json = json.loads(data)
-    node = ag.AtomNode.from_argdown_json(data_json)
+    node = atom_from_argdown(data_json)
 
     assert node.id == id
     assert node.text == text

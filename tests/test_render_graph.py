@@ -20,7 +20,7 @@ def test_render_graph(tmp_path: Path):
     an5 = ag.AtomNode(text="Chafee does have good positions")
     an6 = ag.AtomNode(text="chafee seems more like a cool college professor")
     an7 = ag.AtomNode(text="I was speaking more of Chafee's presentation")
-    an8 = ag.AtomNode(text="Chafee is very charasmatic")
+    an8 = ag.AtomNode(text="Chafee is very charismatic")
 
     # Create scheme nodes
     sn1 = ag.SchemeNode(scheme=ag.Attack.DEFAULT)

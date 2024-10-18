@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import typing as t
 
 from google.protobuf.json_format import MessageToDict
@@ -14,7 +12,7 @@ from ._dump_xaif import dump_xaif
 __all__ = ("dump_dict",)
 
 
-def dump_dict(graph: Graph, config: Config = DefaultConfig) -> t.Dict[str, t.Any]:
+def dump_dict(graph: Graph, config: Config = DefaultConfig) -> dict[str, t.Any]:
     """Export structure of Graph instance to DICT argument graph format."""
 
     if config.format == Format.AIF:

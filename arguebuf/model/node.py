@@ -1,10 +1,6 @@
-from __future__ import absolute_import, annotations
-
 import typing as t
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-
-import pendulum
 
 from arguebuf.model import utils
 from arguebuf.model.metadata import Metadata
@@ -13,7 +9,6 @@ from arguebuf.model.reference import Reference
 from arguebuf.model.scheme import Attack, Preference, Rephrase, Scheme, Support
 from arguebuf.model.typing import TextType
 from arguebuf.model.userdata import Userdata
-from arguebuf.schemas import argdown
 
 NO_SCHEME_LABEL = "Unknown"
 
@@ -23,6 +18,7 @@ __all__ = (
     "SchemeNode",
     "AtomOrSchemeNode",
     "NO_SCHEME_LABEL",
+    "NodeType",
 )
 
 
@@ -43,10 +39,11 @@ class Color:
         self.border = border or self.bg
 
 
-COLOR_MONOCHROME = Color(bg="#ffffff", fg="#000000", border="#000000")
+COLOR_MONOCHROME_LIGHT = Color(bg="#ffffff", fg="#000000", border="#000000")
+COLOR_MONOCHROME_DARK = Color(bg="#000000", fg="#ffffff", border="#000000")
 
 
-scheme2color: t.Dict[t.Type[Scheme], Color] = {
+scheme2color: dict[type[Scheme], Color] = {
     Support: Color(bg="#4CAF50"),
     Attack: Color(bg="#F44336"),
     Rephrase: Color(bg="#009688"),
@@ -76,7 +73,7 @@ class AbstractNode(ABC):
     def __post_init__(self):
         pass
 
-    def __eq__(self, other: AbstractNode) -> bool:
+    def __eq__(self, other: "AbstractNode") -> bool:
         if other is None:
             return False
 
@@ -154,24 +151,10 @@ class AtomNode(AbstractNode, t.Generic[TextType]):
     def __repr__(self):
         return utils.class_repr(self, [self._id, self.plain_text])
 
-    @classmethod
-    def from_argdown_json(
-        cls,
-        obj: argdown.Node,
-        nlp: t.Optional[t.Callable[[str], t.Any]] = None,
-    ) -> AtomNode:
-        """Generate AtomNode object from Argdown JSON Node object."""
-        timestamp = pendulum.now()
-        return cls(
-            id=obj["id"],
-            text=utils.parse(obj["labelText"], nlp),
-            metadata=Metadata(timestamp, timestamp),
-        )
-
     def color(self, major_claim: bool, monochrome: bool) -> Color:
         """Get the color for rendering the node."""
         if monochrome:
-            return COLOR_MONOCHROME
+            return COLOR_MONOCHROME_LIGHT
 
         return Color(bg="#0D47A1") if major_claim else Color(bg="#2196F3")
 
@@ -187,12 +170,12 @@ class SchemeNode(AbstractNode):
     )
 
     scheme: t.Optional[Scheme]
-    premise_descriptors: t.List[str]
+    premise_descriptors: list[str]
 
     def __init__(
         self,
         scheme: t.Optional[Scheme] = None,
-        premise_descriptors: t.Optional[t.List[str]] = None,
+        premise_descriptors: t.Optional[list[str]] = None,
         metadata: t.Optional[Metadata] = None,
         userdata: t.Optional[Userdata] = None,
         id: t.Optional[str] = None,
@@ -226,9 +209,10 @@ class SchemeNode(AbstractNode):
     def color(self, major_claim: bool, monochrome: bool) -> Color:
         """Get the color used in OVA based on `category`."""
         if monochrome:
-            return COLOR_MONOCHROME
+            return COLOR_MONOCHROME_DARK
 
         return scheme2color[type(self.scheme)] if self.scheme else Color(bg="#009688")
 
 
 AtomOrSchemeNode = t.Union[AtomNode, SchemeNode]
+NodeType = t.TypeVar("NodeType", AtomNode, SchemeNode, AbstractNode)

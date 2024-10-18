@@ -1,21 +1,19 @@
 import typing as t
 
-from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
+from arguebuf.model import AbstractNode, NodeType
 
 __all__ = ("dfs", "bfs", "node_distance")
-
-_Node = t.TypeVar("_Node", AtomNode, SchemeNode, AbstractNode)
 
 
 # https://eddmann.com/posts/depth-first-search-and-breadth-first-search-in-python/
 def dfs(
-    start: _Node,
-    connections: t.Callable[[AbstractNode], t.AbstractSet[_Node]],
+    start: NodeType,
+    connections: t.Callable[[AbstractNode], t.AbstractSet[NodeType]],
     include_start: bool = True,
-) -> t.List[_Node]:
+) -> t.List[NodeType]:
     # Need to use a dict since a set does not preserve order
-    visited: dict[_Node, None] = {}
-    stack: list[_Node] = [start]
+    visited: dict[NodeType, None] = {}
+    stack: list[NodeType] = [start]
 
     while stack:
         node = stack.pop()
@@ -31,13 +29,13 @@ def dfs(
 
 
 def bfs(
-    start: _Node,
-    connections: t.Callable[[AbstractNode], t.AbstractSet[_Node]],
+    start: NodeType,
+    connections: t.Callable[[AbstractNode], t.AbstractSet[NodeType]],
     include_start: bool = True,
-) -> t.List[_Node]:
+) -> t.List[NodeType]:
     # Need to use a dict since a set does not preserve order
-    visited: dict[_Node, None] = {}
-    queue: list[_Node] = [start]
+    visited: dict[NodeType, None] = {}
+    queue: list[NodeType] = [start]
 
     while queue:
         node = queue.pop(0)
