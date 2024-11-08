@@ -1,4 +1,3 @@
-import typing as t
 from enum import Enum
 
 from arg_services.graph.v1 import graph_pb2
@@ -116,7 +115,7 @@ class Rephrase(str, Enum):
     DEFAULT = "Default"
 
 
-Scheme = t.Union[Support, Attack, Rephrase, Preference]
+Scheme = Support | Attack | Rephrase | Preference
 
 support2protobuf = {
     item: graph_pb2.Support.Value(f"SUPPORT_{item.name}") for item in Support

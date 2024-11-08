@@ -1,9 +1,9 @@
-import typing as t
 from enum import Enum
+from typing import Any
 
 from graphviz import Digraph
 
-GraphvizGraph = t.Union[Digraph, t.Any]
+GraphvizGraph = Digraph | Any
 
 
 class EdgeStyle(str, Enum):

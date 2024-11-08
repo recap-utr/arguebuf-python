@@ -70,11 +70,11 @@ class AbstractNode(ABC):
 
         self.__post_init__()
 
-    def __post_init__(self):
+    def __post_init__(self):  # noqa: B027
         pass
 
-    def __eq__(self, other: "AbstractNode") -> bool:
-        if other is None:
+    def __eq__(self, other) -> bool:
+        if other is None or not isinstance(other, AbstractNode):
             return False
 
         return self.id == other.id
@@ -214,5 +214,5 @@ class SchemeNode(AbstractNode):
         return scheme2color[type(self.scheme)] if self.scheme else Color(bg="#009688")
 
 
-AtomOrSchemeNode = t.Union[AtomNode, SchemeNode]
+AtomOrSchemeNode = AtomNode | SchemeNode
 NodeType = t.TypeVar("NodeType", AtomNode, SchemeNode, AbstractNode)

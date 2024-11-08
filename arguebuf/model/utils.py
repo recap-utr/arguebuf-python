@@ -132,7 +132,7 @@ class ImmutableDict(t.Mapping[_T, _U]):
     def __getitem__(self, key: _T) -> _U:
         return self._store.__getitem__(key)
 
-    def __contains__(self, key: _T) -> bool:
+    def __contains__(self, key) -> bool:
         return self._store.__contains__(key)
 
     def __iter__(self) -> t.Iterator:

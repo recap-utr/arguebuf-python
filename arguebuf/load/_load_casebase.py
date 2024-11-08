@@ -69,7 +69,10 @@ class CasebaseFilter:
         for key, value in kwargs.items():
             self.kwargs[key] = re.compile(value)
 
-    def __eq__(self, other: FilesystemFilter) -> bool:
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, FilesystemFilter):
+            return False
+
         return self.kwargs == other.kwargs and self >= other
 
     def __ge__(self, other: FilesystemFilter) -> bool:

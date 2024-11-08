@@ -1,5 +1,4 @@
 import logging
-import typing as t
 
 from arguebuf.model import utils
 from arguebuf.model.metadata import Metadata
@@ -59,8 +58,8 @@ class Edge:
     def __post_init__(self):
         pass
 
-    def __eq__(self, other: t.Optional["Edge"]) -> bool:
-        if other is None:
+    def __eq__(self, other) -> bool:
+        if other is None or not isinstance(other, Edge):
             return False
 
         return (
