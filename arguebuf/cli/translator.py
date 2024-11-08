@@ -1,8 +1,8 @@
 import logging
 from collections.abc import Iterable
+from functools import singledispatchmethod
 
 from deepl.translator import Translator as DeepLTranslator
-from multimethod import multimethod
 
 import arguebuf as ag
 
@@ -31,50 +31,50 @@ class Translator:
         else:
             return result.text
 
-    @multimethod
-    def translate(self):
+    @singledispatchmethod
+    def translate(self, arg):
         raise NotImplementedError()
 
     @translate.register
-    def _(self, text: str) -> str:
-        trans = self._deepl_translate(text)
+    def _(self, arg: str) -> str:
+        trans = self._deepl_translate(arg)
         assert isinstance(trans, str)
         return trans
 
     @translate.register
-    def _(self, texts: Iterable[str]) -> list[str]:
-        trans = self._deepl_translate(texts)
+    def _(self, arg: Iterable[str]) -> list[str]:
+        trans = self._deepl_translate(arg)
         assert isinstance(trans, list)
         return trans
 
     @translate.register
-    def _(self, graph: ag.Graph) -> None:
+    def _(self, arg: ag.Graph) -> None:
         original_resources = [
-            resource.plain_text for resource in graph.resources.values()
+            resource.plain_text for resource in arg.resources.values()
         ]
         for resource, translation in zip(
-            graph.resources.values(), self.translate(original_resources), strict=True
+            arg.resources.values(), self.translate(original_resources), strict=True
         ):
             resource.text = translation
 
         references = [
             atom.reference.plain_text
-            for atom in graph.atom_nodes.values()
+            for atom in arg.atom_nodes.values()
             if atom.reference is not None
         ]
         for atom, translation in zip(
-            graph.atom_nodes.values(), self.translate(references), strict=True
+            arg.atom_nodes.values(), self.translate(references), strict=True
         ):
             if atom.reference is not None:
                 atom.reference.text = translation
 
-        atoms = [atom.plain_text for atom in graph.atom_nodes.values()]
+        atoms = [atom.plain_text for atom in arg.atom_nodes.values()]
         for atom, translation in zip(
-            graph.atom_nodes.values(), self.translate(atoms), strict=True
+            arg.atom_nodes.values(), self.translate(atoms), strict=True
         ):
             atom.text = translation
 
     @translate.register
-    def _(self, graphs: Iterable[ag.Graph]) -> None:
-        for graph in graphs:
-            self.translate(graph)
+    def _(self, arg: Iterable[ag.Graph]) -> None:
+        for elem in arg:
+            self.translate(elem)

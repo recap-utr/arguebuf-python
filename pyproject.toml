@@ -22,7 +22,6 @@ lxml = "^5.1"
 typer = { version = "^0.9", extras = ["all"], optional = true }
 deepl = { version = "^1.16", optional = true }
 pygraphviz = { version = "^1.12", optional = true }
-multimethod = { version = "^1.10", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
@@ -35,7 +34,7 @@ lxml-stubs = "^0.5.0"
 pdoc = "^15.0.0"
 
 [tool.poetry.extras]
-cli = ["typer", "deepl", "multimethod"]
+cli = ["typer", "deepl"]
 graphviz = ["pygraphviz"]
 
 [tool.pytest.ini_options]
