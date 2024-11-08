@@ -1,6 +1,7 @@
 import shutil
-import typing as t
+from collections.abc import Callable, Iterable
 from pathlib import Path
+from typing import Optional
 
 import typer
 
@@ -19,7 +20,7 @@ def translate(
     target_lang: str,
     auth_key: str,
     input_glob: str,
-    output_folder: Path | None = None,
+    output_folder: Optional[Path] = None,
     output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
@@ -34,7 +35,7 @@ def translate(
 
     path_pairs = model.PathPair.create(input_folder, output_folder, input_glob, ".json")
     translator = Translator(auth_key, source_lang, target_lang)
-    bar: t.Iterable[model.PathPair]
+    bar: Iterable[model.PathPair]
 
     with typer.progressbar(
         path_pairs[start - 1 :],
@@ -52,7 +53,7 @@ def translate(
 
 def node_label_formatter(
     strip_labels: bool, strip_labels_char: str | None
-) -> t.Callable[[ag.AbstractNode], str] | None:
+) -> Callable[[ag.AbstractNode], str] | None:
     _replace_char = "–" if strip_labels_char is None else strip_labels_char
 
     def _node_label(node: ag.AbstractNode) -> str:
@@ -68,22 +69,22 @@ def node_label_formatter(
 def render(
     input_folder: Path,
     input_glob: str,
-    output_folder: Path | None = None,
+    output_folder: Optional[Path] = None,
     output_format: str = ".pdf",
     strip_scheme_nodes: bool = False,
     strip_node_labels: bool = False,
-    strip_node_labels_char: str | None = None,
-    edge_style: ag.schemas.graphviz.EdgeStyle | None = None,
-    nodesep: float | None = None,
-    ranksep: float | None = None,
-    node_wrap_col: int | None = None,
+    strip_node_labels_char: Optional[str] = None,
+    edge_style: Optional[ag.schemas.graphviz.EdgeStyle] = None,
+    nodesep: Optional[float] = None,
+    ranksep: Optional[float] = None,
+    node_wrap_col: Optional[int] = None,
     node_margin: tuple[float, float] = (0, 0),
-    font_name: str | None = None,
-    font_size: float | None = None,
+    font_name: Optional[str] = None,
+    font_size: Optional[float] = None,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
-    max_nodes: int | None = None,
+    max_nodes: Optional[int] = None,
     prog: str = "dot",
     dpi: int = 300,
     monochrome: bool = False,
@@ -98,7 +99,7 @@ def render(
     paths = model.PathPair.create(
         input_folder, output_folder, input_glob, output_format
     )
-    bar: t.Iterable[model.PathPair]
+    bar: Iterable[model.PathPair]
 
     with typer.progressbar(
         paths[start - 1 :],
@@ -141,12 +142,12 @@ def render(
 def convert(
     input_folder: Path,
     input_glob: str,
-    output_folder: Path | None = None,
+    output_folder: Optional[Path] = None,
     output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
-    text_folder: Path | None = None,
+    text_folder: Optional[Path] = None,
     text_suffix: str = ".txt",
 ) -> None:
     if not output_folder:
@@ -157,7 +158,7 @@ def convert(
         output_folder.mkdir()
 
     paths = model.PathPair.create(input_folder, output_folder, input_glob, ".json")
-    bar: t.Iterable[model.PathPair]
+    bar: Iterable[model.PathPair]
 
     with typer.progressbar(
         paths[start - 1 :],

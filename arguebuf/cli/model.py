@@ -1,6 +1,6 @@
-import typing as t
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 
 @dataclass
@@ -57,7 +57,7 @@ class PathPair:
         return pairs
 
     @staticmethod
-    def label(path_pair: t.Optional["PathPair"]) -> str:
+    def label(path_pair: Optional["PathPair"]) -> str:
         """Generate a string for representing a path pair.
 
         Args:

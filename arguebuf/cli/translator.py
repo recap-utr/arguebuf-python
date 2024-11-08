@@ -1,5 +1,5 @@
 import logging
-import typing as t
+from collections.abc import Iterable
 
 from deepl.translator import Translator as DeepLTranslator
 from multimethod import multimethod
@@ -19,7 +19,7 @@ class Translator:
         self.target_lang = target_lang
         self.translator = DeepLTranslator(auth_key)
 
-    def _deepl_translate(self, text: str | t.Iterable[str]) -> str | list[str]:
+    def _deepl_translate(self, text: str | Iterable[str]) -> str | list[str]:
         result = self.translator.translate_text(
             text,
             source_lang=self.source_lang,
@@ -42,7 +42,7 @@ class Translator:
         return trans
 
     @translate.register
-    def _(self, texts: t.Iterable[str]) -> list[str]:
+    def _(self, texts: Iterable[str]) -> list[str]:
         trans = self._deepl_translate(texts)
         assert isinstance(trans, list)
         return trans
@@ -75,6 +75,6 @@ class Translator:
             atom.text = translation
 
     @translate.register
-    def _(self, graphs: t.Iterable[ag.Graph]) -> None:
+    def _(self, graphs: Iterable[ag.Graph]) -> None:
         for graph in graphs:
             self.translate(graph)

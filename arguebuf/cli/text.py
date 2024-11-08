@@ -1,6 +1,7 @@
 import shutil
-import typing as t
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Optional
 
 import typer
 
@@ -19,7 +20,7 @@ def translate(
     auth_key: str,
     input_glob: str,
     output_suffix: str,
-    output_folder: Path | None = None,
+    output_folder: Optional[Path] = None,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
@@ -35,7 +36,7 @@ def translate(
         input_folder, output_folder, input_glob, output_suffix
     )
     translator = Translator(auth_key, source_lang, target_lang)
-    bar: t.Iterable[model.PathPair]
+    bar: Iterable[model.PathPair]
 
     with typer.progressbar(
         paths[start - 1 :],

@@ -45,9 +45,9 @@ def add_services(casebase_service: CasebaseService):
 
 @cli.command()
 def start(
-    address: Annotated[str, typer.Argument("127.0.0.1:50051")],
-    basepath: Annotated[Path, typer.Option(Path("."))],
-    glob: Annotated[str, typer.Option("*/*")],
+    address: Annotated[str, typer.Argument()] = "127.0.0.1:50051",
+    basepath: Path = Path("."),
+    glob: str = "*/*",
 ):
     arg_services.serve(
         address,
