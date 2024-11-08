@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.6.2](https://github.com/recap-utr/arguebuf-python/compare/v2.6.1...v2.6.2) (2024-11-08)
+
+### Bug Fixes
+
+* **build:** add graphviz/d2 to nix derivation ([6807763](https://github.com/recap-utr/arguebuf-python/commit/6807763c6c1e82d96feb22253d207ad35e469142))
+
 ## [2.6.1](https://github.com/recap-utr/arguebuf-python/compare/v2.6.0...v2.6.1) (2024-11-08)
 
 ### Bug Fixes
