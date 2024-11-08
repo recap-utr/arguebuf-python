@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.6.1](https://github.com/recap-utr/arguebuf-python/compare/v2.6.0...v2.6.1) (2024-11-08)
+
+### Bug Fixes
+
+* **cli:** migrate from multimethod to singledispatchmethod ([ea4c10e](https://github.com/recap-utr/arguebuf-python/commit/ea4c10e59bed54b2e587868caa4d6e75f9ea7a58))
+* **cli:** remove singledispatch and use separate translate functions ([12686fa](https://github.com/recap-utr/arguebuf-python/commit/12686fa100ffdb3733ee4bd1551d923bd236c7c4))
+* **cli:** use optional type for compatibility with typer ([e4baab3](https://github.com/recap-utr/arguebuf-python/commit/e4baab3c016f07110d8fab1b6ba89efcc7682e68))
+* improve typing ([64c0a45](https://github.com/recap-utr/arguebuf-python/commit/64c0a45a01c9ccba8a3450f0bb400f5ecaf00625))
+
 ## [2.6.0](https://github.com/recap-utr/arguebuf-python/compare/v2.5.4...v2.6.0) (2024-10-18)
 
 
