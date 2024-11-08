@@ -45,7 +45,7 @@ def translate(
         for path_pair in bar:
             if overwrite or not path_pair.target.exists():
                 graph = ag.load.file(path_pair.source)
-                translator.translate(graph)
+                translator.translate_graph(graph)
                 ag.dump.file(
                     graph, path_pair.target, ag.dump.Config(format=output_format)
                 )

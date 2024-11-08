@@ -48,7 +48,7 @@ def translate(
                 with path_pair.source.open("r") as file:
                     source_text = file.read()
 
-                translation = translator.translate(source_text)
+                translation = translator.translate_text(source_text)
 
                 with path_pair.target.open("w") as file:
                     file.write(translation)
