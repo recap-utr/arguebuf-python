@@ -81,17 +81,13 @@
               ln -sf ${config.packages.arguebase} data/arguebase
             '';
             arguebuf = pkgs.poetry2nix.mkPoetryApplication {
-              inherit python;
+              inherit python propagatedBuildInputs;
               projectDir = ./.;
               preferWheels = true;
               preCheck = ''
                 ${lib.getExe config.packages.link-arguebase}
                 PATH="${lib.makeBinPath propagatedBuildInputs}:$PATH"
               '';
-              # postInstall = ''
-              #   wrapProgram $out/bin/arguebuf \
-              #     --prefix PATH : ${lib.makeBinPath propagatedBuildInputs}
-              # '';
               nativeCheckInputs = with python.pkgs; [
                 pytestCheckHook
                 pytest-cov-stub
