@@ -77,8 +77,7 @@
             };
             link-arguebase = pkgs.writeShellScriptBin "link-arguebase" ''
               mkdir -p data
-              rm -f data/arguebase
-              ln -sf ${config.packages.arguebase} data/arguebase
+              ln -snf ${config.packages.arguebase} data/arguebase
             '';
             arguebuf = pkgs.poetry2nix.mkPoetryApplication {
               inherit python propagatedBuildInputs;
@@ -87,6 +86,11 @@
               preCheck = ''
                 ${lib.getExe config.packages.link-arguebase}
                 PATH="${lib.makeBinPath propagatedBuildInputs}:$PATH"
+              '';
+              nativeBuildInputs = with pkgs; [ makeWrapper ];
+              postInstall = ''
+                wrapProgram "$out/bin/arguebuf" \
+                  --prefix PATH : ${lib.makeBinPath propagatedBuildInputs}
               '';
               nativeCheckInputs = with python.pkgs; [
                 pytestCheckHook
