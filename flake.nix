@@ -43,7 +43,7 @@
         let
           python = pkgs.python312;
           poetry = pkgs.poetry;
-          propagatedBuildInputs = with pkgs; [
+          runtimeDeps = with pkgs; [
             graphviz
             d2
           ];
@@ -80,17 +80,17 @@
               ln -snf ${config.packages.arguebase} data/arguebase
             '';
             arguebuf = pkgs.poetry2nix.mkPoetryApplication {
-              inherit python propagatedBuildInputs;
+              inherit python;
               projectDir = ./.;
               preferWheels = true;
               preCheck = ''
                 ${lib.getExe config.packages.link-arguebase}
-                PATH="${lib.makeBinPath propagatedBuildInputs}:$PATH"
+                PATH="${lib.makeBinPath runtimeDeps}:$PATH"
               '';
               nativeBuildInputs = with pkgs; [ makeWrapper ];
               postInstall = ''
                 wrapProgram "$out/bin/arguebuf" \
-                  --prefix PATH : ${lib.makeBinPath propagatedBuildInputs}
+                  --prefix PATH : ${lib.makeBinPath runtimeDeps}
               '';
               nativeCheckInputs = with python.pkgs; [
                 pytestCheckHook
@@ -131,13 +131,12 @@
             ];
           };
           devShells.default = pkgs.mkShell rec {
-            inherit propagatedBuildInputs;
             buildInputs = with pkgs; [ stdenv.cc.cc ];
             packages = [
               poetry
               python
               config.treefmt.build.wrapper
-            ];
+            ] ++ runtimeDeps;
             POETRY_VIRTUALENVS_IN_PROJECT = true;
             LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
             shellHook = ''
