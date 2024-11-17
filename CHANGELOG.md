@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.6.3](https://github.com/recap-utr/arguebuf-python/compare/v2.6.2...v2.6.3) (2024-11-17)
+
+### Bug Fixes
+
+* wrap arguebuf with propagated build inputs ([db5ff8a](https://github.com/recap-utr/arguebuf-python/commit/db5ff8a284761a7e28ddd262c3e283eaa09f2e89))
+
 ## [2.6.2](https://github.com/recap-utr/arguebuf-python/compare/v2.6.1...v2.6.2) (2024-11-08)
 
 ### Bug Fixes
