@@ -119,7 +119,7 @@
               paths = [ poetry ];
             };
           };
-          apps.docker-manifest.program = flocken.legacyPackages.${system}.mkDockerManifest {
+          legacyPackages.docker-manifest = flocken.legacyPackages.${system}.mkDockerManifest {
             github = {
               enable = true;
               token = "$GH_TOKEN";
