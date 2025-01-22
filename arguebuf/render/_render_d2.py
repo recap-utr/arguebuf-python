@@ -20,8 +20,7 @@ def d2(
 
     if path.suffix.removeprefix(".") not in FORMATS:
         raise ValueError(
-            "You need to provide a path with a file ending supported by d2:"
-            f" {FORMATS}"
+            f"You need to provide a path with a file ending supported by d2: {FORMATS}"
         )
 
     # Create temporary file
