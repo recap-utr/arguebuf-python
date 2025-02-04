@@ -20,4 +20,4 @@ def dump_dict(graph: Graph, config: Config = DefaultConfig) -> dict[str, t.Any]:
     elif config.format == Format.XAIF:
         return t.cast(dict[str, t.Any], dump_xaif(graph))
 
-    return MessageToDict(dump_protobuf(graph), including_default_value_fields=False)  # type: ignore
+    return MessageToDict(dump_protobuf(graph))

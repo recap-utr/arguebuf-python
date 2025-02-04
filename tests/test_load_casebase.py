@@ -2,7 +2,7 @@ import json
 import typing as t
 from pathlib import Path
 
-from deepdiff import DeepDiff
+from deepdiff.diff import DeepDiff
 
 import arguebuf as ag
 

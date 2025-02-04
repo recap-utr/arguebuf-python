@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import cast
 
 from arg_services.graph.v1 import graph_pb2
 
@@ -118,22 +119,28 @@ class Rephrase(str, Enum):
 Scheme = Support | Attack | Rephrase | Preference
 
 support2protobuf = {
-    item: graph_pb2.Support.Value(f"SUPPORT_{item.name}") for item in Support
+    item: cast(graph_pb2.Support, graph_pb2.Support.Value(f"SUPPORT_{item.name}"))
+    for item in Support
 }
 protobuf2support = {value: key for key, value in support2protobuf.items()}
 
 attack2protobuf = {
-    item: graph_pb2.Attack.Value(f"ATTACK_{item.name}") for item in Attack
+    item: cast(graph_pb2.Attack, graph_pb2.Attack.Value(f"ATTACK_{item.name}"))
+    for item in Attack
 }
 protobuf2attack = {value: key for key, value in attack2protobuf.items()}
 
 rephrase2protobuf = {
-    item: graph_pb2.Rephrase.Value(f"REPHRASE_{item.name}") for item in Rephrase
+    item: cast(graph_pb2.Rephrase, graph_pb2.Rephrase.Value(f"REPHRASE_{item.name}"))
+    for item in Rephrase
 }
 protobuf2rephrase = {value: key for key, value in rephrase2protobuf.items()}
 
 preference2protobuf = {
-    item: graph_pb2.Preference.Value(f"PREFERENCE_{item.name}") for item in Preference
+    item: cast(
+        graph_pb2.Preference, graph_pb2.Preference.Value(f"PREFERENCE_{item.name}")
+    )
+    for item in Preference
 }
 protobuf2preference = {value: key for key, value in preference2protobuf.items()}
 
