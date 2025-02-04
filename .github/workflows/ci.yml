@@ -45,8 +45,10 @@ jobs:
           name: recap
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix profile install .#release-env
-      - uses: cihelper/action-semanticrelease-poetry@v1
+      - uses: cihelper/action-semanticrelease-uv@v1
         id: semanticrelease
+        with:
+          uv-publish: false
       - uses: pypa/gh-action-pypi-publish@release/v1
         if: ${{ steps.semanticrelease.outputs.released == 'true' }}
       - run: nix run .#docker-manifest --impure
