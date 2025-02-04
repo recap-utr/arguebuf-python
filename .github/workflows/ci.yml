@@ -12,7 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v16
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
+        with:
+          extra-conf: |
+            accept-flake-config = true
+            log-lines = 1000
+      - uses: cachix/cachix-action@v15
+        with:
+          name: recap
+          authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix flake check --show-trace
   release:
     runs-on: ubuntu-latest
@@ -31,7 +38,12 @@ jobs:
         with:
           extra-conf: |
             extra-platforms = aarch64-linux
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
+            accept-flake-config = true
+            log-lines = 1000
+      - uses: cachix/cachix-action@v15
+        with:
+          name: recap
+          authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix profile install .#release-env
       - uses: cihelper/action-semanticrelease-poetry@v1
         id: semanticrelease

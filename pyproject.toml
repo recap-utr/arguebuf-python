@@ -1,41 +1,45 @@
-[tool.poetry]
+[project]
 name = "arguebuf"
 version = "2.6.3"
 description = "Create and analyze argument graphs and serialize them via Protobuf"
-authors = ["Mirko Lenz <info@mirko-lenz.de>"]
-license = "MIT"
+authors = [{ name = "Mirko Lenz", email = "mirko@mirkolenz.com" }]
 readme = "README.md"
-repository = "https://github.com/recap-utr/arguebuf-python"
-documentation = "https://arguebuf.readthedocs.io/en/latest"
-packages = [{ include = "arguebuf" }]
+requires-python = ">=3.11"
+dependencies = [
+    "arg-services>=1,<2",
+    "networkx>=3,<4",
+    "pendulum>=3,<4",
+    "graphviz>=0.20,<1",
+    "lxml>=5,<6",
+]
 
-[tool.poetry.scripts]
+[project.optional-dependencies]
+all = ["arguebuf[cli,graphviz]"]
+cli = ["typer>=0.9,<1", "deepl>=1,<2"]
+graphviz = ["pygraphviz>=1,<2"]
+
+[project.scripts]
 arguebuf = "arguebuf.cli.app:cli"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-arg-services = "^1.6"
-networkx = "^3.2"
-pendulum = "^3.0"
-graphviz = "^0.20"
-lxml = "^5.1"
-typer = { version = "^0.9", extras = ["all"], optional = true }
-deepl = { version = "^1.16", optional = true }
-pygraphviz = { version = "^1.12", optional = true }
+[project.urls]
+Repository = "https://github.com/recap-utr/arguebuf-python"
+Documentation = "https://arguebuf.readthedocs.io"
+Issues = "https://github.com/recap-utr/arguebuf-python/issues"
+Changelog = "https://github.com/recap-utr/arguebuf-python/releases"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
-pytest-cov = "^6.0.0"
-pytest-xdist = "^3.5"
-deepdiff = { version = "^8.0.0", extras = ["murmur"] }
-lxml-stubs = "^0.5.0"
+[dependency-groups]
+test = [
+    "pytest>=8,<9",
+    "pytest-cov>=6,<7",
+    "pytest-xdist>=3,<4",
+    "deepdiff>=8,<9",
+    "lxml-stubs>=0.5,<1",
+]
+docs = ["pdoc>=15,<16"]
 
-[tool.poetry.group.docs.dependencies]
-pdoc = "^15.0.0"
-
-[tool.poetry.extras]
-cli = ["typer", "deepl"]
-graphviz = ["pygraphviz"]
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 addopts = "--numprocesses 4 --dist load --cov arguebuf --cov-report term-missing --doctest-modules --ignore arguebuf/cli --ignore data --ignore result"
@@ -44,13 +48,8 @@ doctest_optionflags = "NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 [tool.ruff]
 target-version = "py311"
 
-[tool.ruff.lint.per-file-ignores]
-# typer requires the use of Optional[TYPE] instead of TYPE | None
-"arguebuf/cli/**/*.py" = ["UP007"]
-
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv]
+default-groups = ["test", "docs"]

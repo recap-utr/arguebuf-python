@@ -7,14 +7,37 @@
       url = "github:mirkolenz/flocken/v2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+  nixConfig = {
+    extra-substituters = [
+      "https://nix-community.cachix.org"
+      "https://recap.cachix.org"
+      "https://pyproject-nix.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "recap.cachix.org-1:KElwRDtaJbbQxmmS2SyxWHqs9bdJbaZHzb2iINTfQws="
+      "pyproject-nix.cachix.org-1:UNzugsOlQIu2iOz0VyZNBQm2JSrL/kwxeCcFGw+jMe0="
+    ];
   };
   outputs =
     inputs@{
@@ -23,7 +46,7 @@
       nixpkgs,
       systems,
       flocken,
-      poetry2nix,
+      uv2nix,
       ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
@@ -41,20 +64,30 @@
           ...
         }:
         let
-          python = pkgs.python312;
-          poetry = pkgs.poetry;
-          runtimeDeps = with pkgs; [
-            graphviz
-            d2
-          ];
+          inherit
+            (pkgs.callPackage ./default.nix {
+              inherit (inputs) uv2nix pyproject-nix pyproject-build-systems;
+              inherit (config.packages) link-arguebase;
+            })
+            pythonSet
+            mkApplication
+            ;
         in
         {
           _module.args.pkgs = import nixpkgs {
             inherit system;
-            overlays = [ poetry2nix.overlays.default ];
+            overlays = lib.singleton (
+              final: prev: {
+                python3 = final.python312;
+                uv = uv2nix.packages.${system}.uv-bin;
+              }
+            );
           };
           overlayAttrs = {
             inherit (config.packages) arguebuf;
+          };
+          checks = pythonSet.arguebuf.passthru.tests // {
+            inherit (pythonSet.arguebuf.passthru) docs;
           };
           treefmt = {
             projectRootFile = "flake.nix";
@@ -64,11 +97,8 @@
               nixfmt.enable = true;
             };
           };
-          checks = {
-            inherit (config.packages) arguebuf;
-          };
           packages = {
-            default = config.packages.arguebuf;
+            default = config.packages.arguebuf-wrapped;
             arguebase = pkgs.fetchFromGitHub {
               owner = "recap-utr";
               repo = "arguebase-public";
@@ -79,44 +109,40 @@
               mkdir -p data
               ln -snf ${config.packages.arguebase} data/arguebase
             '';
-            arguebuf = pkgs.poetry2nix.mkPoetryApplication {
-              inherit python;
-              projectDir = ./.;
-              preferWheels = true;
-              preCheck = ''
-                ${lib.getExe config.packages.link-arguebase}
-                PATH="${lib.makeBinPath runtimeDeps}:$PATH"
-              '';
-              nativeBuildInputs = with pkgs; [ makeWrapper ];
-              postInstall = ''
-                wrapProgram "$out/bin/arguebuf" \
-                  --prefix PATH : ${lib.makeBinPath runtimeDeps}
-              '';
-              nativeCheckInputs = with python.pkgs; [
-                pytestCheckHook
-                pytest-cov-stub
-              ];
-              meta = {
-                description = "Create and analyze argument graphs and serialize them via Protobuf";
-                license = lib.licenses.mit;
-                maintainers = with lib.maintainers; [ mirkolenz ];
-                platforms = with lib.platforms; darwin ++ linux;
-                homepage = "https://github.com/recap-utr/arguebuf-python";
-                mainProgram = "arguebuf";
+            inherit (pythonSet.arguebuf.passthru) docs;
+            arguebuf = mkApplication {
+              venv = pythonSet.mkVirtualEnv "arguebuf-env" {
+                arguebuf = [ "all" ];
               };
+              package = pythonSet.arguebuf;
             };
-            docker = pkgs.dockerTools.buildLayeredImage {
+            arguebuf-wrapped =
+              pkgs.runCommand "arguebuf-wrapped"
+                {
+                  buildInputs = with pkgs; [ makeWrapper ];
+                }
+                ''
+                  mkdir -p $out/bin
+                  makeWrapper ${lib.getExe config.packages.arguebuf} "$out/bin/arguebuf" \
+                    --prefix PATH : ${
+                      lib.makeBinPath [
+                        pkgs.d2
+                        pkgs.graphviz
+                      ]
+                    }
+                '';
+            docker = pkgs.dockerTools.streamLayeredImage {
               name = "arguebuf";
               tag = "latest";
               created = "now";
-              config = {
-                entrypoint = [ (lib.getExe config.packages.default) ];
-                cmd = [ ];
-              };
+              config.Entrypoint = [ (lib.getExe config.packages.arguebuf) ];
             };
             release-env = pkgs.buildEnv {
               name = "release-env";
-              paths = [ poetry ];
+              paths = with pkgs; [
+                uv
+                python3
+              ];
             };
           };
           legacyPackages.docker-manifest = flocken.legacyPackages.${system}.mkDockerManifest {
@@ -125,23 +151,26 @@
               token = "$GH_TOKEN";
             };
             version = builtins.getEnv "VERSION";
-            images = with self.packages; [
+            imageStreams = with self.packages; [
               x86_64-linux.docker
               aarch64-linux.docker
             ];
           };
-          devShells.default = pkgs.mkShell rec {
-            buildInputs = with pkgs; [ stdenv.cc.cc ];
-            packages = [
-              poetry
-              python
+          devShells.default = pkgs.mkShell {
+            packages = with pkgs; [
+              uv
               config.treefmt.build.wrapper
-            ] ++ runtimeDeps;
-            POETRY_VIRTUALENVS_IN_PROJECT = true;
-            LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
+              d2
+              graphviz
+            ];
+            nativeBuildInputs = with pkgs; [ zlib ];
+            LD_LIBRARY_PATH = lib.makeLibraryPath [
+              pkgs.stdenv.cc.cc
+              pkgs.zlib
+            ];
+            UV_PYTHON = lib.getExe pkgs.python3;
             shellHook = ''
-              ${lib.getExe poetry} env use ${lib.getExe python}
-              ${lib.getExe poetry} install --all-extras --no-root
+              uv sync --all-extras --locked
               ${lib.getExe config.packages.link-arguebase}
             '';
           };
