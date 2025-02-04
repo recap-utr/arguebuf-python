@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.7.0](https://github.com/recap-utr/arguebuf-python/compare/v2.6.3...v2.7.0) (2025-02-04)
+
+### Features
+
+* migrate from poetry to uv ([4ccdeb8](https://github.com/recap-utr/arguebuf-python/commit/4ccdeb8a086b159d9b418323576d01f95551c109))
+
+### Bug Fixes
+
+* adapt to protobuf changes ([7bf88f4](https://github.com/recap-utr/arguebuf-python/commit/7bf88f480f09374c09871497956b52fd80babd3f))
+
 ## [2.6.3](https://github.com/recap-utr/arguebuf-python/compare/v2.6.2...v2.6.3) (2024-11-17)
 
 ### Bug Fixes

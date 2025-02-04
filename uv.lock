@@ -19,7 +19,7 @@ wheels = [
 
 [[package]]
 name = "arguebuf"
-version = "2.6.3"
+version = "2.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "arg-services" },
