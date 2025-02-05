@@ -1,6 +1,6 @@
 [project]
 name = "arguebuf"
-version = "2.7.0"
+version = "2.7.1"
 description = "Create and analyze argument graphs and serialize them via Protobuf"
 authors = [{ name = "Mirko Lenz", email = "mirko@mirkolenz.com" }]
 readme = "README.md"

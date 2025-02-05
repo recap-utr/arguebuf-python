@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.7.1](https://github.com/recap-utr/arguebuf-python/compare/v2.7.0...v2.7.1) (2025-02-05)
+
+### Bug Fixes
+
+* **build:** properly wrap arguebuf binary ([b389eff](https://github.com/recap-utr/arguebuf-python/commit/b389eff1cea0df4f3276b3a0ec32048d308f9178))
+
 ## [2.7.0](https://github.com/recap-utr/arguebuf-python/compare/v2.6.3...v2.7.0) (2025-02-04)
 
 ### Features
