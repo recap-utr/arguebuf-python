@@ -84,7 +84,7 @@
             );
           };
           overlayAttrs = {
-            inherit (config.packages) arguebuf;
+            inherit (config.packages) arguebuf arguebuf-wrapped;
           };
           checks = pythonSet.arguebuf.passthru.tests // {
             inherit (pythonSet.arguebuf.passthru) docs;
@@ -117,9 +117,9 @@
               package = pythonSet.arguebuf;
             };
             arguebuf-wrapped =
-              pkgs.runCommand "arguebuf-wrapped"
+              pkgs.runCommand "arguebuf"
                 {
-                  buildInputs = with pkgs; [ makeWrapper ];
+                  nativeBuildInputs = with pkgs; [ makeWrapper ];
                 }
                 ''
                   mkdir -p $out/bin
@@ -135,7 +135,7 @@
               name = "arguebuf";
               tag = "latest";
               created = "now";
-              config.Entrypoint = [ (lib.getExe config.packages.arguebuf) ];
+              config.Entrypoint = [ (lib.getExe config.packages.default) ];
             };
             release-env = pkgs.buildEnv {
               name = "release-env";
