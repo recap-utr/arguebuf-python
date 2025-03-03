@@ -31,7 +31,7 @@ def graphviz(
 
     if isinstance(graph, Graph):
         raise ValueError(
-            "This method expects a graph in the 'DOT' format.Please use"
+            "This method expects a graph in the 'DOT' format. Please use"
             " 'arguebuf.dump.graphviz(graph)' to convert your argument graph to the 'DOT'"
             " format."
         )
