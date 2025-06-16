@@ -1,0 +1,784 @@
+{
+	"nodes": [
+		{
+			"nodeID": "29045",
+			"text": "they got to a point where Macmillan realised there was no way forward except by increasing brutality",
+			"type": "I",
+			"timestamp": "2014-04-28 15:51:38"
+		},
+		{
+			"nodeID": "29053",
+			"text": "decided that this had taught an important lesson that the only way in which the British presence in Africa could be sustained was brutality",
+			"type": "I",
+			"timestamp": "2014-04-28 15:51:38"
+		},
+		{
+			"nodeID": "29054",
+			"text": "and therefore the only way forward was for Britain to withdraw",
+			"type": "I",
+			"timestamp": "2014-04-28 15:51:38"
+		},
+		{
+			"nodeID": "29056",
+			"text": "CL : and decided that this had taught an important lesson that the only way in which the British presence in Africa could be sustained was brutality",
+			"type": "L",
+			"timestamp": "2014-04-28 15:51:38"
+		},
+		{
+			"nodeID": "29058",
+			"text": "CL : and therefore the only way forward was for Britain to withdraw",
+			"type": "L",
+			"timestamp": "2014-04-28 15:51:38"
+		},
+		{
+			"nodeID": "29069",
+			"text": "CL : But my point is they got to a point where Macmillan realised there was no way forward except by increasing brutality",
+			"type": "L",
+			"timestamp": "2014-04-28 15:51:39"
+		},
+		{
+			"nodeID": "111800",
+			"text": "Asserting",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:50",
+			"scheme": "Asserting",
+			"schemeID": "74"
+		},
+		{
+			"nodeID": "111801",
+			"text": "Asserting",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:50",
+			"scheme": "Asserting",
+			"schemeID": "74"
+		},
+		{
+			"nodeID": "111802",
+			"text": "TA",
+			"type": "TA",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111803",
+			"text": "RA",
+			"type": "RA",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111804",
+			"text": "Arguing",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:50",
+			"scheme": "Arguing",
+			"schemeID": "80"
+		},
+		{
+			"nodeID": "111805",
+			"text": "when news first came of the horrific massacre of Mau Mau prisoners in Kenya. Wide swathes of British public opinion and the media and the Prime Minister and most of the Cabinet were horrified and disgusted then, not now, then",
+			"type": "I",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111806",
+			"text": "Asserting",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:50",
+			"scheme": "Asserting",
+			"schemeID": "74"
+		},
+		{
+			"nodeID": "111807",
+			"text": "CL : when news first came of the horrific massacre of Mau Mau prisoners in Kenya. Wide swathes of British public opinion and the media and the Prime Minister and most of the Cabinet were horrified and disgusted then, not now, then",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111808",
+			"text": "M: CL : when news first came of the horrific massacre of Mau Mau prisoners in Kenya. Wide swathes of British public opinion and the media and the Prime Minister and most of the Cabinet were horrified and disgusted then, not now, then",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111809",
+			"text": "The key point about the British Empire is not necessarily that brutality does not happen but when it does",
+			"type": "I",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111810",
+			"text": "Asserting",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:50",
+			"scheme": "Asserting",
+			"schemeID": "74"
+		},
+		{
+			"nodeID": "111811",
+			"text": "CL : The key point about the British Empire is not necessarily that brutality does not happen but when it does",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111812",
+			"text": "M: CL : The key point about the British Empire is not necessarily that brutality does not happen but when it does",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111813",
+			"text": "TA",
+			"type": "TA",
+			"timestamp": "2015-11-25 16:13:50"
+		},
+		{
+			"nodeID": "111814",
+			"text": "Default Inference",
+			"type": "RA",
+			"timestamp": "2015-11-25 16:13:50",
+			"scheme": "Default Inference",
+			"schemeID": "72"
+		},
+		{
+			"nodeID": "111815",
+			"text": "Arguing",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:50",
+			"scheme": "Arguing",
+			"schemeID": "80"
+		},
+		{
+			"nodeID": "111816",
+			"text": "you often have public inquiries and open investigations",
+			"type": "I",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111817",
+			"text": "Popular Conceding",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:51",
+			"scheme": "PopularConceding",
+			"schemeID": "88"
+		},
+		{
+			"nodeID": "111818",
+			"text": "CL : you often have public inquiries and open investigations",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111819",
+			"text": "M: CL : you often have public inquiries and open investigations",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111820",
+			"text": "TA",
+			"type": "TA",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111821",
+			"text": "Default Inference",
+			"type": "RA",
+			"timestamp": "2015-11-25 16:13:51",
+			"scheme": "Default Inference",
+			"schemeID": "72"
+		},
+		{
+			"nodeID": "111822",
+			"text": "Arguing",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:51",
+			"scheme": "Arguing",
+			"schemeID": "80"
+		},
+		{
+			"nodeID": "111823",
+			"text": "TA",
+			"type": "TA",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111824",
+			"text": "Default Inference",
+			"type": "RA",
+			"timestamp": "2015-11-25 16:13:51",
+			"scheme": "Default Inference",
+			"schemeID": "72"
+		},
+		{
+			"nodeID": "111825",
+			"text": "Arguing",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:51",
+			"scheme": "Arguing",
+			"schemeID": "80"
+		},
+		{
+			"nodeID": "111826",
+			"text": "Asserting",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:51",
+			"scheme": "Asserting",
+			"schemeID": "74"
+		},
+		{
+			"nodeID": "111827",
+			"text": "M: CL : But my point is they got to a point where Macmillan realised there was no way forward except by increasing brutality",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111828",
+			"text": "TA",
+			"type": "TA",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111829",
+			"text": "McMillan was / was not wrong",
+			"type": "I",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111830",
+			"text": "Pure Questioning",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:51",
+			"scheme": "PureQuestioning",
+			"schemeID": "91"
+		},
+		{
+			"nodeID": "111831",
+			"text": "CL : Was he wrong",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111832",
+			"text": "M: CL : Was he wrong",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111833",
+			"text": "By the 50s, the Empire is going",
+			"type": "I",
+			"timestamp": "2015-11-25 16:13:51"
+		},
+		{
+			"nodeID": "111834",
+			"text": "Popular Conceding",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:52",
+			"scheme": "PopularConceding",
+			"schemeID": "88"
+		},
+		{
+			"nodeID": "111835",
+			"text": "NL : By the 50s, the Empire is going, everyone knows that",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:52"
+		},
+		{
+			"nodeID": "111836",
+			"text": "M: NL : By the 50s, the Empire is going, everyone knows that",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:52"
+		},
+		{
+			"nodeID": "111837",
+			"text": "TA",
+			"type": "TA",
+			"timestamp": "2015-11-25 16:13:52"
+		},
+		{
+			"nodeID": "111838",
+			"text": "TA",
+			"type": "TA",
+			"timestamp": "2015-11-25 16:13:52"
+		},
+		{
+			"nodeID": "111839",
+			"text": "they are effectively trying to hand over to some kind of stable rule",
+			"type": "I",
+			"timestamp": "2015-11-25 16:13:52"
+		},
+		{
+			"nodeID": "111840",
+			"text": "Asserting",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:52",
+			"scheme": "Asserting",
+			"schemeID": "74"
+		},
+		{
+			"nodeID": "111841",
+			"text": "NL : they are effectively trying to hand over to some kind of stable rule",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:52"
+		},
+		{
+			"nodeID": "111842",
+			"text": "M: NL : they are effectively trying to hand over to some kind of stable rule",
+			"type": "L",
+			"timestamp": "2015-11-25 16:13:52"
+		},
+		{
+			"nodeID": "111843",
+			"text": "TA",
+			"type": "TA",
+			"timestamp": "2015-11-25 16:13:52"
+		},
+		{
+			"nodeID": "111844",
+			"text": "Default Inference",
+			"type": "RA",
+			"timestamp": "2015-11-25 16:13:52",
+			"scheme": "Default Inference",
+			"schemeID": "72"
+		},
+		{
+			"nodeID": "111845",
+			"text": "Arguing",
+			"type": "YA",
+			"timestamp": "2015-11-25 16:13:52",
+			"scheme": "Arguing",
+			"schemeID": "80"
+		}
+	],
+	"edges": [
+		{
+			"edgeID": "148463",
+			"fromID": "111800",
+			"toID": "29053",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148464",
+			"fromID": "29056",
+			"toID": "111800",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148465",
+			"fromID": "111801",
+			"toID": "29054",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148466",
+			"fromID": "29058",
+			"toID": "111801",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148467",
+			"fromID": "111802",
+			"toID": "29058",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148468",
+			"fromID": "29056",
+			"toID": "111802",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148469",
+			"fromID": "111803",
+			"toID": "29054",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148470",
+			"fromID": "29053",
+			"toID": "111803",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148471",
+			"fromID": "111802",
+			"toID": "111804",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148472",
+			"fromID": "111804",
+			"toID": "111803",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148473",
+			"fromID": "111806",
+			"toID": "111805",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148474",
+			"fromID": "111807",
+			"toID": "111806",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148475",
+			"fromID": "111810",
+			"toID": "111809",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148476",
+			"fromID": "111811",
+			"toID": "111810",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148477",
+			"fromID": "111807",
+			"toID": "111813",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148478",
+			"fromID": "111813",
+			"toID": "111811",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148479",
+			"fromID": "111809",
+			"toID": "111814",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148480",
+			"fromID": "111814",
+			"toID": "111805",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148481",
+			"fromID": "111813",
+			"toID": "111815",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148482",
+			"fromID": "111815",
+			"toID": "111814",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148483",
+			"fromID": "111817",
+			"toID": "111816",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148484",
+			"fromID": "111818",
+			"toID": "111817",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148485",
+			"fromID": "111811",
+			"toID": "111820",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148486",
+			"fromID": "111820",
+			"toID": "111818",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148487",
+			"fromID": "111809",
+			"toID": "111821",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148488",
+			"fromID": "111821",
+			"toID": "111816",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148489",
+			"fromID": "111820",
+			"toID": "111822",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148490",
+			"fromID": "111822",
+			"toID": "111821",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148491",
+			"fromID": "111818",
+			"toID": "111823",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148492",
+			"fromID": "111823",
+			"toID": "29056",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148493",
+			"fromID": "111816",
+			"toID": "111824",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148494",
+			"fromID": "111824",
+			"toID": "29053",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148495",
+			"fromID": "111823",
+			"toID": "111825",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148496",
+			"fromID": "111825",
+			"toID": "111824",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148497",
+			"fromID": "111826",
+			"toID": "29045",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148498",
+			"fromID": "29069",
+			"toID": "111826",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148499",
+			"fromID": "29058",
+			"toID": "111828",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148500",
+			"fromID": "111828",
+			"toID": "29069",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148501",
+			"fromID": "111830",
+			"toID": "111829",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148502",
+			"fromID": "111831",
+			"toID": "111830",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148503",
+			"fromID": "111834",
+			"toID": "111833",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148504",
+			"fromID": "111835",
+			"toID": "111834",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148505",
+			"fromID": "111831",
+			"toID": "111837",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148506",
+			"fromID": "111837",
+			"toID": "111835",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148507",
+			"fromID": "29069",
+			"toID": "111838",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148508",
+			"fromID": "111838",
+			"toID": "111831",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148509",
+			"fromID": "111840",
+			"toID": "111839",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148510",
+			"fromID": "111841",
+			"toID": "111840",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148511",
+			"fromID": "111835",
+			"toID": "111843",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148512",
+			"fromID": "111843",
+			"toID": "111841",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148513",
+			"fromID": "111833",
+			"toID": "111844",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148514",
+			"fromID": "111844",
+			"toID": "111839",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148515",
+			"fromID": "111843",
+			"toID": "111845",
+			"formEdgeID": null
+		},
+		{
+			"edgeID": "148516",
+			"fromID": "111845",
+			"toID": "111844",
+			"formEdgeID": null
+		}
+	],
+	"locutions": [
+		{
+			"nodeID": "29056",
+			"personID": "409",
+			"timestamp": "2014-04-28 15:51:40",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "29058",
+			"personID": "409",
+			"timestamp": "2014-04-28 15:51:40",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "29069",
+			"personID": "409",
+			"timestamp": "2014-04-28 15:51:40",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "29056",
+			"personID": "409",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "29058",
+			"personID": "409",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "111807",
+			"personID": "409",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "111811",
+			"personID": "409",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "111818",
+			"personID": "409",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "29069",
+			"personID": "409",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "111831",
+			"personID": "409",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "111835",
+			"personID": "437",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "111841",
+			"personID": "437",
+			"timestamp": "2015-11-25 16:13:54",
+			"start": null,
+			"end": null,
+			"source": null
+		},
+		{
+			"nodeID": "111835",
+			"personID": "437",
+			"timestamp": "2015-11-26 15:43:47",
+			"start": null,
+			"end": null,
+			"source": null
+		}
+	]
+}

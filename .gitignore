@@ -232,4 +232,5 @@ _readthedocs/
 .direnv/
 .devenv/
 /result
-/data/
+/data/arguebase
+/data/*.pdf

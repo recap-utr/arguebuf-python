@@ -1,0 +1,318 @@
+{
+  "nodes": [
+    {
+      "nodeID": "29045",
+      "text": "they got to a point where Macmillan realised there was no way forward except by increasing brutality",
+      "type": "I",
+      "timestamp": "2014-04-28 15:51:38"
+    },
+    {
+      "nodeID": "29053",
+      "text": "decided that this had taught an important lesson that the only way in which the British presence in Africa could be sustained was brutality",
+      "type": "I",
+      "timestamp": "2014-04-28 15:51:38"
+    },
+    {
+      "nodeID": "29054",
+      "text": "and therefore the only way forward was for Britain to withdraw",
+      "type": "I",
+      "timestamp": "2014-04-28 15:51:38"
+    },
+    {
+      "nodeID": "111803",
+      "text": "RA",
+      "type": "RA",
+      "timestamp": "2015-11-25 16:13:50"
+    },
+    {
+      "nodeID": "111805",
+      "text": "when news first came of the horrific massacre of Mau Mau prisoners in Kenya. Wide swathes of British public opinion and the media and the Prime Minister and most of the Cabinet were horrified and disgusted then, not now, then",
+      "type": "I",
+      "timestamp": "2015-11-25 16:13:50"
+    },
+    {
+      "nodeID": "111809",
+      "text": "The key point about the British Empire is not necessarily that brutality does not happen but when it does",
+      "type": "I",
+      "timestamp": "2015-11-25 16:13:50"
+    },
+    {
+      "nodeID": "111814",
+      "text": "Default Inference",
+      "type": "RA",
+      "timestamp": "2015-11-25 16:13:50",
+      "scheme": "Default Inference",
+      "schemeID": "72"
+    },
+    {
+      "nodeID": "111816",
+      "text": "you often have public inquiries and open investigations",
+      "type": "I",
+      "timestamp": "2015-11-25 16:13:51"
+    },
+    {
+      "nodeID": "111821",
+      "text": "Default Inference",
+      "type": "RA",
+      "timestamp": "2015-11-25 16:13:51",
+      "scheme": "Default Inference",
+      "schemeID": "72"
+    },
+    {
+      "nodeID": "111824",
+      "text": "Default Inference",
+      "type": "RA",
+      "timestamp": "2015-11-25 16:13:51",
+      "scheme": "Default Inference",
+      "schemeID": "72"
+    },
+    {
+      "nodeID": "111829",
+      "text": "McMillan was / was not wrong",
+      "type": "I",
+      "timestamp": "2015-11-25 16:13:51"
+    },
+    {
+      "nodeID": "111833",
+      "text": "By the 50s, the Empire is going",
+      "type": "I",
+      "timestamp": "2015-11-25 16:13:51"
+    },
+    {
+      "nodeID": "111839",
+      "text": "they are effectively trying to hand over to some kind of stable rule",
+      "type": "I",
+      "timestamp": "2015-11-25 16:13:52"
+    },
+    {
+      "nodeID": "111844",
+      "text": "Default Inference",
+      "type": "RA",
+      "timestamp": "2015-11-25 16:13:52",
+      "scheme": "Default Inference",
+      "schemeID": "72"
+    },
+    {
+      "nodeID": "7e03100a-4a8c-11f0-b84d-acde48001122",
+      "text": "Default Rephrase",
+      "type": "MA",
+      "timestamp": "2014-04-28 15:51:38"
+    },
+    {
+      "nodeID": "7e0312b2-4a8c-11f0-b84d-acde48001122",
+      "text": "Default Rephrase",
+      "type": "MA",
+      "timestamp": "2014-04-28 15:51:38"
+    },
+    {
+      "nodeID": "7e0313e8-4a8c-11f0-b84d-acde48001122",
+      "text": "Default Rephrase",
+      "type": "MA",
+      "timestamp": "2015-11-25 16:13:51"
+    }
+  ],
+  "edges": [
+    {
+      "edgeID": "148469",
+      "fromID": "111803",
+      "toID": "29054",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148470",
+      "fromID": "29053",
+      "toID": "111803",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148479",
+      "fromID": "111809",
+      "toID": "111814",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148480",
+      "fromID": "111814",
+      "toID": "111805",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148487",
+      "fromID": "111809",
+      "toID": "111821",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148488",
+      "fromID": "111821",
+      "toID": "111816",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148493",
+      "fromID": "111816",
+      "toID": "111824",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148494",
+      "fromID": "111824",
+      "toID": "29053",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148513",
+      "fromID": "111833",
+      "toID": "111844",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "148514",
+      "fromID": "111844",
+      "toID": "111839",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "7e031172-4a8c-11f0-b84d-acde48001122",
+      "fromID": "29054",
+      "toID": "7e03100a-4a8c-11f0-b84d-acde48001122",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "7e0311fe-4a8c-11f0-b84d-acde48001122",
+      "fromID": "7e03100a-4a8c-11f0-b84d-acde48001122",
+      "toID": "29045",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "7e031302-4a8c-11f0-b84d-acde48001122",
+      "fromID": "29045",
+      "toID": "7e0312b2-4a8c-11f0-b84d-acde48001122",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "7e031348-4a8c-11f0-b84d-acde48001122",
+      "fromID": "7e0312b2-4a8c-11f0-b84d-acde48001122",
+      "toID": "111829",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "7e03142e-4a8c-11f0-b84d-acde48001122",
+      "fromID": "111829",
+      "toID": "7e0313e8-4a8c-11f0-b84d-acde48001122",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "7e031474-4a8c-11f0-b84d-acde48001122",
+      "fromID": "7e0313e8-4a8c-11f0-b84d-acde48001122",
+      "toID": "111833",
+      "formEdgeID": null
+    }
+  ],
+  "locutions": [
+    {
+      "nodeID": "29056",
+      "personID": "409",
+      "timestamp": "2014-04-28 15:51:40",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "29058",
+      "personID": "409",
+      "timestamp": "2014-04-28 15:51:40",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "29069",
+      "personID": "409",
+      "timestamp": "2014-04-28 15:51:40",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "29056",
+      "personID": "409",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "29058",
+      "personID": "409",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "111807",
+      "personID": "409",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "111811",
+      "personID": "409",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "111818",
+      "personID": "409",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "29069",
+      "personID": "409",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "111831",
+      "personID": "409",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "111835",
+      "personID": "437",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "111841",
+      "personID": "437",
+      "timestamp": "2015-11-25 16:13:54",
+      "start": null,
+      "end": null,
+      "source": null
+    },
+    {
+      "nodeID": "111835",
+      "personID": "437",
+      "timestamp": "2015-11-26 15:43:47",
+      "start": null,
+      "end": null,
+      "source": null
+    }
+  ]
+}
