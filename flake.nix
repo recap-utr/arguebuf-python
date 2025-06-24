@@ -140,7 +140,7 @@
               name = "release-env";
               paths = with pkgs; [
                 uv
-                python313
+                python3
               ];
             };
           };
@@ -167,7 +167,7 @@
               pkgs.stdenv.cc.cc
               pkgs.zlib
             ];
-            UV_PYTHON = lib.getExe pkgs.python313;
+            UV_PYTHON = lib.getExe pkgs.python3;
             shellHook = ''
               uv sync --all-extras --locked
               ${lib.getExe config.packages.link-arguebase}
