@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.2](https://github.com/recap-utr/arguebuf-python/compare/v2.7.1...v2.7.2) (2025-06-24)
+
+### Bug Fixes
+
+* **aif:** improve dialog reconstruction ([baf7153](https://github.com/recap-utr/arguebuf-python/commit/baf71535e53ca96c662fb2c1494d832d7a28e8b7))
+* **build:** unpin python3 in nix package ([4de2359](https://github.com/recap-utr/arguebuf-python/commit/4de23593c184c266661260920592b76cac20cb87))
+
 ## [2.7.1](https://github.com/recap-utr/arguebuf-python/compare/v2.7.0...v2.7.1) (2025-02-05)
 
 ### Bug Fixes
