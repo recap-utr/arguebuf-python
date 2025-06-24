@@ -78,7 +78,6 @@
             inherit system;
             overlays = lib.singleton (
               final: prev: {
-                python3 = final.python312;
                 uv = uv2nix.packages.${system}.uv-bin;
               }
             );
@@ -141,7 +140,7 @@
               name = "release-env";
               paths = with pkgs; [
                 uv
-                python3
+                python313
               ];
             };
           };
@@ -168,7 +167,7 @@
               pkgs.stdenv.cc.cc
               pkgs.zlib
             ];
-            UV_PYTHON = lib.getExe pkgs.python3;
+            UV_PYTHON = lib.getExe pkgs.python313;
             shellHook = ''
               uv sync --all-extras --locked
               ${lib.getExe config.packages.link-arguebase}
