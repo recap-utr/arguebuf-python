@@ -35,7 +35,7 @@ test = [
     "deepdiff>=8,<9",
     "lxml-stubs>=0.5,<1",
 ]
-docs = ["pdoc>=15,<16"]
+docs = ["pdoc>=16,<17"]
 
 [build-system]
 requires = ["setuptools>=61"]
