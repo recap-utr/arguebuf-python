@@ -29,7 +29,7 @@ Changelog = "https://github.com/recap-utr/arguebuf-python/releases"
 
 [dependency-groups]
 test = [
-    "pytest>=8,<9",
+    "pytest>=9,<10",
     "pytest-cov>=7,<8",
     "pytest-xdist>=3,<4",
     "deepdiff>=8,<9",
