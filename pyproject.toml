@@ -16,7 +16,7 @@ dependencies = [
 [project.optional-dependencies]
 all = ["arguebuf[cli,graphviz]"]
 cli = ["typer>=0.9,<1", "deepl>=1,<2"]
-graphviz = ["pygraphviz>=1,<2"]
+graphviz = ["pygraphviz>=2,<3"]
 
 [project.scripts]
 arguebuf = "arguebuf.cli.app:cli"
