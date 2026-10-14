@@ -1,4 +1,3 @@
-import shutil
 from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Optional
@@ -30,8 +29,7 @@ def translate(
         output_folder = input_folder
 
     if clean:
-        shutil.rmtree(output_folder)
-        output_folder.mkdir()
+        model.clean_folder(input_folder, output_folder)
 
     path_pairs = model.PathPair.create(input_folder, output_folder, input_glob, ".json")
     translator = Translator(auth_key, source_lang, target_lang)
@@ -93,8 +91,7 @@ def render(
         output_folder = input_folder
 
     if clean:
-        shutil.rmtree(output_folder)
-        output_folder.mkdir()
+        model.clean_folder(input_folder, output_folder)
 
     paths = model.PathPair.create(
         input_folder, output_folder, input_glob, output_format
@@ -154,8 +151,7 @@ def convert(
         output_folder = input_folder
 
     if clean:
-        shutil.rmtree(output_folder)
-        output_folder.mkdir()
+        model.clean_folder(input_folder, output_folder)
 
     paths = model.PathPair.create(input_folder, output_folder, input_glob, ".json")
     bar: Iterable[model.PathPair]

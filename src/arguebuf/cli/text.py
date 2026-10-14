@@ -1,4 +1,3 @@
-import shutil
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Optional
@@ -29,8 +28,7 @@ def translate(
         output_folder = input_folder
 
     if clean:
-        shutil.rmtree(output_folder)
-        output_folder.mkdir()
+        model.clean_folder(input_folder, output_folder)
 
     paths = model.PathPair.create(
         input_folder, output_folder, input_glob, output_suffix

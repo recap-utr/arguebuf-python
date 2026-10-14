@@ -1,3 +1,4 @@
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -68,3 +69,14 @@ class PathPair:
         """
 
         return path_pair.source.name if path_pair else ""
+
+
+def clean_folder(input_folder: Path, output_folder: Path) -> None:
+    """Recreate the output folder, refusing to delete the inputs."""
+    if input_folder.resolve().is_relative_to(output_folder.resolve()):
+        raise ValueError(
+            "The output folder must not contain the input when using --clean."
+        )
+
+    shutil.rmtree(output_folder, ignore_errors=True)
+    output_folder.mkdir(parents=True)
