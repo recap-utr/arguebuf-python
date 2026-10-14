@@ -2,7 +2,10 @@ from typer import Typer
 
 from . import graph, server, text
 
-cli = Typer()
+cli = Typer(
+    help="Convert, render, translate, and serve argument graphs.",
+    no_args_is_help=True,
+)
 cli.add_typer(
     graph.cli, name="graph", help="Commands for dealing with argument graphs."
 )

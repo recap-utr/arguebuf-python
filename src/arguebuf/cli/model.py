@@ -2,9 +2,50 @@ import shutil
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Self
+from typing import Annotated, Self
 
 import typer
+
+InputFolder = Annotated[
+    Path,
+    typer.Argument(
+        help="File or folder to process, folders are searched with INPUT_GLOB.",
+        exists=True,
+    ),
+]
+InputGlob = Annotated[
+    str,
+    typer.Argument(
+        help="Glob pattern selecting the files within INPUT_FOLDER, e.g., '**/*.json'."
+    ),
+]
+OutputFolder = Annotated[
+    Path | None,
+    typer.Option(
+        help="File or folder to write the results to, defaults to INPUT_FOLDER.",
+        show_default=False,
+    ),
+]
+Clean = Annotated[
+    bool, typer.Option(help="Delete the output folder before processing.")
+]
+Overwrite = Annotated[
+    bool, typer.Option(help="Overwrite existing output files instead of skipping.")
+]
+Start = Annotated[
+    int,
+    typer.Option(
+        help="Position of the first input file to process, used to resume a run.",
+        min=1,
+    ),
+]
+SourceLang = Annotated[
+    str, typer.Argument(help="DeepL code of the source language, e.g., 'DE'.")
+]
+TargetLang = Annotated[
+    str, typer.Argument(help="DeepL code of the target language, e.g., 'EN-US'.")
+]
+AuthKey = Annotated[str, typer.Argument(help="DeepL API authentication key.")]
 
 
 @dataclass(slots=True, frozen=True)

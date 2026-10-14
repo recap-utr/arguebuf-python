@@ -12,7 +12,7 @@ from arg_services.validation import require_all
 
 import arguebuf
 
-cli = typer.Typer()
+cli = typer.Typer(no_args_is_help=True)
 
 
 @dataclass(slots=True, frozen=True)
@@ -44,10 +44,20 @@ class CasebaseService(casebase_pb2_grpc.CasebaseServiceServicer):
 
 @cli.command()
 def start(
-    address: Annotated[str, typer.Argument()] = "127.0.0.1:50051",
-    basepath: Path = Path("."),
-    glob: str = "*/*",
+    address: Annotated[
+        str, typer.Argument(help="Host and port the server listens on.")
+    ] = "127.0.0.1:50051",
+    basepath: Annotated[
+        Path,
+        typer.Option(
+            help="Folder containing the casebases.", exists=True, file_okay=False
+        ),
+    ] = Path("."),
+    glob: Annotated[
+        str, typer.Option(help="Glob pattern matching the casebase folders.")
+    ] = "*/*",
 ) -> None:
+    """Serve the casebases in BASEPATH via the CasebaseService."""
     serve(
         address,
         partial(

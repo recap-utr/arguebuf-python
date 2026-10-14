@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from pathlib import Path
+from typing import Annotated
 
 import typer
 from deepl import DeepLClient
@@ -9,22 +10,27 @@ import arguebuf as ag
 from . import model
 from .translator import Translator
 
-cli = typer.Typer()
+cli = typer.Typer(no_args_is_help=True)
+
+OutputFormat = Annotated[
+    ag.dump.Format, typer.Option(help="Format of the exported graphs.")
+]
 
 
 @cli.command()
 def translate(
-    input_folder: Path,
-    source_lang: str,
-    target_lang: str,
-    auth_key: str,
-    input_glob: str,
-    output_folder: Path | None = None,
-    output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
-    clean: bool = False,
-    overwrite: bool = False,
-    start: int = 1,
+    input_folder: model.InputFolder,
+    source_lang: model.SourceLang,
+    target_lang: model.TargetLang,
+    auth_key: model.AuthKey,
+    input_glob: model.InputGlob,
+    output_folder: model.OutputFolder = None,
+    output_format: OutputFormat = ag.dump.Format.ARGUEBUF,
+    clean: model.Clean = False,
+    overwrite: model.Overwrite = False,
+    start: model.Start = 1,
 ) -> None:
+    """Translate the texts of atom nodes, references, and resources with DeepL."""
     translator = Translator(DeepLClient(auth_key), source_lang, target_lang)
 
     for path_pair in model.pending_pairs(
@@ -51,28 +57,70 @@ def node_label_formatter(
 
 @cli.command()
 def render(
-    input_folder: Path,
-    input_glob: str,
-    output_folder: Path | None = None,
-    output_format: str = ".pdf",
-    strip_scheme_nodes: bool = False,
-    strip_node_labels: bool = False,
-    strip_node_labels_char: str | None = None,
-    edge_style: ag.schemas.graphviz.EdgeStyle = ag.schemas.graphviz.EdgeStyle.STEP,
-    nodesep: float = 0.25,
-    ranksep: float = 0.5,
-    node_wrap_col: int = 36,
-    node_margin: tuple[float, float] = (0.15, 0.1),
-    font_name: str = "Arial",
-    font_size: float = 11,
-    clean: bool = False,
-    overwrite: bool = False,
-    start: int = 1,
-    max_nodes: int = 1000,
-    prog: str = "dot",
-    dpi: int = 300,
-    monochrome: bool = False,
+    input_folder: model.InputFolder,
+    input_glob: model.InputGlob,
+    output_folder: model.OutputFolder = None,
+    output_format: Annotated[
+        str,
+        typer.Option(
+            help="Suffix of the rendered files that determines their format,"
+            " e.g., '.pdf', '.png', or '.svg'."
+        ),
+    ] = ".pdf",
+    strip_scheme_nodes: Annotated[
+        bool,
+        typer.Option(help="Remove scheme nodes and connect their atoms directly."),
+    ] = False,
+    strip_node_labels: Annotated[
+        bool,
+        typer.Option(help="Mask node labels, e.g., to show only the structure."),
+    ] = False,
+    strip_node_labels_char: Annotated[
+        str | None,
+        typer.Option(
+            help="Character replacing all non-whitespace characters of masked labels,"
+            " defaults to an en dash.",
+            show_default=False,
+        ),
+    ] = None,
+    edge_style: Annotated[
+        ag.schemas.graphviz.EdgeStyle, typer.Option(help="Shape of the edges.")
+    ] = ag.schemas.graphviz.EdgeStyle.STEP,
+    nodesep: Annotated[
+        float,
+        typer.Option(help="Minimum space between nodes of the same rank in inches."),
+    ] = 0.25,
+    ranksep: Annotated[
+        float, typer.Option(help="Minimum space between ranks in inches.")
+    ] = 0.5,
+    node_wrap_col: Annotated[
+        int, typer.Option(help="Maximum number of characters per line in labels.")
+    ] = 36,
+    node_margin: Annotated[
+        tuple[float, float],
+        typer.Option(help="Horizontal and vertical padding of labels in inches."),
+    ] = (0.15, 0.1),
+    font_name: Annotated[str, typer.Option(help="Font of the labels.")] = "Arial",
+    font_size: Annotated[
+        float, typer.Option(help="Font size of the labels in points.")
+    ] = 11,
+    clean: model.Clean = False,
+    overwrite: model.Overwrite = False,
+    start: model.Start = 1,
+    max_nodes: Annotated[
+        int, typer.Option(help="Skip graphs with more nodes than this limit.")
+    ] = 1000,
+    prog: Annotated[
+        str, typer.Option(help="Graphviz layout engine, e.g., 'dot' or 'neato'.")
+    ] = "dot",
+    dpi: Annotated[
+        int, typer.Option(help="Resolution of raster formats such as PNG.")
+    ] = 300,
+    monochrome: Annotated[
+        bool, typer.Option(help="Render in black and white instead of color.")
+    ] = False,
 ) -> None:
+    """Render graphs as images with Graphviz."""
     label_formatter = node_label_formatter(strip_node_labels, strip_node_labels_char)
 
     for path_pair in model.pending_pairs(
@@ -105,17 +153,33 @@ def render(
 
 @cli.command()
 def convert(
-    input_folder: Path,
-    input_glob: str,
-    output_folder: Path | None = None,
-    output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
-    clean: bool = False,
-    overwrite: bool = False,
-    start: int = 1,
-    text_folder: Path | None = None,
-    text_suffix: str = ".txt",
-    reconstruct_dialog: bool = False,
+    input_folder: model.InputFolder,
+    input_glob: model.InputGlob,
+    output_folder: model.OutputFolder = None,
+    output_format: OutputFormat = ag.dump.Format.ARGUEBUF,
+    clean: model.Clean = False,
+    overwrite: model.Overwrite = False,
+    start: model.Start = 1,
+    text_folder: Annotated[
+        Path | None,
+        typer.Option(
+            help="Folder mirroring INPUT_FOLDER with plain texts to add as resources,"
+            " defaults to the text files next to the graphs.",
+            show_default=False,
+        ),
+    ] = None,
+    text_suffix: Annotated[
+        str, typer.Option(help="Suffix of the files in TEXT_FOLDER.")
+    ] = ".txt",
+    reconstruct_dialog: Annotated[
+        bool,
+        typer.Option(
+            help="Connect AIF and xAIF atoms only linked through dialog nodes"
+            " to the atoms of adjacent turns, otherwise they become isolated."
+        ),
+    ] = False,
 ) -> None:
+    """Convert graphs between formats, the input format is derived from the suffix."""
     load_config = ag.load.Config(reconstruct_dialog=reconstruct_dialog)
     dump_config = ag.dump.Config(format=output_format)
 
@@ -134,9 +198,15 @@ def convert(
 
 @cli.command()
 def statistics(
-    input_folder: Path,
-    input_glob: str,
-):
+    input_folder: Annotated[
+        Path,
+        typer.Argument(
+            help="Folder to search with INPUT_GLOB.", exists=True, file_okay=False
+        ),
+    ],
+    input_glob: model.InputGlob,
+) -> None:
+    """Print node and edge counts of the selected graphs."""
     files = sorted(input_folder.glob(input_glob))
 
     graphs = [ag.load.file(file) for file in files]
