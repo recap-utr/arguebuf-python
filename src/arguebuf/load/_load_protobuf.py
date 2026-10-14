@@ -55,7 +55,7 @@ def load_protobuf[T = str](
     for participant_id, participant in obj.participants.items():
         g.add_participant(
             config.ParticipantClass(
-                participant.name,
+                participant.name or None,
                 username=participant.username or None,
                 email=participant.email or None,
                 url=participant.url or None,
@@ -70,7 +70,7 @@ def load_protobuf[T = str](
     for analyst_id, analyst in obj.analysts.items():
         g.add_analyst(
             config.AnalystClass(
-                analyst.name,
+                analyst.name or None,
                 email=analyst.email or None,
                 userdata=proto_json.serialize(analyst.userdata),
                 id=analyst_id,
