@@ -87,10 +87,7 @@ def node_to_nx(
     attrs: t.MutableMapping[str, t.Callable[[AbstractNode], t.Any]] | None = None,
 ) -> None:
     """Submethod used to export Graph object g into NX Graph format."""
-    if attrs is None:
-        attrs = {}
-
-    if "label" not in attrs:
-        attrs["label"] = lambda x: x.label
+    # copied to avoid adding the label to the mapping of the caller
+    attrs = {"label": lambda x: x.label, **(attrs or {})}
 
     g.add_node(node._id, **{key: func(node) for key, func in attrs.items()})
