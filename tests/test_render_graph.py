@@ -1,9 +1,13 @@
+import shutil
 from pathlib import Path
+
+import pytest
 
 import arguebuf as ag
 
 
-def test_render_graph(tmp_path: Path):
+@pytest.fixture
+def graph() -> ag.Graph:
     # Create test graph
     g = ag.Graph("Test")
 
@@ -63,13 +67,21 @@ def test_render_graph(tmp_path: Path):
     g.add_edge(e13)
     g.add_edge(e14)
 
-    # Dump graph into d2 graph and graphviz graph
-    d2_graph = ag.dump.d2(g)
-    graphviz_graph = ag.dump.graphviz(g)
+    return g
 
-    # Render d2 graph and graphviz graph
-    if d2_graph is not None:
-        ag.render.d2(d2_graph, tmp_path / "test_d2.png")
 
-    if graphviz_graph is not None:
-        ag.render.graphviz(graphviz_graph, tmp_path / "test_graphviz.png")
+def test_render_graphviz(graph: ag.Graph, tmp_path: Path):
+    gv = ag.dump.graphviz(graph)
+    assert gv is not None
+
+    ag.render.graphviz(gv, tmp_path / "graph.png")
+    assert (tmp_path / "graph.png").stat().st_size > 0
+
+
+@pytest.mark.skipif(shutil.which("d2") is None, reason="requires the d2 executable")
+def test_render_d2(graph: ag.Graph, tmp_path: Path):
+    d2 = ag.dump.d2(graph)
+    assert d2 is not None
+
+    ag.render.d2(d2, tmp_path / "graph.png")
+    assert (tmp_path / "graph.png").stat().st_size > 0
