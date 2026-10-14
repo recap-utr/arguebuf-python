@@ -11,7 +11,8 @@ def to_format(dt: pendulum.DateTime | None, format: str) -> str:
 
 
 def from_protobuf(dt: timestamp_pb2.Timestamp) -> pendulum.DateTime:
-    return pendulum.instance(dt.ToDatetime()) if dt else pendulum.now()
+    # unset timestamps are serialized as the epoch
+    return pendulum.instance(dt.ToDatetime()) if dt.seconds or dt.nanos else pendulum.now()
 
 
 def to_protobuf(dt: pendulum.DateTime | None, obj: timestamp_pb2.Timestamp) -> None:
