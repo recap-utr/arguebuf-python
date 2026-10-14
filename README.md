@@ -92,7 +92,7 @@ This also makes it really easy to integrate the popular [`spacy` library](http:/
 ```python
 import spacy
 nlp = spacy.load("en_core_web_lg")
-graph = ag.load.file("graph.json", nlp=nlp)
+graph = ag.load.file("graph.json", config=ag.load.Config(nlp=nlp))
 ```
 
 ### Programmatically Create a New Graph
