@@ -52,15 +52,14 @@ class Translator:
             resource.text = translation
 
         references = [
-            atom.reference.plain_text
-            for atom in arg.atom_nodes.values()
-            if atom.reference is not None
+            atom.reference for atom in arg.atom_nodes.values() if atom.reference
         ]
-        for atom, translation in zip(
-            arg.atom_nodes.values(), self.translate_texts(references), strict=True
+        for reference, translation in zip(
+            references,
+            self.translate_texts(reference.plain_text for reference in references),
+            strict=True,
         ):
-            if atom.reference is not None:
-                atom.reference.text = translation
+            reference.text = translation
 
         atoms = [atom.plain_text for atom in arg.atom_nodes.values()]
         for atom, translation in zip(
