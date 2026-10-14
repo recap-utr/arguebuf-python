@@ -18,7 +18,7 @@ class Support(StrEnum):
     POPULAR_PRACTICE = "Popular Practice"
     EXAMPLE = "Example"
     ANALOGY = "Analogy"
-    PRACTICAL_REASONING_FROM_ANALOGY = "Practical Resoning from Analogy"
+    PRACTICAL_REASONING_FROM_ANALOGY = "Practical Reasoning from Analogy"
     COMPOSITION = "Composition"
     DIVISION = "Division"
     OPPOSITIONS = "Oppositions"
@@ -127,124 +127,63 @@ scheme2aif: dict[type[Scheme], aif.SchemeType] = {
     Rephrase: "MA",
     Preference: "PA",
 }
-aif2scheme: dict[str, Scheme | None] = {
-    "RA": Support.DEFAULT,
-    "CA": Attack.DEFAULT,
-    "MA": Rephrase.DEFAULT,
-    "PA": Preference.DEFAULT,
-    "": None,
+aif2scheme: dict[str, type[Scheme] | None] = {
+    aif_type: scheme_type for scheme_type, aif_type in scheme2aif.items()
+} | {"": None}
+# AIFdb labels of the default schemes
+scheme2aif_default: dict[type[Scheme], str] = {
+    Support: "Default Inference",
+    Attack: "Default Conflict",
+    Rephrase: "Default Rephrase",
+    Preference: "Default Preference",
 }
 
-text2support: dict[str, Support] = {
-    "Alternatives": Support.ALTERNATIVES,
-    "Analogy": Support.ANALOGY,
-    "Arbitrary Verbal Classification": Support.VERBAL_CLASSIFICATION,
-    "Argument From Authority": Support.DEFAULT,  # AUTHORITY
-    "Argument From Goodwill": Support.DEFAULT,
-    "Argument From Moral Virtue": Support.DEFAULT,
-    "Argument From Practical Wisdom": Support.DEFAULT,
-    "Argument From Virtue/Goodwill": Support.DEFAULT,
-    "Argument From Wisdom/Goodwill": Support.DEFAULT,
-    "Argument From Wisdom/Virtue": Support.DEFAULT,
-    "Argument From Wisdom/Virtue/Goodwill": Support.DEFAULT,
-    "Authority": Support.DEFAULT,  # AUTHORITY
-    "Bias": Support.BIAS,
+
+def _normalize(text: str) -> str:
+    """Make scheme labels comparable regardless of case and separators.
+
+    >>> _normalize("Expert Opinion") == _normalize("ExpertOpinion")
+    True
+    """
+    return "".join(char for char in text.casefold() if char.isalnum())
+
+
+_support_aliases: dict[str, Support] = {
+    "Arbitrary Verbal Classification": Support.VERBAL_CLASSIFICATION_ARBITRARINESS,
     "Causal Slippery Slope": Support.SLIPPERY_SLOPE,
-    "Cause To Effect": Support.CAUSE_TO_EFFECT,
-    "Circumstantial Ad Hominem": Support.CIRCUMSTANTIAL_AD_HOMINEM,
-    "Commitment": Support.COMMITMENT,
-    "Composition": Support.COMPOSITION,
-    "Consequences": Support.CONSEQUENCES,
-    "Correlation To Cause": Support.CORRELATION_TO_CAUSE,
-    "Danger Appeal": Support.DANGER_APPEAL,
-    "Default Inference": Support.DEFAULT,
-    "Definitional": Support.DEFAULT,  # DEFINITION
-    "Definition To Verbal Classification": Support.VERBAL_CLASSIFICATION,
-    "Dilemma": Support.DEFAULT,  # DILEMMA
     "Direct Ad Hominem": Support.GENERIC_AD_HOMINEM,
-    "Division": Support.DIVISION,
-    "Efficient Cause": Support.DEFAULT,
-    "Established Rule": Support.DEFAULT,
-    "Ethotic": Support.ETHOTIC,
-    "Evidence To Hypothesis": Support.EVIDENCE_TO_HYPOTHESIS,
-    "Example": Support.EXAMPLE,
-    "Exceptional Case": Support.EXCEPTIONAL_CASE,
-    "Expert Opinion": Support.EXPERT_OPINION,
-    "Falsification Of Hypothesis": Support.DEFAULT,
-    "Fear Appeal": Support.FEAR_APPEAL,
-    "Final Cause": Support.DEFAULT,
-    "Formal Cause": Support.DEFAULT,
-    "From-all-the-more-so-OR-all-the-less-so": Support.DEFAULT,
     "From-alternatives": Support.ALTERNATIVES,
     "From-analogy": Support.ANALOGY,
-    "From-authority": Support.DEFAULT,  # AUTHORITY
-    "From-conjugates-OR-derivates": Support.DEFAULT,
-    "From-correlates": Support.DEFAULT,
-    "From-definition": Support.DEFAULT,  # DEFINITION
-    "From-description": Support.DEFAULT,
-    "From-efficient-cause": Support.DEFAULT,
-    "From-final-OR-instrumental-cause": Support.DEFAULT,
-    "From-formal-cause": Support.DEFAULT,
-    "From-genus-and-species": Support.DEFAULT,
-    "From-material-cause": Support.DEFAULT,
-    "From-ontological-implications": Support.DEFAULT,
     "From-opposition": Support.OPPOSITIONS,
     "From-parts-and-whole": Support.DIVISION,
-    "From-place": Support.DEFAULT,
-    "From-promising-and-warning": Support.DEFAULT,
-    "From-termination-and-inception": Support.DEFAULT,
-    "From-time": Support.DEFAULT,
-    "Full Slippery Slope": Support.FULL_SLIPPERY_SLOPE,
-    "Generic Ad Hominem": Support.GENERIC_AD_HOMINEM,
-    "Gradualism": Support.GRADUALISM,
-    "Ignorance": Support.IGNORANCE,
-    "Inconsistent Commitment": Support.INCONSISTENT_COMMITMENT,
-    "Informant Report": Support.DEFAULT,
-    "Interaction Of Act And Person": Support.INTERACTION_OF_ACT_AND_PERSON,
-    "Material Cause": Support.DEFAULT,
-    "Mereological": Support.DEFAULT,
-    "Modus Ponens": Support.DEFAULT,  # MODUS_PONENS
-    "Need For Help": Support.NEED_FOR_HELP,
-    "Negative Consequences": Support.NEGATIVE_CONSEQUENCES,
     "Opposition": Support.OPPOSITIONS,
-    "Paraphrase": Support.DEFAULT,
-    "Perception": Support.PERCEPTION,
-    "Popular Opinion": Support.POPULAR_OPINION,
-    "Popular Practice": Support.POPULAR_PRACTICE,
-    "Position To Know": Support.POSITION_TO_KNOW,
-    "Positive Consequences": Support.POSITIVE_CONSEQUENCES,
-    "Practical Evaluation": Support.DEFAULT,
-    "Practical Reasoning": Support.PRACTICAL_REASONING,
-    "Practical Reasoning From Analogy": Support.PRACTICAL_REASONING_FROM_ANALOGY,
     "Pragmatic Argument From Alternatives": Support.PRAGMATIC_ALTERNATIVES,
-    "Pragmatic Inconsistency": Support.PRAGMATIC_INCONSISTENCY,
-    "Precedent Slippery Slope": Support.PRECEDENT_SLIPPERY_SLOPE,
-    "Reframing": Support.DEFAULT,
-    "Rules": Support.RULES,
-    "Sign": Support.SIGN,
-    "Two Person Practical Reasoning": Support.TWO_PERSON_PRACTICAL_REASONING,
-    "Vagueness Of Verbal Classification": Support.VERBAL_CLASSIFICATION,
-    "Vague Verbal Classification": Support.VERBAL_CLASSIFICATION,
+    "Vague Verbal Classification": Support.VERBAL_CLASSIFICATION_VAGUENESS,
+    "Vagueness Of Verbal Classification": Support.VERBAL_CLASSIFICATION_VAGUENESS,
     "Value Based Practical Reasoning": Support.PRACTICAL_REASONING,
-    "Values": Support.VALUES,
-    "Verbal Classification": Support.VERBAL_CLASSIFICATION,
-    "Verbal Slippery Slope": Support.VERBAL_SLIPPERY_SLOPE,
-    "Waste": Support.WASTE,
-    "Witness Testimony": Support.WITNESS_TESTIMONY,
 }
 
-text2scheme: dict[
-    type[Scheme],
-    dict[str, Support]
-    | dict[str, Attack]
-    | dict[str, Rephrase]
-    | dict[str, Preference],
-] = {
-    Support: text2support,
-    Attack: {},
-    Rephrase: {},
-    Preference: {},
+_text2scheme: dict[type[Scheme], dict[str, Scheme]] = {
+    scheme_type: {_normalize(item.value): item for item in scheme_type}
+    for scheme_type in scheme2aif
 }
+_text2scheme[Support] |= {
+    _normalize(text): item for text, item in _support_aliases.items()
+}
+
+
+def resolve_scheme(scheme_type: type[Scheme], text: str) -> Scheme:
+    """Get the scheme of the given type whose label matches the text.
+
+    Labels are compared regardless of case and separators,
+    unknown labels resolve to the default scheme.
+
+    >>> resolve_scheme(Support, "ExpertOpinion")
+    <Support.EXPERT_OPINION: 'Expert Opinion'>
+    >>> resolve_scheme(Attack, "Default Conflict")
+    <Attack.DEFAULT: 'Default'>
+    """
+    return _text2scheme[scheme_type].get(_normalize(text), scheme_type.DEFAULT)
 
 
 def resolve_aif_scheme(aif_type: str, text: str) -> Scheme | None:
@@ -252,7 +191,6 @@ def resolve_aif_scheme(aif_type: str, text: str) -> Scheme | None:
 
     Callers must ensure that `aif_type` is a key of `aif2scheme`.
     """
-    scheme = aif2scheme[aif_type]
+    scheme_type = aif2scheme[aif_type]
 
-    # TODO: Handle formatting like capitalization, spaces, underscores, etc.
-    return text2scheme[type(scheme)].get(text, scheme) if scheme else None
+    return resolve_scheme(scheme_type, text) if scheme_type else None

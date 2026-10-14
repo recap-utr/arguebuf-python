@@ -103,7 +103,7 @@ class SchemeNode(AbstractNode):
 
         label = type(self.scheme).__name__
 
-        if self.scheme.value != "Default":
+        if self.scheme is not type(self.scheme).DEFAULT:
             label = f"{label}: {self.scheme.value}"
 
         return label

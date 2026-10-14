@@ -3,7 +3,7 @@ from xml.etree import ElementTree as Tree
 
 from arguebuf.model import Graph
 from arguebuf.model.node import AtomNode, SchemeNode
-from arguebuf.model.scheme import Attack, Support
+from arguebuf.model.scheme import Attack, Scheme, Support, resolve_scheme
 from arguebuf.model.userdata import Userdata
 from arguebuf.model.utils import uuid
 
@@ -92,20 +92,14 @@ def scheme_from_aml[T](
     obj: Tree.Element, config: Config[T], refutation: bool = False
 ) -> SchemeNode:
     """Generate a scheme node from an AML "PROP" element."""
-    scheme: Support | Attack = Support.DEFAULT
+    scheme: Scheme = Support.DEFAULT
 
     if refutation:
         scheme = Attack.DEFAULT
     elif (inscheme := obj.find("INSCHEME")) is not None:
-        aml_scheme = inscheme.attrib["scheme"].lower().replace(" ", "")
-        scheme = next(
-            (
-                support
-                for support in Support
-                if support.value.lower().replace(" ", "") in aml_scheme
-            ),
-            Support.DEFAULT,
-        )
+        # Araucaria names the schemes "Argument from ..."
+        name = inscheme.attrib["scheme"].strip().casefold()
+        scheme = resolve_scheme(Support, name.removeprefix("argument from"))
 
     # the scheme is derived from the premise and thus needs a distinct id
     identifier = obj.get("identifier")
