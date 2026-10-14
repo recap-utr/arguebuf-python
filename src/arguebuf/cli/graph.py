@@ -114,7 +114,11 @@ def convert(
     start: int = 1,
     text_folder: Path | None = None,
     text_suffix: str = ".txt",
+    reconstruct_dialog: bool = False,
 ) -> None:
+    load_config = ag.load.Config(reconstruct_dialog=reconstruct_dialog)
+    dump_config = ag.dump.Config(format=output_format)
+
     for path_pair in model.pending_pairs(
         input_folder, output_folder, input_glob, ".json", clean, overwrite, start
     ):
@@ -124,8 +128,8 @@ def convert(
             if text_folder
             else None
         )
-        graph = ag.load.file(path_pair.source, text_file=text_file)
-        ag.dump.file(graph, path_pair.target, ag.dump.Config(format=output_format))
+        graph = ag.load.file(path_pair.source, text_file=text_file, config=load_config)
+        ag.dump.file(graph, path_pair.target, dump_config)
 
 
 @cli.command()

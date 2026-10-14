@@ -6,12 +6,11 @@ import pytest
 
 import arguebuf as ag
 from arguebuf.load import Config
-from arguebuf.load._load_aif import atom_from_aif
+from arguebuf.load._load_aif import node_from_aif
 from arguebuf.load._load_aml import atom_from_aml, scheme_from_aml
 from arguebuf.load._load_argdown import atom_from_argdown
 from arguebuf.load._load_ova import atom_from_ova
 from arguebuf.load._load_sadface import atom_from_sadface, scheme_from_sadface
-from arguebuf.load._load_xaif import atom_from_xaif, scheme_from_xaif
 from arguebuf.model.scheme import Support
 
 aif_data_AtomNode = [
@@ -29,28 +28,10 @@ aif_data_AtomNode = [
             "One can hardly move in Friedrichshain or Neukölln these days without"
             " permanently scanning the ground for dog dirt."
         ),
-        ag.AtomNode,
         datetime(2015, 12, 14, 12, 9, 15, tzinfo=UTC),
     )
 ]
 
-xaif_data_AtomNode = [
-    (
-        """
-        {
-            "nodeID": "1196586_164813044708340528",
-            "text": "there is an even chance (49%) that Shane Jeffries is involved in corporate espionage",
-            "type": "I"
-        }
-        """,
-        "1196586_164813044708340528",
-        (
-            "there is an even chance (49%) that Shane Jeffries is involved in corporate"
-            " espionage"
-        ),
-        ag.AtomNode,
-    )
-]
 
 ova_data_AtomNode = [
     (
@@ -175,30 +156,19 @@ def test_sadface_node_AN(data, id, text, type):
     assert node.userdata == {}
 
 
-@pytest.mark.parametrize("data,id,text,type,date", aif_data_AtomNode)
-def test_aif_node_AN(data, id, text, type, date):
+@pytest.mark.parametrize("data,id,text,date", aif_data_AtomNode)
+def test_aif_node_AN(data, id, text, date):
     data_json = json.loads(data)
-    node = atom_from_aif(data_json, Config())
+    node = node_from_aif(data_json, Config())
 
+    assert isinstance(node, ag.AtomNode)
     assert node.id == id
     assert node.text == text
-    assert isinstance(node, type)
     assert node.metadata.created == date
     assert node.metadata.updated == date
     assert node.reference is None
     assert node.userdata == {}
 
-
-@pytest.mark.parametrize("data,id,text,type", xaif_data_AtomNode)
-def test_xaif_node_AN(data, id, text, type):
-    data_json = json.loads(data)
-    node = atom_from_xaif(data_json, Config())
-
-    assert node.id == id
-    assert node.text == text
-    assert isinstance(node, type)
-    assert node.reference is None
-    assert node.userdata == {}
 
 
 @pytest.mark.parametrize(
@@ -246,7 +216,7 @@ def test_sadface_node_SN(data, id, type, name):
     assert isinstance(node.metadata, ag.Metadata)
 
 
-xaif_data_SchemeNode = [
+aif_data_SchemeNode = [
     (
         """
         {
@@ -256,21 +226,18 @@ xaif_data_SchemeNode = [
         }
         """,
         "1201647_164813044708340528",
-        "Default Inference",
-        ag.SchemeNode,
     )
 ]
 
 
-@pytest.mark.parametrize("data,id,text,type", xaif_data_SchemeNode)
-def test_xaif_node_SN(data, id, text, type):
+@pytest.mark.parametrize("data,id", aif_data_SchemeNode)
+def test_aif_node_SN(data, id):
     data_json = json.loads(data)
-    node = scheme_from_xaif(data_json, Config())
+    node = node_from_aif(data_json, Config())
 
-    assert node is not None
+    assert isinstance(node, ag.SchemeNode)
     assert node.id == id
     assert node.scheme == Support.DEFAULT
-    assert isinstance(node, type)
     assert isinstance(node.metadata, ag.Metadata)
 
 

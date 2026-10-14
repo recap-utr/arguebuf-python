@@ -1,47 +1,28 @@
 import typing as t
 
-from arguebuf.schemas.aif import NodeType
+from arguebuf.schemas.aif import Graph as AifGraph
+from arguebuf.schemas.aif import Id
 
 
-class AifNode(t.TypedDict):
-    nodeID: str
-    text: str
-    type: NodeType
-    scheme: t.NotRequired[str]
+class SchemeFulfillment(t.TypedDict):
+    nodeID: Id
+    schemeID: Id
 
 
-class AifEdge(t.TypedDict):
-    edgeID: str | int
-    fromID: str
-    toID: str
+class DescriptorFulfillment(t.TypedDict):
+    nodeID: Id
+    descriptorID: Id
+    selectedID: Id | None
 
 
-class AifSchemeFulfillment(t.TypedDict):
-    nodeID: str
-    schemeID: str
-
-
-class AifLocution(t.TypedDict):
-    nodeID: str
-    schemeID: str
-
-
-class AifParticipant(t.TypedDict):
-    participantID: int
-    firstname: str
-    surname: str
-
-
-class Aif(t.TypedDict):
-    nodes: list[AifNode]
-    edges: list[AifEdge]
-    schemefulfillments: list[AifSchemeFulfillment]
-    locutions: list[AifLocution]
-    participants: list[AifParticipant]
+class Aif(AifGraph):
+    schemefulfillments: list[SchemeFulfillment] | None
+    descriptorfulfillments: t.NotRequired[list[DescriptorFulfillment] | None]
+    cqdescriptorfulfillments: t.NotRequired[list[DescriptorFulfillment] | None]
 
 
 class OvaNode(t.TypedDict):
-    nodeID: str
+    nodeID: Id
     visible: bool
     x: int
     y: int
@@ -49,8 +30,8 @@ class OvaNode(t.TypedDict):
 
 
 class OvaEdge(t.TypedDict):
-    fromID: str
-    toID: str
+    fromID: Id
+    toID: Id
     visible: bool
 
 
@@ -62,8 +43,13 @@ class Ova(t.TypedDict):
     edges: list[OvaEdge]
 
 
+class Text(t.TypedDict, total=False):
+    txt: str
+    url: str
+
+
 class Graph(t.TypedDict):
     AIF: Aif
-    OVA: Ova
-    text: str
-    # dialog: bool
+    text: str | Text
+    OVA: t.NotRequired[Ova]
+    dialog: t.NotRequired[bool]

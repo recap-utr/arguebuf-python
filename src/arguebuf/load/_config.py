@@ -27,11 +27,15 @@ class Config[T = str]:
     Attributes:
         nlp: Transforms all texts of atom nodes, references, and resources,
             e.g., to compute embeddings with `spacy.load(...)`.
+        reconstruct_dialog: Connect atoms of AIF and xAIF graphs that are only linked
+            through dialog nodes (L, TA, YA) to the atoms of adjacent turns
+            via rephrase nodes, otherwise they become isolated.
         GraphClass: Class used for graphs, allows using specialized subclasses.
             The same applies to all other `*Class` attributes.
     """
 
     nlp: Callable[[str], T] | None = None
+    reconstruct_dialog: bool = False
     GraphClass: type[Graph[T]] = Graph[T]
     AtomNodeClass: type[AtomNode[T]] = AtomNode[T]
     SchemeNodeClass: type[SchemeNode] = SchemeNode
@@ -56,6 +60,10 @@ class Config[T = str]:
     def graph(self, name: str | None) -> Graph[T]:
         """Create a graph, generating a name if none is given."""
         return self.GraphClass(name) if name else self.GraphClass()
+
+    def participant(self, id: str, *names: str) -> Participant:
+        """Create a participant named by joining the non-empty `names`."""
+        return self.ParticipantClass(" ".join(filter(None, names)) or None, id=id)
 
     def metadata(self, timestamp: datetime | None) -> Metadata:
         """Create metadata created and updated at `timestamp`, defaulting to now."""

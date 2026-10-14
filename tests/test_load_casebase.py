@@ -6,6 +6,7 @@ from typing import Any
 from deepdiff.diff import DeepDiff
 
 import arguebuf as ag
+from arguebuf.schemas import aif
 
 ARGUEBASE = Path("data", "arguebase")
 
@@ -66,7 +67,7 @@ def _clean_raw_aif(g: MutableMapping[str, Any]) -> None:
     # Remove locutions as these are not parsed
     g["locutions"] = []
     g["nodes"] = [
-        node for node in tuple(g["nodes"]) if node["type"] not in {"L", "TA", "YA"}
+        node for node in tuple(g["nodes"]) if node["type"] not in aif.DIALOG_TYPES
     ]
     node_ids = {node["nodeID"] for node in g["nodes"]}
     g["edges"] = [

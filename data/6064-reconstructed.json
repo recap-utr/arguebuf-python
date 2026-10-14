@@ -20,7 +20,7 @@
     },
     {
       "nodeID": "111803",
-      "text": "RA",
+      "text": "Default Inference",
       "type": "RA",
       "timestamp": "2015-11-25 16:13:50"
     },
@@ -40,9 +40,7 @@
       "nodeID": "111814",
       "text": "Default Inference",
       "type": "RA",
-      "timestamp": "2015-11-25 16:13:50",
-      "scheme": "Default Inference",
-      "schemeID": "72"
+      "timestamp": "2015-11-25 16:13:50"
     },
     {
       "nodeID": "111816",
@@ -54,17 +52,13 @@
       "nodeID": "111821",
       "text": "Default Inference",
       "type": "RA",
-      "timestamp": "2015-11-25 16:13:51",
-      "scheme": "Default Inference",
-      "schemeID": "72"
+      "timestamp": "2015-11-25 16:13:51"
     },
     {
       "nodeID": "111824",
       "text": "Default Inference",
       "type": "RA",
-      "timestamp": "2015-11-25 16:13:51",
-      "scheme": "Default Inference",
-      "schemeID": "72"
+      "timestamp": "2015-11-25 16:13:51"
     },
     {
       "nodeID": "111829",
@@ -88,27 +82,25 @@
       "nodeID": "111844",
       "text": "Default Inference",
       "type": "RA",
-      "timestamp": "2015-11-25 16:13:52",
-      "scheme": "Default Inference",
-      "schemeID": "72"
+      "timestamp": "2015-11-25 16:13:52"
     },
     {
-      "nodeID": "7e03100a-4a8c-11f0-b84d-acde48001122",
+      "nodeID": "c3ee6b14-c81c-11f1-bcf7-0dff8b27110d",
       "text": "Default Rephrase",
       "type": "MA",
-      "timestamp": "2014-04-28 15:51:38"
+      "timestamp": "2026-10-14 22:15:29"
     },
     {
-      "nodeID": "7e0312b2-4a8c-11f0-b84d-acde48001122",
+      "nodeID": "c3ee6c18-c81c-11f1-bcf7-0dff8b27110d",
       "text": "Default Rephrase",
       "type": "MA",
-      "timestamp": "2014-04-28 15:51:38"
+      "timestamp": "2026-10-14 22:15:29"
     },
     {
-      "nodeID": "7e0313e8-4a8c-11f0-b84d-acde48001122",
+      "nodeID": "c3ee6c9a-c81c-11f1-bcf7-0dff8b27110d",
       "text": "Default Rephrase",
       "type": "MA",
-      "timestamp": "2015-11-25 16:13:51"
+      "timestamp": "2026-10-14 22:15:29"
     }
   ],
   "edges": [
@@ -173,146 +165,41 @@
       "formEdgeID": null
     },
     {
-      "edgeID": "7e031172-4a8c-11f0-b84d-acde48001122",
-      "fromID": "29054",
-      "toID": "7e03100a-4a8c-11f0-b84d-acde48001122",
-      "formEdgeID": null
-    },
-    {
-      "edgeID": "7e0311fe-4a8c-11f0-b84d-acde48001122",
-      "fromID": "7e03100a-4a8c-11f0-b84d-acde48001122",
-      "toID": "29045",
-      "formEdgeID": null
-    },
-    {
-      "edgeID": "7e031302-4a8c-11f0-b84d-acde48001122",
+      "edgeID": "c3ee6b8c-c81c-11f1-bcf7-0dff8b27110d",
       "fromID": "29045",
-      "toID": "7e0312b2-4a8c-11f0-b84d-acde48001122",
+      "toID": "c3ee6b14-c81c-11f1-bcf7-0dff8b27110d",
       "formEdgeID": null
     },
     {
-      "edgeID": "7e031348-4a8c-11f0-b84d-acde48001122",
-      "fromID": "7e0312b2-4a8c-11f0-b84d-acde48001122",
+      "edgeID": "c3ee6bdc-c81c-11f1-bcf7-0dff8b27110d",
+      "fromID": "c3ee6b14-c81c-11f1-bcf7-0dff8b27110d",
+      "toID": "29054",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "c3ee6c36-c81c-11f1-bcf7-0dff8b27110d",
+      "fromID": "29045",
+      "toID": "c3ee6c18-c81c-11f1-bcf7-0dff8b27110d",
+      "formEdgeID": null
+    },
+    {
+      "edgeID": "c3ee6c68-c81c-11f1-bcf7-0dff8b27110d",
+      "fromID": "c3ee6c18-c81c-11f1-bcf7-0dff8b27110d",
       "toID": "111829",
       "formEdgeID": null
     },
     {
-      "edgeID": "7e03142e-4a8c-11f0-b84d-acde48001122",
+      "edgeID": "c3ee6cb8-c81c-11f1-bcf7-0dff8b27110d",
       "fromID": "111829",
-      "toID": "7e0313e8-4a8c-11f0-b84d-acde48001122",
+      "toID": "c3ee6c9a-c81c-11f1-bcf7-0dff8b27110d",
       "formEdgeID": null
     },
     {
-      "edgeID": "7e031474-4a8c-11f0-b84d-acde48001122",
-      "fromID": "7e0313e8-4a8c-11f0-b84d-acde48001122",
+      "edgeID": "c3ee6ce0-c81c-11f1-bcf7-0dff8b27110d",
+      "fromID": "c3ee6c9a-c81c-11f1-bcf7-0dff8b27110d",
       "toID": "111833",
       "formEdgeID": null
     }
   ],
-  "locutions": [
-    {
-      "nodeID": "29056",
-      "personID": "409",
-      "timestamp": "2014-04-28 15:51:40",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "29058",
-      "personID": "409",
-      "timestamp": "2014-04-28 15:51:40",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "29069",
-      "personID": "409",
-      "timestamp": "2014-04-28 15:51:40",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "29056",
-      "personID": "409",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "29058",
-      "personID": "409",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "111807",
-      "personID": "409",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "111811",
-      "personID": "409",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "111818",
-      "personID": "409",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "29069",
-      "personID": "409",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "111831",
-      "personID": "409",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "111835",
-      "personID": "437",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "111841",
-      "personID": "437",
-      "timestamp": "2015-11-25 16:13:54",
-      "start": null,
-      "end": null,
-      "source": null
-    },
-    {
-      "nodeID": "111835",
-      "personID": "437",
-      "timestamp": "2015-11-26 15:43:47",
-      "start": null,
-      "end": null,
-      "source": null
-    }
-  ]
+  "locutions": []
 }

@@ -5,12 +5,13 @@ from arg_services.graph.v1 import graph_pb2
 from google.protobuf import proto_json
 
 from arguebuf.model import Graph
-from arguebuf.schemas import aif, ova
+from arguebuf.schemas import aif, ova, xaif
 
 from ._config import Config
 from ._load_aif import load_aif
 from ._load_ova import load_ova
 from ._load_protobuf import load_protobuf
+from ._load_xaif import load_xaif
 
 __all__ = ("load_dict",)
 
@@ -20,7 +21,10 @@ def load_dict[T = str](
     name: str | None = None,
     config: Config[T] = Config(),
 ) -> Graph[T]:
-    """Generate Graph structure from a dict in the OVA, AIF, or arguebuf format."""
+    """Generate Graph structure from a dict in the OVA, xAIF, AIF, or arguebuf format."""
+    if "AIF" in obj:
+        return load_xaif(cast(xaif.Graph, obj), name, config)
+
     if "analysis" in obj:
         return load_ova(cast(ova.Graph, obj), name, config)
 

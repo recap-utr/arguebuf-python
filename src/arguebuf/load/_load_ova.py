@@ -34,9 +34,8 @@ def load_ova[T = str](
 
     for participant in obj["participants"]:
         g.add_participant(
-            config.ParticipantClass(
-                f"{participant['firstname']} {participant['surname']}",
-                id=str(participant["id"]),
+            config.participant(
+                str(participant["id"]), participant["firstname"], participant["surname"]
             )
         )
 

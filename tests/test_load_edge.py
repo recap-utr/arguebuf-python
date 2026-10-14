@@ -5,43 +5,9 @@ import pytest
 
 import arguebuf as ag
 from arguebuf.load import Config
-from arguebuf.load._load_aif import edge_from_aif
 from arguebuf.load._load_argdown import edge_from_argdown
 from arguebuf.load._load_ova import edge_from_ova
 from arguebuf.load._load_sadface import edge_from_sadface
-from arguebuf.load._load_xaif import edge_from_xaif
-
-xaif_data = [
-    (
-        """
-        {
-            "edgeID": 204,
-            "fromID": "323_164813044708340528",
-            "toID": "324_164813044708340528"
-        }
-        """,
-        "204",
-        "323_164813044708340528",
-        "324_164813044708340528",
-    )
-]
-
-aif_data = [
-    (
-        """
-        {
-			"edgeID": "160913",
-			"fromID": "119935",
-			"toID": "119940",
-			"formEdgeID": null
-		}
-        """,
-        "160913",
-        "119935",
-        "119940",
-    )
-]
-
 
 ova_data = [
     (
@@ -149,28 +115,6 @@ argdown_json_data = [
 ]
 
 
-@pytest.mark.parametrize("data,id,start,end", xaif_data)
-def test_xaif_edge(data, id, start, end):
-    data_json = json.loads(data)
-    edge = edge_from_xaif(
-        data_json,
-        {
-            start: ag.AtomNode(id=start, text=""),
-            end: ag.AtomNode(id=end, text=""),
-        },
-        Config(),
-    )
-
-    assert edge
-    assert edge.id == id
-    assert isinstance(edge.source, ag.AtomNode)
-    assert isinstance(edge.target, ag.AtomNode)
-    assert edge.source.id == start
-    assert edge.target.id == end
-    assert edge.metadata is not None
-    assert edge.userdata == {}
-
-
 @pytest.mark.parametrize("data,id,start,end", argdown_json_data)
 def test_argdown_json_edge(data, id, start, end):
     data_json = json.loads(data)
@@ -197,28 +141,6 @@ def test_argdown_json_edge(data, id, start, end):
 def test_sadface_edge(data, id, start, end):
     data_json = json.loads(data)
     edge = edge_from_sadface(
-        data_json,
-        {
-            start: ag.AtomNode(id=start, text=""),
-            end: ag.AtomNode(id=end, text=""),
-        },
-        Config(),
-    )
-
-    assert edge
-    assert edge.id == id
-    assert isinstance(edge.source, ag.AtomNode)
-    assert isinstance(edge.target, ag.AtomNode)
-    assert edge.source.id == start
-    assert edge.target.id == end
-    assert edge.metadata is not None
-    assert edge.userdata == {}
-
-
-@pytest.mark.parametrize("data,id,start,end", aif_data)
-def test_aif_edge(data, id, start, end):
-    data_json = json.loads(data)
-    edge = edge_from_aif(
         data_json,
         {
             start: ag.AtomNode(id=start, text=""),
