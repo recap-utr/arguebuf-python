@@ -7,7 +7,8 @@ import grpc
 import typer
 from arg_services.cbr.v1beta import casebase_pb2, casebase_pb2_grpc
 from arg_services.cbr.v1beta.model_pb2 import AnnotatedGraph
-from arg_services.grpcio import serve
+from arg_services.grpcio import ValidationInterceptor, serve
+from arg_services.validation import require_all
 
 import arguebuf
 
@@ -23,6 +24,7 @@ class CasebaseService(casebase_pb2_grpc.CasebaseServiceServicer):
     def Casebase(
         self, request: casebase_pb2.CasebaseRequest, context: grpc.ServicerContext
     ) -> casebase_pb2.CasebaseResponse:
+        require_all(["include"], request)
         cases = arguebuf.load.casebase(
             request.include,
             request.exclude if request.HasField("exclude") else None,
@@ -53,6 +55,8 @@ def start(
             CasebaseService(basepath, glob),
         ),
         reflection=[casebase_pb2.DESCRIPTOR],
+        # turns validation errors into INVALID_ARGUMENT responses
+        interceptors=[ValidationInterceptor()],
     )
 
 
