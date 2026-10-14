@@ -5,7 +5,6 @@ from lxml import html
 
 from arguebuf import dt
 from arguebuf.model import Graph, utils
-from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge, warn_missing_nodes
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
 from arguebuf.model.resource import Resource
@@ -43,7 +42,7 @@ def load_ova(
         )
 
     if analyst_name := obj["analysis"].get("annotatorName"):
-        g.add_analyst(Analyst(name=analyst_name))
+        g.add_analyst(config.AnalystClass(name=analyst_name))
 
     for ova_node in obj["nodes"]:
         node = (

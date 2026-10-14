@@ -4,7 +4,6 @@ from xml.etree import ElementTree as Tree
 import pendulum
 
 from arguebuf.model import Graph, utils
-from arguebuf.model.edge import Edge
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, Attack, SchemeNode, Support
 
@@ -82,10 +81,10 @@ def read_refutation(conclusion: AtomNode, g, refutation: Tree.Element, config: C
             g.add_node(scheme_node)
 
             # create edge from premise to schemeNode
-            g.add_edge(Edge(premise_node, scheme_node))
+            g.add_edge(config.EdgeClass(premise_node, scheme_node))
 
             # create edge from schemeNode to conclusion
-            g.add_edge(Edge(scheme_node, conclusion))
+            g.add_edge(config.EdgeClass(scheme_node, conclusion))
 
             # read the rest of au
             # read premises and store in a list (list of Tree.Element objects)
@@ -136,10 +135,10 @@ def read_la(conclusion: AtomNode, g: Graph, la: Tree.Element, config: Config):
             g.add_node(scheme_node)
 
             # create edge from premise to schemeNode
-            g.add_edge(Edge(premise_node, scheme_node))
+            g.add_edge(config.EdgeClass(premise_node, scheme_node))
 
             # create edge from schemeNode to conclusion
-            g.add_edge(Edge(scheme_node, conclusion))
+            g.add_edge(config.EdgeClass(scheme_node, conclusion))
 
             # read the rest of au
             read_au(au, g, config)

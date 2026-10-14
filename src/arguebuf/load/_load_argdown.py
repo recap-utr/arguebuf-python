@@ -47,8 +47,8 @@ def load_argdown(
             g.add_node(scheme_node)
 
             # create edge from source to scheme_node and an edge from scheme_node to target
-            g.add_edge(Edge(edge.source, scheme_node))
-            g.add_edge(Edge(scheme_node, edge.target))
+            g.add_edge(config.EdgeClass(edge.source, scheme_node))
+            g.add_edge(config.EdgeClass(scheme_node, edge.target))
 
     metadata = Metadata(timestamp, timestamp)
     g.metadata = metadata

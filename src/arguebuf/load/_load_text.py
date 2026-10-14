@@ -1,7 +1,6 @@
 import typing as t
 
 from arguebuf.model import Graph, utils
-from arguebuf.model.node import AtomNode
 
 from ._config import Config, DefaultConfig
 from ._load_kialo import load_kialo
@@ -23,6 +22,6 @@ def load_text(
     text = obj.read()
 
     g = config.GraphClass(name)
-    g.add_node(AtomNode(utils.parse(text, config.nlp)))
+    g.add_node(config.AtomNodeClass(utils.parse(text, config.nlp)))
 
     return g
