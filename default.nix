@@ -4,7 +4,6 @@
   callPackage,
   fetchFromGitHub,
   python3,
-  graphviz,
   d2,
   writeShellScriptBin,
   uv2nix,
@@ -32,14 +31,6 @@ let
   pyprojectOverlay = workspace.mkPyprojectOverlay {
     sourcePreference = "wheel";
   };
-  # pygraphviz links against graphviz when built from source
-  buildOverlay = final: prev: {
-    pygraphviz = prev.pygraphviz.overrideAttrs (old: {
-      nativeBuildInputs =
-        (old.nativeBuildInputs or [ ]) ++ final.resolveBuildSystem { setuptools = [ ]; };
-      buildInputs = (old.buildInputs or [ ]) ++ [ graphviz ];
-    });
-  };
   baseSet = callPackage pyproject-nix.build.packages {
     python = python3;
   };
@@ -47,7 +38,6 @@ let
     lib.composeManyExtensions [
       pyproject-build-systems.overlays.wheel
       pyprojectOverlay
-      buildOverlay
     ]
   );
   package = pythonSet.arguebuf;
@@ -79,7 +69,6 @@ in
               "test"
             ];
           })
-          graphviz
           d2
         ];
         configurePhase = ''
