@@ -1,4 +1,5 @@
 import typing as t
+from collections.abc import Iterable, Mapping
 
 import pendulum
 
@@ -112,257 +113,166 @@ def preprocess_dialog(graph: aif.Graph) -> aif.Graph:
     Removes unsupported dialogue nodes (L, TA, YA) while preserving
     argument structure by creating rephrase connections.
     """
-    # Copy the graph
-    result: aif.Graph = {
-        "nodes": graph["nodes"].copy(),
-        "edges": graph["edges"].copy(),
-        "locutions": graph.get("locutions", []).copy(),
-    }
+    edges_from: dict[str, list[str]] = {}
+    edges_to: dict[str, list[str]] = {}
 
-    # Find hanging nodes before removing dialogue nodes
-    hanging_nodes = _find_hanging_nodes(result)
+    for edge in graph["edges"]:
+        edges_from.setdefault(edge["fromID"], []).append(edge["toID"])
+        edges_to.setdefault(edge["toID"], []).append(edge["fromID"])
 
-    # Remove dialogue nodes and create bypass edges
-    result = _remove_dialogue_nodes(result)
+    node_types = {n["nodeID"]: n["type"] for n in graph["nodes"]}
 
-    # Reconnect hanging nodes with rephrase nodes
-    result = _add_rephrase_connections(result, hanging_nodes, graph)
+    # hanging I-nodes have exactly one incoming edge and no outgoing edges
+    hanging_nodes = [
+        node_id
+        for node_id, node_type in node_types.items()
+        if node_type == "I"
+        and len(edges_to.get(node_id, [])) == 1
+        and node_id not in edges_from
+    ]
+
+    result = _remove_dialogue_nodes(graph, node_types)
+    _add_rephrase_connections(result, hanging_nodes, edges_to, edges_from, node_types)
 
     return result
 
 
-def _find_hanging_nodes(graph: aif.Graph) -> set[str]:
-    """Find I-nodes with exactly one incoming edge and no outgoing edges."""
-    hanging = set()
-
-    for node in graph["nodes"]:
-        if node["type"] != "I":
-            continue
-
-        node_id = node["nodeID"]
-        incoming = sum(1 for e in graph["edges"] if e["toID"] == node_id)
-        outgoing = sum(1 for e in graph["edges"] if e["fromID"] == node_id)
-
-        if incoming == 1 and outgoing == 0:
-            hanging.add(node_id)
-
-    return hanging
-
-
-def _remove_dialogue_nodes(graph: aif.Graph) -> aif.Graph:
-    """Remove dialogue nodes (L, TA, YA) and bypass them with direct edges."""
-    # Identify dialogue nodes
-    dialogue_nodes = {
-        n["nodeID"] for n in graph["nodes"] if n["type"] in UNSUPPORTED_NODE_TYPES
+def _edge(from_id: str, to_id: str) -> aif.Edge:
+    return {
+        "edgeID": utils.uuid(),
+        "fromID": from_id,
+        "toID": to_id,
+        "formEdgeID": None,
     }
 
-    # Find edges to bypass
-    new_edges = []
-    edges_to_remove = set()
 
-    for node_id in dialogue_nodes:
-        incoming = [e for e in graph["edges"] if e["toID"] == node_id]
-        outgoing = [e for e in graph["edges"] if e["fromID"] == node_id]
+def _remove_dialogue_nodes(
+    graph: aif.Graph, node_types: Mapping[str, str]
+) -> aif.Graph:
+    """Remove dialogue nodes (L, TA, YA) and bypass them with direct edges."""
+    dialogue_nodes = {
+        node_id
+        for node_id, node_type in node_types.items()
+        if node_type in UNSUPPORTED_NODE_TYPES
+    }
+    existing_edges = {(e["fromID"], e["toID"]) for e in graph["edges"]}
+    incoming: dict[str, list[aif.Edge]] = {}
+    outgoing: dict[str, list[aif.Edge]] = {}
 
-        # Mark these edges for removal
-        for edge in incoming + outgoing:
-            edges_to_remove.add(edge["edgeID"])
+    for edge in graph["edges"]:
+        incoming.setdefault(edge["toID"], []).append(edge)
+        outgoing.setdefault(edge["fromID"], []).append(edge)
 
-        # Create bypass edges
-        for in_edge in incoming:
-            for out_edge in outgoing:
-                from_id = in_edge["fromID"]
-                to_id = out_edge["toID"]
+    # bypass the dialogue nodes, skipping self-loops and other dialogue nodes
+    new_edges = [
+        _edge(in_edge["fromID"], out_edge["toID"])
+        for node_id in dialogue_nodes
+        for in_edge in incoming.get(node_id, [])
+        for out_edge in outgoing.get(node_id, [])
+        if in_edge["fromID"] != out_edge["toID"]
+        and in_edge["fromID"] in node_types
+        and out_edge["toID"] in node_types
+        and node_types[in_edge["fromID"]] not in UNSUPPORTED_NODE_TYPES
+        and node_types[out_edge["toID"]] not in UNSUPPORTED_NODE_TYPES
+        and (in_edge["fromID"], out_edge["toID"]) not in existing_edges
+    ]
 
-                # Skip self-loops and edges to other dialogue nodes
-                if from_id == to_id:
-                    continue
-
-                from_node = next(
-                    (n for n in graph["nodes"] if n["nodeID"] == from_id), None
-                )
-                to_node = next(
-                    (n for n in graph["nodes"] if n["nodeID"] == to_id), None
-                )
-
-                if (
-                    from_node
-                    and to_node
-                    and from_node["type"] not in UNSUPPORTED_NODE_TYPES
-                    and to_node["type"] not in UNSUPPORTED_NODE_TYPES
-                ):
-                    # Check if edge already exists
-                    if not any(
-                        e["fromID"] == from_id and e["toID"] == to_id
-                        for e in graph["edges"]
-                    ):
-                        new_edges.append(
-                            {
-                                "edgeID": utils.uuid(),
-                                "fromID": from_id,
-                                "toID": to_id,
-                                "formEdgeID": None,
-                            }
-                        )
-
-    # Update graph
-    graph["nodes"] = [n for n in graph["nodes"] if n["nodeID"] not in dialogue_nodes]
-    graph["edges"] = [e for e in graph["edges"] if e["edgeID"] not in edges_to_remove]
-    graph["edges"].extend(new_edges)
-
-    return graph
+    return {
+        "nodes": [n for n in graph["nodes"] if n["nodeID"] not in dialogue_nodes],
+        "edges": [
+            e
+            for e in graph["edges"]
+            if e["fromID"] not in dialogue_nodes and e["toID"] not in dialogue_nodes
+        ]
+        + new_edges,
+        "locutions": graph.get("locutions", []),
+    }
 
 
 def _add_rephrase_connections(
-    graph: aif.Graph, hanging_nodes: set[str], original_graph: aif.Graph
-) -> aif.Graph:
+    graph: aif.Graph,
+    hanging_nodes: Iterable[str],
+    edges_to: Mapping[str, list[str]],
+    edges_from: Mapping[str, list[str]],
+    node_types: Mapping[str, str],
+) -> None:
     """Add rephrase nodes to connect hanging nodes to their dialogue partners."""
-    if not hanging_nodes:
-        return graph
-
-    # Build maps for the original graph
-    orig_edges_from = {}
-    orig_edges_to = {}
-    for edge in original_graph["edges"]:
-        orig_edges_from.setdefault(edge["fromID"], []).append(edge["toID"])
-        orig_edges_to.setdefault(edge["toID"], []).append(edge["fromID"])
-
-    nodes_by_id = {n["nodeID"]: n for n in original_graph["nodes"]}
-
-    new_nodes = []
-    new_edges = []
-    connections_made = set()
+    nodes = {n["nodeID"]: n for n in graph["nodes"]}
+    # pairs that are already connected in any direction
+    connected = {frozenset((e["fromID"], e["toID"])) for e in graph["edges"]}
 
     for hanging_id in hanging_nodes:
-        # Find the I-nodes this hanging node should connect to
-        targets = _find_dialogue_targets(
-            hanging_id, orig_edges_to, orig_edges_from, nodes_by_id
-        )
+        targets = _find_dialogue_targets(hanging_id, edges_to, edges_from, node_types)
 
         for i, target_id in enumerate(targets):
-            # Skip if target doesn't exist in processed graph
-            if not any(n["nodeID"] == target_id for n in graph["nodes"]):
+            pair = frozenset((hanging_id, target_id))
+
+            if target_id not in nodes or pair in connected:
                 continue
 
-            # Skip if already connected
-            pair = (min(hanging_id, target_id), max(hanging_id, target_id))
-            if pair in connections_made:
-                continue
-
-            # Check if already connected in the processed graph
-            if any(
-                (e["fromID"] == hanging_id and e["toID"] == target_id)
-                or (e["fromID"] == target_id and e["toID"] == hanging_id)
-                for e in graph["edges"]
-            ):
-                continue
-
-            # Create rephrase node
             rephrase_id = utils.uuid()
-            hanging_node = next(n for n in graph["nodes"] if n["nodeID"] == hanging_id)
-            new_nodes.append(
+            graph["nodes"].append(
                 {
                     "nodeID": rephrase_id,
                     "text": "Default Rephrase",
                     "type": "MA",
-                    "timestamp": hanging_node.get("timestamp", ""),
+                    "timestamp": nodes[hanging_id].get("timestamp", ""),
                 }
             )
 
-            # First target is backward (response), others are forward
-            if i == 0 and len(targets) > 1:
-                # Backward: target -> rephrase -> hanging
-                new_edges.extend(
-                    [
-                        {
-                            "edgeID": utils.uuid(),
-                            "fromID": target_id,
-                            "toID": rephrase_id,
-                            "formEdgeID": None,
-                        },
-                        {
-                            "edgeID": utils.uuid(),
-                            "fromID": rephrase_id,
-                            "toID": hanging_id,
-                            "formEdgeID": None,
-                        },
-                    ]
-                )
-            else:
-                # Forward: hanging -> rephrase -> target
-                new_edges.extend(
-                    [
-                        {
-                            "edgeID": utils.uuid(),
-                            "fromID": hanging_id,
-                            "toID": rephrase_id,
-                            "formEdgeID": None,
-                        },
-                        {
-                            "edgeID": utils.uuid(),
-                            "fromID": rephrase_id,
-                            "toID": target_id,
-                            "formEdgeID": None,
-                        },
-                    ]
-                )
+            # the first target is the one being responded to, the others follow
+            source_id, sink_id = (
+                (target_id, hanging_id)
+                if i == 0 and len(targets) > 1
+                else (hanging_id, target_id)
+            )
+            graph["edges"].extend(
+                (_edge(source_id, rephrase_id), _edge(rephrase_id, sink_id))
+            )
+            connected.add(pair)
 
-            connections_made.add(pair)
 
-    graph["nodes"].extend(new_nodes)
-    graph["edges"].extend(new_edges)
-
-    return graph
+def _follow(
+    node_ids: Iterable[str],
+    adjacency: Mapping[str, list[str]],
+    node_types: Mapping[str, str],
+    node_type: str,
+) -> list[str]:
+    """Get all neighbors of the given type in the order of the adjacency lists."""
+    return [
+        neighbor
+        for node_id in node_ids
+        for neighbor in adjacency.get(node_id, [])
+        if node_types.get(neighbor) == node_type
+    ]
 
 
 def _find_dialogue_targets(
-    node_id: str, edges_to: dict, edges_from: dict, nodes_by_id: dict
+    node_id: str,
+    edges_to: Mapping[str, list[str]],
+    edges_from: Mapping[str, list[str]],
+    node_types: Mapping[str, str],
 ) -> list[str]:
     """Find I-nodes that a hanging node should connect to based on dialogue structure."""
-    targets = []
+    # the locution that asserts this node via a YA node
+    locutions = _follow(
+        _follow([node_id], edges_to, node_types, "YA"), edges_to, node_types, "L"
+    )
 
-    # Find the locution that supports this node through YA
-    locution = None
-    for ya_id in edges_to.get(node_id, []):
-        if nodes_by_id.get(ya_id, {}).get("type") == "YA":
-            for loc_id in edges_to.get(ya_id, []):
-                if nodes_by_id.get(loc_id, {}).get("type") == "L":
-                    locution = loc_id
-                    break
-            if locution:
-                break
+    if not locutions:
+        return []
 
-    if not locution:
-        return targets
+    targets: list[str] = []
 
-    # Find backward connections (what this responds to)
-    for ta_id in edges_to.get(locution, []):
-        if nodes_by_id.get(ta_id, {}).get("type") == "TA":
-            for source_loc in edges_to.get(ta_id, []):
-                if nodes_by_id.get(source_loc, {}).get("type") == "L":
-                    # Find I-nodes from this locution
-                    for ya_id in edges_from.get(source_loc, []):
-                        if nodes_by_id.get(ya_id, {}).get("type") == "YA":
-                            for i_id in edges_from.get(ya_id, []):
-                                if (
-                                    nodes_by_id.get(i_id, {}).get("type") == "I"
-                                    and i_id != node_id
-                                ):
-                                    targets.append(i_id)
-
-    # Find forward connections (where this transitions to)
-    for ta_id in edges_from.get(locution, []):
-        if nodes_by_id.get(ta_id, {}).get("type") == "TA":
-            for target_loc in edges_from.get(ta_id, []):
-                if nodes_by_id.get(target_loc, {}).get("type") == "L":
-                    # Find I-nodes from this locution
-                    for ya_id in edges_from.get(target_loc, []):
-                        if nodes_by_id.get(ya_id, {}).get("type") == "YA":
-                            for i_id in edges_from.get(ya_id, []):
-                                if (
-                                    nodes_by_id.get(i_id, {}).get("type") == "I"
-                                    and i_id != node_id
-                                ):
-                                    targets.append(i_id)
+    # backward connections (what this responds to) come before forward ones
+    for edges in (edges_to, edges_from):
+        transitions = _follow(locutions[:1], edges, node_types, "TA")
+        partner_locutions = _follow(transitions, edges, node_types, "L")
+        assertions = _follow(partner_locutions, edges_from, node_types, "YA")
+        targets.extend(
+            i_node
+            for i_node in _follow(assertions, edges_from, node_types, "I")
+            if i_node != node_id
+        )
 
     return targets
