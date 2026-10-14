@@ -1,3 +1,11 @@
+import json
+
+
+def _quote(value: str) -> str:
+    # d2 double-quoted strings use the same escapes as json
+    return json.dumps(value, ensure_ascii=False)
+
+
 class D2Style:
     def __init__(
         self, font_color: str, bold: bool, stroke: str, stroke_width: int, fill: str
@@ -38,9 +46,8 @@ class D2Graph:
 
     def __write_node(self, node: D2Node) -> str:
         str = ""
-        label = node.label.replace('"', '\\"')
-        str += node.id + ": {\n"
-        str += "label: " + label + "\n"
+        str += _quote(node.id) + ": {\n"
+        str += "label: " + _quote(node.label) + "\n"
         str += "shape: " + node.shape + "\n"
         str += "style: " + self.__write_style(node.style) + "\n}\n"
         return str
@@ -48,7 +55,7 @@ class D2Graph:
     def __write_style(self, style: D2Style) -> str:
         str = "{\n"
         str += "font-color: " + '"' + style.font_color + '"' + "\n"
-        str += "bold: " + style.bold.__str__() + "\n"
+        str += "bold: " + style.bold.__str__().lower() + "\n"
         str += "stroke: " + '"' + style.stroke + '"' + "\n"
         str += "stroke-width: " + style.stroke_width.__str__() + "\n"
         str += "fill: " + '"' + style.fill + '"' + "\n}"
@@ -56,5 +63,5 @@ class D2Graph:
 
     def __write_edge(self, edge: D2Edge) -> str:
         str = ""
-        str += edge.from_id + " -> " + edge.to_id + "\n"
+        str += _quote(edge.from_id) + " -> " + _quote(edge.to_id) + "\n"
         return str
