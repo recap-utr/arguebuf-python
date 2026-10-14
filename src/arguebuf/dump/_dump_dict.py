@@ -1,4 +1,4 @@
-from google.protobuf.json_format import MessageToDict
+from google.protobuf import proto_json
 
 from arguebuf.model import Graph
 
@@ -18,4 +18,4 @@ def dump_dict[T](graph: Graph[T], config: Config = DefaultConfig) -> dict[str, o
         case Format.XAIF:
             return dict(dump_xaif(graph))
         case Format.ARGUEBUF:
-            return MessageToDict(dump_protobuf(graph))
+            return proto_json.serialize(dump_protobuf(graph))

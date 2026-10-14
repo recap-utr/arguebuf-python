@@ -18,23 +18,23 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "arg-services>=1,<2",
+  "arg-services>=2,<3",
   "lxml>=6,<7",
   "networkx>=3,<4",
   "pygraphviz>=2,<3",
 ]
-
-[project.optional-dependencies]
-cli = ["deepl>=1,<2", "typer>=0.27,<0.28"]
-
-[project.scripts]
-arguebuf = "arguebuf.cli.app:cli"
 
 [project.urls]
 Changelog = "https://github.com/recap-utr/arguebuf-python/releases"
 Documentation = "https://arguebuf.readthedocs.io"
 Issues = "https://github.com/recap-utr/arguebuf-python/issues"
 Repository = "https://github.com/recap-utr/arguebuf-python"
+
+[project.scripts]
+arguebuf = "arguebuf.cli.app:cli"
+
+[project.optional-dependencies]
+cli = ["arg-services[grpcio]>=2,<3", "deepl>=1,<2", "typer>=0.27,<0.28"]
 
 [dependency-groups]
 dev = [
@@ -63,8 +63,8 @@ addopts = [
   "--doctest-modules",
   "--ignore=src/arguebuf/cli",
 ]
+doctest_optionflags = ["ELLIPSIS", "IGNORE_EXCEPTION_DETAIL", "NORMALIZE_WHITESPACE"]
 testpaths = ["src", "tests"]
-doctest_optionflags = ["NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL", "ELLIPSIS"]
 
 [tool.ruff.lint.flake8-bugbear]
 # frozen and thus safe to use as default argument
@@ -72,3 +72,6 @@ extend-immutable-calls = ["arguebuf.load._config.Config"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.uv.exclude-newer-package]
+arg-services = false

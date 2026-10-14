@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from typing import Any, cast
 
 from arg_services.graph.v1 import graph_pb2
-from google.protobuf.json_format import ParseDict
+from google.protobuf import proto_json
 
 from arguebuf.model import Graph
 from arguebuf.schemas import aif, ova
@@ -27,4 +27,4 @@ def load_dict[T = str](
     if "locutions" in obj:
         return load_aif(cast(aif.Graph, obj), name, config)
 
-    return load_protobuf(ParseDict(obj, graph_pb2.Graph()), name, config)
+    return load_protobuf(proto_json.parse(graph_pb2.Graph, dict(obj)), name, config)

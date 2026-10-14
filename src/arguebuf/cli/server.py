@@ -1,27 +1,33 @@
+from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, override
 
-import arg_services
 import grpc
 import typer
 from arg_services.cbr.v1beta import casebase_pb2, casebase_pb2_grpc
 from arg_services.cbr.v1beta.model_pb2 import AnnotatedGraph
+from arg_services.grpcio import serve
 
 import arguebuf
 
 cli = typer.Typer()
 
 
+@dataclass(slots=True, frozen=True)
 class CasebaseService(casebase_pb2_grpc.CasebaseServiceServicer):
-    def __init__(self, basepath: Path, glob: str):
-        self.basepath = basepath
-        self.glob = glob
+    basepath: Path
+    glob: str
 
+    @override
     def Casebase(
         self, request: casebase_pb2.CasebaseRequest, context: grpc.ServicerContext
     ) -> casebase_pb2.CasebaseResponse:
         cases = arguebuf.load.casebase(
-            request.include, request.exclude, self.basepath, self.glob
+            request.include,
+            request.exclude if request.HasField("exclude") else None,
+            self.basepath,
+            self.glob,
         )
 
         return casebase_pb2.CasebaseResponse(
@@ -34,25 +40,19 @@ class CasebaseService(casebase_pb2_grpc.CasebaseServiceServicer):
         )
 
 
-def add_services(casebase_service: CasebaseService):
-    def callback(server: grpc.Server):
-        casebase_pb2_grpc.add_CasebaseServiceServicer_to_server(
-            casebase_service, server
-        )
-
-    return callback
-
-
 @cli.command()
 def start(
     address: Annotated[str, typer.Argument()] = "127.0.0.1:50051",
     basepath: Path = Path("."),
     glob: str = "*/*",
-):
-    arg_services.serve(
+) -> None:
+    serve(
         address,
-        add_services(CasebaseService(basepath, glob)),
-        [arg_services.full_service_name(casebase_pb2, "CasebaseService")],
+        partial(
+            casebase_pb2_grpc.add_CasebaseServiceServicer_to_server,
+            CasebaseService(basepath, glob),
+        ),
+        reflection=[casebase_pb2.DESCRIPTOR],
     )
 
 
