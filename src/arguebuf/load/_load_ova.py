@@ -55,7 +55,7 @@ def load_ova(
         if node:
             g.add_node(node)
 
-        if ova_node.get("major_claim") and isinstance(node, AtomNode):
+        if ova_node.get("majorClaim") and isinstance(node, AtomNode):
             g._major_claim = node
 
     for ova_edge in obj["edges"]:
