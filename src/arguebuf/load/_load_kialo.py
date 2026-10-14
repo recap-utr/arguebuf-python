@@ -94,8 +94,9 @@ def load_kialo(
             g.add_edge(config.EdgeClass(source, scheme, id=f"{source.id}->{scheme.id}"))
             g.add_edge(config.EdgeClass(scheme, target, id=f"{scheme.id}->{target.id}"))
 
-            current_line = next_line
-            next_line = obj.readline()
+        # lines not matching the pattern would otherwise be processed forever
+        current_line = next_line
+        next_line = obj.readline()
 
     return g
 
