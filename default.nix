@@ -6,7 +6,6 @@
   python3,
   graphviz,
   d2,
-  makeWrapper,
   writeShellScriptBin,
   uv2nix,
   pyproject-nix,
@@ -53,22 +52,12 @@ let
   );
   package = pythonSet.arguebuf;
   inherit (callPackage pyproject-nix.build.util { }) mkApplication;
-  # the renderers call the `dot` and `d2` executables
-  runtimePath = lib.makeBinPath [
-    graphviz
-    d2
-  ];
 in
 (mkApplication {
   inherit package;
   venv = pythonSet.mkVirtualEnv "arguebuf-env" workspace.deps.optionals;
 }).overrideAttrs
   (old: {
-    nativeBuildInputs = old.nativeBuildInputs ++ [ makeWrapper ];
-    buildCommand = old.buildCommand + ''
-      wrapProgram "$out/bin/arguebuf" --prefix PATH : ${runtimePath}
-    '';
-
     meta = old.meta // {
       mainProgram = "arguebuf";
       maintainers = with lib.maintainers; [ mirkolenz ];
