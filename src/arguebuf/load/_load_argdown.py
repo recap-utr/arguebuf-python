@@ -31,9 +31,8 @@ def load_argdown(
         g.add_node(node)
 
     for argdown_edge in obj["map"]["edges"]:
+        # argdown connects atoms directly, so the edge is replaced by a scheme node
         if edge := edge_from_argdown(argdown_edge, g.nodes, config.EdgeClass):
-            g.add_edge(edge)
-
             if argdown_edge["relationType"] in ("attack", "contradictory"):
                 scheme = Attack.DEFAULT
             else:
@@ -47,7 +46,7 @@ def load_argdown(
             g.add_node(scheme_node)
 
             # create edge from source to scheme_node and an edge from scheme_node to target
-            g.add_edge(config.EdgeClass(edge.source, scheme_node))
+            g.add_edge(config.EdgeClass(edge.source, scheme_node, id=edge.id))
             g.add_edge(config.EdgeClass(scheme_node, edge.target))
 
     metadata = Metadata(timestamp, timestamp)
