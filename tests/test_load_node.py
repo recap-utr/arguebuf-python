@@ -160,7 +160,7 @@ def test_aml_node_AN(data, id, text, type):
     assert node.text == text
     assert isinstance(node, type)
     assert node.reference is None
-    assert node.userdata == {}
+    assert node.userdata == {"owners": "VCBrown"}
 
 
 @pytest.mark.parametrize("data,id,text,type", sadface_data_AtomNode)
@@ -282,7 +282,7 @@ aml_data_SchemeNode = [
           <INSCHEME scheme=" Argument From Sign " schid="0" />
         </PROP>
         """,
-        "A",
+        "Ascheme",
         ag.SchemeNode,
         Support.SIGN,
     )

@@ -165,8 +165,7 @@ def atom_from_aml(
     # read owners of PROP
     owner_list = obj.findall("OWNER")
     owners_lst = []
-    if not owner_list:
-        # if not empty, do something
+    if owner_list:
         for owner in owner_list:
             owners_lst.append(owner.get("name"))
         owners = {"owners": ", ".join(owners_lst)}
@@ -192,13 +191,13 @@ def scheme_from_aml(
     """Generate SchemeNode object from AML Node format. obj is a AML "PROP" element."""
 
     # get id of PROP
-    id = obj.get("identifier") if "identifier" in obj.attrib else None
+    # the scheme is derived from the premise and thus needs a distinct id
+    id = f"{obj.get('identifier')}scheme" if "identifier" in obj.attrib else None
 
     # read owners of PROP
     owner_list = obj.findall("OWNER")
     owners_lst = []
-    if not owner_list:
-        # if not empty, do something
+    if owner_list:
         for owner in owner_list:
             owners_lst.append(owner.get("name"))
         owners = {"owners": ", ".join(owners_lst)}
