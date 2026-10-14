@@ -132,7 +132,10 @@ def render(
                     max_nodes=max_nodes,
                     monochrome=monochrome,
                 )
-                ag.render.graphviz(gv, path_pair.target, prog, dpi)
+
+                # graphs exceeding `max_nodes` are skipped
+                if gv is not None:
+                    ag.render.graphviz(gv, path_pair.target, prog, dpi)
 
 
 @cli.command()
