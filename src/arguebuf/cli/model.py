@@ -45,7 +45,14 @@ SourceLang = Annotated[
 TargetLang = Annotated[
     str, typer.Argument(help="DeepL code of the target language, e.g., 'EN-US'.")
 ]
-AuthKey = Annotated[str, typer.Argument(help="DeepL API authentication key.")]
+AuthKey = Annotated[
+    str,
+    typer.Option(
+        help="DeepL API authentication key, prefer the environment variable.",
+        envvar="DEEPL_AUTH_KEY",
+        show_default=False,
+    ),
+]
 
 
 @dataclass(slots=True, frozen=True)
