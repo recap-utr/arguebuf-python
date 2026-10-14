@@ -43,50 +43,30 @@
     inputs@{
       self,
       flake-parts,
-      nixpkgs,
       systems,
       flocken,
-      uv2nix,
       ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import systems;
       imports = [
-        flake-parts.flakeModules.easyOverlay
+        inputs.flake-parts.flakeModules.easyOverlay
         inputs.treefmt-nix.flakeModule
       ];
       perSystem =
         {
           pkgs,
-          lib,
           system,
+          lib,
           config,
           ...
         }:
-        let
-          inherit
-            (pkgs.callPackage ./default.nix {
-              inherit (inputs) uv2nix pyproject-nix pyproject-build-systems;
-              inherit (config.packages) link-arguebase;
-            })
-            pythonSet
-            mkApplication
-            ;
-        in
         {
-          _module.args.pkgs = import nixpkgs {
-            inherit system;
-            overlays = lib.singleton (
-              final: prev: {
-                uv = uv2nix.packages.${system}.uv-bin;
-              }
-            );
-          };
           overlayAttrs = {
-            inherit (config.packages) arguebuf arguebuf-wrapped;
+            inherit (config.packages) arguebuf;
           };
-          checks = pythonSet.arguebuf.passthru.tests // {
-            inherit (pythonSet.arguebuf.passthru) docs;
+          checks = config.packages.arguebuf.passthru.tests // {
+            inherit (config.packages.arguebuf.passthru) docs;
           };
           treefmt = {
             projectRootFile = "flake.nix";
@@ -97,44 +77,16 @@
             };
           };
           packages = {
-            default = config.packages.arguebuf-wrapped;
-            arguebase = pkgs.fetchFromGitHub {
-              owner = "recap-utr";
-              repo = "arguebase-public";
-              rev = "468f32818cebe90a837427f4e5f471463159b637";
-              hash = "sha256-dF5vJBxVG4qJr+9ZJje27HXU1B+UmP9uzPh+ERUnRsg=";
+            inherit (config.packages.arguebuf.passthru) docs link-arguebase;
+            default = config.packages.arguebuf;
+            arguebuf = pkgs.callPackage ./default.nix {
+              inherit (inputs) uv2nix pyproject-nix pyproject-build-systems;
             };
-            link-arguebase = pkgs.writeShellScriptBin "link-arguebase" ''
-              mkdir -p data
-              ln -snf ${config.packages.arguebase} data/arguebase
-            '';
-            inherit (pythonSet.arguebuf.passthru) docs;
-            arguebuf = mkApplication {
-              venv = pythonSet.mkVirtualEnv "arguebuf-env" {
-                arguebuf = [ "all" ];
-              };
-              package = pythonSet.arguebuf;
-            };
-            arguebuf-wrapped =
-              pkgs.runCommand "arguebuf"
-                {
-                  nativeBuildInputs = with pkgs; [ makeWrapper ];
-                }
-                ''
-                  mkdir -p $out/bin
-                  makeWrapper ${lib.getExe config.packages.arguebuf} "$out/bin/arguebuf" \
-                    --prefix PATH : ${
-                      lib.makeBinPath [
-                        pkgs.d2
-                        pkgs.graphviz
-                      ]
-                    }
-                '';
             docker = pkgs.dockerTools.streamLayeredImage {
               name = "arguebuf";
               tag = "latest";
               created = "now";
-              config.Entrypoint = [ (lib.getExe config.packages.default) ];
+              config.Entrypoint = [ (lib.getExe config.packages.arguebuf) ];
             };
             release-env = pkgs.buildEnv {
               name = "release-env";
@@ -161,11 +113,6 @@
               config.treefmt.build.wrapper
               d2
               graphviz
-            ];
-            nativeBuildInputs = with pkgs; [ zlib ];
-            LD_LIBRARY_PATH = lib.makeLibraryPath [
-              pkgs.stdenv.cc.cc
-              pkgs.zlib
             ];
             UV_PYTHON = lib.getExe pkgs.python3;
             shellHook = ''
