@@ -1,4 +1,5 @@
 import typing as t
+from collections import deque
 
 from arguebuf.model import AbstractNode, NodeType
 
@@ -109,18 +110,22 @@ def _directed_node_distance(
     connections: t.Callable[[AbstractNode], t.Iterable[AbstractNode]],
     max_distance: int | None = None,
 ) -> int | None:
-    expansion: list[tuple[AbstractNode, int]] = [
-        (n, 1) for n in connections(start_node)
-    ]
+    """Breadth-first search for the shortest distance."""
+    visited = {start_node}
+    pending: deque[tuple[AbstractNode, int]] = deque([(start_node, 0)])
 
-    while len(expansion) > 0:
-        candidate, distance = expansion.pop()
+    while pending:
+        node, distance = pending.popleft()
 
-        if max_distance is not None and distance > max_distance:
+        if max_distance is not None and distance >= max_distance:
             continue
-        elif candidate == end_node:
-            return distance
-        else:
-            expansion.extend((n, distance + 1) for n in connections(candidate))
+
+        for neighbor in connections(node):
+            if neighbor == end_node:
+                return distance + 1
+
+            if neighbor not in visited:
+                visited.add(neighbor)
+                pending.append((neighbor, distance + 1))
 
     return None
