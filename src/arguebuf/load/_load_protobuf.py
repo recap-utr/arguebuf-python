@@ -1,9 +1,10 @@
 from collections.abc import Mapping
+from datetime import UTC
 
 from arg_services.graph.v1 import graph_pb2
-from google.protobuf.json_format import MessageToDict
+from google.protobuf import proto_json
 
-from arguebuf.dt import from_protobuf
+from arguebuf.dt import now
 from arguebuf.model import Graph
 from arguebuf.model.edge import Edge
 from arguebuf.model.metadata import Metadata
@@ -32,7 +33,7 @@ def load_protobuf[T = str](
     """Generate Graph structure from a protobuf message."""
     g = config.graph(name)
     g.metadata = metadata_from_protobuf(obj.metadata, config)
-    g.userdata = MessageToDict(obj.userdata)
+    g.userdata = proto_json.serialize(obj.userdata)
     g.library_version = obj.library_version
     g.schema_version = obj.schema_version
 
@@ -40,11 +41,13 @@ def load_protobuf[T = str](
         g.add_resource(
             config.ResourceClass(
                 config.parse(resource.text),
-                title=resource.title,
-                source=resource.source,
-                timestamp=from_protobuf(resource.timestamp),
+                title=resource.title or None,
+                source=resource.source or None,
+                timestamp=resource.timestamp.ToDatetime(UTC)
+                if resource.HasField("timestamp")
+                else None,
                 metadata=metadata_from_protobuf(resource.metadata, config),
-                userdata=MessageToDict(resource.userdata),
+                userdata=proto_json.serialize(resource.userdata),
                 id=resource_id,
             )
         )
@@ -53,13 +56,13 @@ def load_protobuf[T = str](
         g.add_participant(
             config.ParticipantClass(
                 participant.name,
-                username=participant.username,
-                email=participant.email,
-                url=participant.url,
-                location=participant.location,
-                description=participant.description,
+                username=participant.username or None,
+                email=participant.email or None,
+                url=participant.url or None,
+                location=participant.location or None,
+                description=participant.description or None,
                 metadata=metadata_from_protobuf(participant.metadata, config),
-                userdata=MessageToDict(participant.userdata),
+                userdata=proto_json.serialize(participant.userdata),
                 id=participant_id,
             )
         )
@@ -68,8 +71,8 @@ def load_protobuf[T = str](
         g.add_analyst(
             config.AnalystClass(
                 analyst.name,
-                email=analyst.email,
-                userdata=MessageToDict(analyst.userdata),
+                email=analyst.email or None,
+                userdata=proto_json.serialize(analyst.userdata),
                 id=analyst_id,
             )
         )
@@ -107,10 +110,12 @@ def atom_from_protobuf[T](
     """Generate AtomNode object from protobuf Node object."""
     return config.AtomNodeClass(
         config.parse(obj.atom.text),
-        reference=reference_from_protobuf(obj.atom.reference, resources, config),
+        reference=reference_from_protobuf(obj.atom.reference, resources, config)
+        if obj.atom.HasField("reference")
+        else None,
         participant=participants.get(obj.atom.participant),
         metadata=metadata_from_protobuf(obj.metadata, config),
-        userdata=MessageToDict(obj.userdata),
+        userdata=proto_json.serialize(obj.userdata),
         id=id,
     )
 
@@ -135,7 +140,7 @@ def scheme_from_protobuf[T](
         scheme,
         premise_descriptors=list(obj.scheme.premise_descriptors),
         metadata=metadata_from_protobuf(obj.metadata, config),
-        userdata=MessageToDict(obj.userdata),
+        userdata=proto_json.serialize(obj.userdata),
         id=id,
     )
 
@@ -153,14 +158,14 @@ def edge_from_protobuf[T](
         obj.target,
         id,
         metadata=metadata_from_protobuf(obj.metadata, config),
-        userdata=MessageToDict(obj.userdata),
+        userdata=proto_json.serialize(obj.userdata),
     )
 
 
 def metadata_from_protobuf[T](obj: graph_pb2.Metadata, config: Config[T]) -> Metadata:
     return config.MetadataClass(
-        from_protobuf(obj.created),
-        from_protobuf(obj.updated),
+        obj.created.ToDatetime(UTC) if obj.HasField("created") else now(),
+        obj.updated.ToDatetime(UTC) if obj.HasField("updated") else now(),
     )
 
 
@@ -168,13 +173,10 @@ def reference_from_protobuf[T](
     obj: graph_pb2.Reference,
     resources: Mapping[str, Resource[T]],
     config: Config[T],
-) -> Reference[T] | None:
+) -> Reference[T]:
     """Generate Reference object from protobuf Reference object."""
-    if not obj.text:
-        return None
-
     return config.ReferenceClass(
         config.parse(obj.text),
-        resource=resources[obj.resource] if obj.resource else None,
-        offset=obj.offset if obj.resource else None,
+        resource=resources[obj.resource] if obj.HasField("resource") else None,
+        offset=obj.offset if obj.HasField("offset") else None,
     )
