@@ -8,10 +8,14 @@ from ._dump_io import dump_io
 __all__ = ("dump_file",)
 
 
-def dump_file(graph: Graph, path: Path | str, config: Config = DefaultConfig) -> None:
-    """Export structure of Graph instance into structure of File/Folder format."""
-    if isinstance(path, str):
-        path = Path(path)
+def dump_file[T](
+    graph: Graph[T], path: Path | str, config: Config = DefaultConfig
+) -> None:
+    """Export structure of Graph instance into a JSON file.
+
+    If `path` is a folder, the file is named after the graph.
+    """
+    path = Path(path)
 
     if path.is_dir():
         path = path / f"{graph.name}.json"

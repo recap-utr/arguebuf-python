@@ -1,26 +1,28 @@
 import re
-import typing as t
+from typing import TextIO
 
-from arguebuf.model import Graph, utils
-from arguebuf.model.node import AtomNode, Attack, Rephrase, Support
+from arguebuf.model import Graph
+from arguebuf.model.node import AtomNode
+from arguebuf.model.scheme import Attack, Rephrase, Support
 
-from ._config import Config, DefaultConfig
+from ._config import Config
 
 __all__ = ("load_kialo",)
 
 
-def load_kialo(
-    obj: t.TextIO,
+def load_kialo[T = str](
+    obj: TextIO,
     name: str | None = None,
-    config: Config = DefaultConfig,
-) -> Graph:
+    config: Config[T] = Config(),
+) -> Graph[T]:
+    """Generate Graph structure from a kialo discussion export."""
     if name_match := re.search(r"Discussion Title: (.*)", obj.readline()):
         name = name_match[1]
 
-    # After the title, an empty line should follow
-    assert obj.readline().strip() == ""
+    if obj.readline().strip():
+        raise ValueError("The title is not followed by an empty line!")
 
-    g = config.GraphClass(name)
+    g = config.graph(name)
 
     # Example: 1.1. Pro: Gold is better than silver.
     # Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
@@ -41,7 +43,7 @@ def load_kialo(
         mc_text = f"{mc_text}\n{next_line.strip()}"
         next_line = obj.readline()
 
-    mc = _kialo_atom_node(mc_id, mc_text, config.nlp, config.AtomNodeClass)
+    mc = _kialo_atom_node(mc_id, mc_text, config)
     g.add_node(mc)
     g.major_claim = mc
 
@@ -52,7 +54,6 @@ def load_kialo(
         if current_match := pattern.search(current_line):
             source_id = current_match[1]
             source_id_parts = source_id[:-1].split(".")
-            # level = len(source_id_parts)
             stance = current_match[2]
             text = current_match[3]
 
@@ -64,33 +65,24 @@ def load_kialo(
                 text = f"{text}\n{next_line.strip()}"
                 next_line = obj.readline()
 
-            assert source_id
-            assert text
-
             if id_ref_match := re.search(r"^-> See ((?:\d+\.)+)", text):
                 id_ref = id_ref_match[1]
                 source = g.atom_nodes[id_ref]
             else:
-                source = _kialo_atom_node(
-                    source_id, text, config.nlp, config.AtomNodeClass
-                )
+                source = _kialo_atom_node(source_id, text, config)
                 g.add_node(source)
 
-            if stance:
-                stance = stance.lower()
-                scheme = config.SchemeNodeClass(
-                    Attack.DEFAULT if stance == "con" else Support.DEFAULT,
-                    id=f"{source_id}scheme",
-                )
-            else:
-                scheme = config.SchemeNodeClass(
-                    Rephrase.DEFAULT, id=f"{source_id}scheme"
-                )
+            match stance:
+                case "Con":
+                    scheme_type = Attack.DEFAULT
+                case "Pro":
+                    scheme_type = Support.DEFAULT
+                case _:
+                    scheme_type = Rephrase.DEFAULT
 
-            target_id = ".".join(source_id_parts[:-1] + [""])
+            scheme = config.SchemeNodeClass(scheme_type, id=f"{source_id}scheme")
+            target_id = ".".join([*source_id_parts[:-1], ""])
             target = g.atom_nodes[target_id]
-
-            g.add_node(scheme)
             g.add_edge(config.EdgeClass(source, scheme, id=f"{source.id}->{scheme.id}"))
             g.add_edge(config.EdgeClass(scheme, target, id=f"{scheme.id}->{target.id}"))
 
@@ -101,23 +93,11 @@ def load_kialo(
     return g
 
 
-def _kialo_atom_node(
-    id: str,
-    text: str,
-    nlp: t.Callable[[str], t.Any] | None,
-    atom_class: type[AtomNode],
-) -> AtomNode:
+def _kialo_atom_node[T](id: str, text: str, config: Config[T]) -> AtomNode[T]:
     # Remove backslashes before parentheses/brackets
     text = re.sub(r"\\([\[\]\(\)])", r"\1", text)
 
     # Remove markdown links
-    text = re.sub(
-        r"\[(.*?)\]\(.*?\)",
-        r"\1",
-        text,
-    )
+    text = re.sub(r"\[(.*?)\]\(.*?\)", r"\1", text)
 
-    # Apply user-provided nlp function
-    text = utils.parse(text, nlp)
-
-    return atom_class(text, id=id)
+    return config.AtomNodeClass(config.parse(text), id=id)

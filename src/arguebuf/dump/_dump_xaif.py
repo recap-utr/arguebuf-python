@@ -6,8 +6,8 @@ from arguebuf.schemas import xaif as xaif_schema
 __all__ = ("dump_xaif",)
 
 
-def dump_xaif(obj: Graph) -> xaif_schema.Graph:
-    """Export structure of Graph instance to AIF argument graph format."""
+def dump_xaif[T](obj: Graph[T]) -> xaif_schema.Graph:
+    """Export structure of Graph instance to xAIF argument graph format."""
     return {
         "AIF": {
             "nodes": [_dump_node(node) for node in obj.nodes.values()],
@@ -16,7 +16,7 @@ def dump_xaif(obj: Graph) -> xaif_schema.Graph:
             "schemefulfillments": [],
             "participants": [],
         },
-        "text": "<br>".join(resource.text for resource in obj.resources.values()),
+        "text": "<br>".join(resource.plain_text for resource in obj.resources.values()),
         "OVA": {
             "firstname": "",
             "surname": "",
@@ -28,17 +28,16 @@ def dump_xaif(obj: Graph) -> xaif_schema.Graph:
 
 
 def _dump_node(obj: AbstractNode) -> xaif_schema.AifNode:
-    if isinstance(obj, AtomNode):
-        return _dump_atom(obj)
-    elif isinstance(obj, SchemeNode):
-        return _dump_scheme(obj)
-
-    raise ValueError("Node type not supported.")
+    match obj:
+        case AtomNode():
+            return _dump_atom(obj)
+        case SchemeNode():
+            return _dump_scheme(obj)
+        case _:
+            raise ValueError("Node type not supported.")
 
 
 def _dump_scheme(obj: SchemeNode) -> xaif_schema.AifNode:
-    """Export SchemeNode object into AIF Node object."""
-
     return {
         "nodeID": obj.id,
         "text": obj.scheme.value if obj.scheme else NO_SCHEME_LABEL,
@@ -46,8 +45,7 @@ def _dump_scheme(obj: SchemeNode) -> xaif_schema.AifNode:
     }
 
 
-def _dump_atom(obj: AtomNode) -> xaif_schema.AifNode:
-    """Export AtomNode object into AIF Node object."""
+def _dump_atom[T](obj: AtomNode[T]) -> xaif_schema.AifNode:
     return {
         "nodeID": obj.id,
         "text": obj.plain_text,
@@ -56,9 +54,8 @@ def _dump_atom(obj: AtomNode) -> xaif_schema.AifNode:
 
 
 def _dump_edge(obj: Edge) -> xaif_schema.AifEdge:
-    """Export Edge object into AIF Edge format."""
     return {
-        "edgeID": str(obj.id),
-        "fromID": str(obj.source.id),
-        "toID": str(obj.target.id),
+        "edgeID": obj.id,
+        "fromID": obj.source.id,
+        "toID": obj.target.id,
     }

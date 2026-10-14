@@ -1,12 +1,13 @@
 import typing as t
 
-NodeType = t.Literal["RA", "CA", "MA", "PA", "", "I", "TA", "YA", "L"]
+from arguebuf.schemas.aif import NodeType
 
 
 class AifNode(t.TypedDict):
     nodeID: str
     text: str
     type: NodeType
+    scheme: t.NotRequired[str]
 
 
 class AifEdge(t.TypedDict):

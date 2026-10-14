@@ -1,12 +1,10 @@
-from collections.abc import Iterable
 from pathlib import Path
-from typing import Optional
 
 import typer
-
-from arguebuf.cli.translator import Translator
+from deepl import DeepLClient
 
 from . import model
+from .translator import Translator
 
 cli = typer.Typer()
 
@@ -19,34 +17,16 @@ def translate(
     auth_key: str,
     input_glob: str,
     output_suffix: str,
-    output_folder: Optional[Path] = None,
+    output_folder: Path | None = None,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
 ) -> None:
-    if not output_folder:
-        output_folder = input_folder
+    translator = Translator(DeepLClient(auth_key), source_lang, target_lang)
 
-    if clean:
-        model.clean_folder(input_folder, output_folder)
-
-    paths = model.PathPair.create(
-        input_folder, output_folder, input_glob, output_suffix
-    )
-    translator = Translator(auth_key, source_lang, target_lang)
-    bar: Iterable[model.PathPair]
-
-    with typer.progressbar(
-        paths[start - 1 :],
-        item_show_func=model.PathPair.label,
-        show_pos=True,
-    ) as bar:
-        for path_pair in bar:
-            if overwrite or not path_pair.target.exists():
-                with path_pair.source.open("r") as file:
-                    source_text = file.read()
-
-                translation = translator.translate_text(source_text)
-
-                with path_pair.target.open("w") as file:
-                    file.write(translation)
+    for path_pair in model.pending_pairs(
+        input_folder, output_folder, input_glob, output_suffix, clean, overwrite, start
+    ):
+        path_pair.target.write_text(
+            translator.translate_text(path_pair.source.read_text())
+        )

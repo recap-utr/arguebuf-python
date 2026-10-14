@@ -1,28 +1,26 @@
-import typing as t
 from collections.abc import Iterable, Mapping
 
-import pendulum
-
-from arguebuf import dt
-from arguebuf.model import Graph, utils
-from arguebuf.model.edge import Edge, warn_missing_nodes
+from arguebuf.dt import from_format
+from arguebuf.model import Graph
+from arguebuf.model.edge import Edge
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
-from arguebuf.model.scheme import aif2scheme, text2scheme
+from arguebuf.model.scheme import aif2scheme, resolve_aif_scheme
+from arguebuf.model.utils import uuid
 from arguebuf.schemas import aif
 
-from ._config import Config, DefaultConfig
+from ._config import Config
 
 __all__ = ("load_aif",)
 
 
-def load_aif(
+def load_aif[T = str](
     obj: aif.Graph,
     name: str | None = None,
-    config: Config = DefaultConfig,
+    config: Config[T] = Config(),
     reconstruct_dialog: bool = False,
-) -> Graph:
+) -> Graph[T]:
     """Generate Graph structure from AIF argument graph file"""
-    g = config.GraphClass(name)
+    g = config.graph(name)
 
     # Preprocess the graph to handle dialogue nodes
     if reconstruct_dialog:
@@ -45,62 +43,32 @@ def load_aif(
     return g
 
 
-def atom_from_aif(obj: aif.Node, config: Config) -> AtomNode:
+def atom_from_aif[T](obj: aif.Node, config: Config[T]) -> AtomNode[T]:
     """Generate AtomNode object from AIF Node object."""
-    timestamp = dt.from_format(obj.get("timestamp"), aif.DATE_FORMAT) or pendulum.now()
-
     return config.AtomNodeClass(
+        config.parse(obj["text"]),
+        metadata=config.metadata(from_format(obj.get("timestamp"), aif.DATE_FORMAT)),
         id=obj["nodeID"],
-        metadata=config.MetadataClass(timestamp, timestamp),
-        text=utils.parse(obj["text"], config.nlp),
     )
 
 
-def scheme_from_aif(obj: aif.Node, config: Config) -> SchemeNode | None:
+def scheme_from_aif[T](obj: aif.Node, config: Config[T]) -> SchemeNode | None:
     """Generate SchemeNode object from AIF Node object."""
+    if obj["type"] not in aif2scheme:
+        return None
 
-    aif_type = obj["type"]
-    aif_scheme: str = obj.get("scheme", obj["text"])
-
-    if aif_type in aif2scheme:
-        scheme = aif2scheme[t.cast(aif.SchemeType, aif_type)]
-
-        # TODO: Handle formatting like capitalization, spaces, underscores, etc.
-        # TODO: Araucaria does not use spaces between scheme names
-        # aif_scheme = re.sub("([A-Z])", r" \1", aif_scheme)
-        if scheme and (found_scheme := text2scheme[type(scheme)].get(aif_scheme)):
-            scheme = found_scheme
-
-        timestamp = (
-            dt.from_format(obj.get("timestamp"), aif.DATE_FORMAT) or pendulum.now()
-        )
-
-        return config.SchemeNodeClass(
-            id=obj["nodeID"],
-            metadata=config.MetadataClass(timestamp, timestamp),
-            scheme=scheme,
-        )
-
-    return None
+    return config.SchemeNodeClass(
+        resolve_aif_scheme(obj["type"], obj.get("scheme", obj["text"])),
+        metadata=config.metadata(from_format(obj.get("timestamp"), aif.DATE_FORMAT)),
+        id=obj["nodeID"],
+    )
 
 
-def edge_from_aif(
-    obj: aif.Edge, nodes: t.Mapping[str, AbstractNode], config: Config
+def edge_from_aif[T](
+    obj: aif.Edge, nodes: Mapping[str, AbstractNode], config: Config[T]
 ) -> Edge | None:
     """Generate Edge object from AIF Edge format."""
-    source_id = obj.get("fromID")
-    target_id = obj.get("toID")
-
-    if source_id in nodes and target_id in nodes:
-        return config.EdgeClass(
-            id=obj["edgeID"],
-            source=nodes[source_id],
-            target=nodes[target_id],
-        )
-    else:
-        warn_missing_nodes(obj["edgeID"], source_id, target_id)
-
-    return None
+    return config.edge(nodes, obj["fromID"], obj["toID"], obj["edgeID"])
 
 
 # Node types that are not directly supported in arguebuf
@@ -138,12 +106,7 @@ def preprocess_dialog(graph: aif.Graph) -> aif.Graph:
 
 
 def _edge(from_id: str, to_id: str) -> aif.Edge:
-    return {
-        "edgeID": utils.uuid(),
-        "fromID": from_id,
-        "toID": to_id,
-        "formEdgeID": None,
-    }
+    return {"edgeID": uuid(), "fromID": from_id, "toID": to_id, "formEdgeID": None}
 
 
 def _remove_dialogue_nodes(
@@ -210,7 +173,7 @@ def _add_rephrase_connections(
             if target_id not in nodes or pair in connected:
                 continue
 
-            rephrase_id = utils.uuid()
+            rephrase_id = uuid()
             graph["nodes"].append(
                 {
                     "nodeID": rephrase_id,

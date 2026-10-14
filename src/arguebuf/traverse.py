@@ -1,60 +1,58 @@
-import typing as t
 from collections import deque
+from collections.abc import Callable, Iterable
+from collections.abc import Set as AbstractSet
 
-from arguebuf.model import AbstractNode, NodeType
+from arguebuf.model import AbstractNode
 
-__all__ = ("dfs", "bfs", "node_distance")
+__all__ = ("bfs", "dfs", "node_distance")
 
 
 # https://eddmann.com/posts/depth-first-search-and-breadth-first-search-in-python/
-def dfs(
-    start: NodeType,
-    connections: t.Callable[[AbstractNode], t.AbstractSet[NodeType]],
+def dfs[N: AbstractNode](
+    start: N,
+    connections: Callable[[N], AbstractSet[N]],
     include_start: bool = True,
-) -> list[NodeType]:
-    # Need to use a dict since a set does not preserve order
-    visited: dict[NodeType, None] = {}
-    stack: list[NodeType] = [start]
+) -> list[N]:
+    """Visit all nodes reachable from `start` in depth-first order."""
+    return _traverse(start, connections, include_start, deque.pop)
 
-    while stack:
-        node = stack.pop()
+
+def bfs[N: AbstractNode](
+    start: N,
+    connections: Callable[[N], AbstractSet[N]],
+    include_start: bool = True,
+) -> list[N]:
+    """Visit all nodes reachable from `start` in breadth-first order."""
+    return _traverse(start, connections, include_start, deque.popleft)
+
+
+def _traverse[N: AbstractNode](
+    start: N,
+    connections: Callable[[N], AbstractSet[N]],
+    include_start: bool,
+    pop: Callable[[deque[N]], N],
+) -> list[N]:
+    # a dict preserves the insertion order, a set does not
+    visited: dict[N, None] = {}
+    pending: deque[N] = deque([start])
+
+    while pending:
+        node = pop(pending)
 
         if node not in visited:
             visited[node] = None
-            stack.extend(set(connections(node)) - visited.keys())
+            pending.extend(connections(node) - visited.keys())
 
-    if include_start:
-        return list(visited.keys())
+    if not include_start:
+        del visited[start]
 
-    return [node for node in visited if node != start]
-
-
-def bfs(
-    start: NodeType,
-    connections: t.Callable[[AbstractNode], t.AbstractSet[NodeType]],
-    include_start: bool = True,
-) -> list[NodeType]:
-    # Need to use a dict since a set does not preserve order
-    visited: dict[NodeType, None] = {}
-    queue: list[NodeType] = [start]
-
-    while queue:
-        node = queue.pop(0)
-
-        if node not in visited:
-            visited[node] = None
-            queue.extend(set(connections(node)) - visited.keys())
-
-    if include_start:
-        return list(visited.keys())
-
-    return [node for node in visited if node != start]
+    return list(visited)
 
 
-def node_distance(
-    start_node: AbstractNode,
-    end_node: AbstractNode,
-    connections: t.Callable[[AbstractNode], t.Iterable[AbstractNode]],
+def node_distance[N: AbstractNode](
+    start_node: N,
+    end_node: N,
+    connections: Callable[[N], Iterable[N]],
     max_distance: int | None = None,
     directed: bool = True,
 ) -> int | None:
@@ -78,16 +76,8 @@ def node_distance(
         >>> n1 = AtomNode("Premise")
         >>> n2 = SchemeNode()
         >>> n3 = AtomNode("Claim")
-        >>> e1 = Edge(n1, n2)
-        >>> e2 = Edge(n2, n3)
-        >>> g.add_node(n1)
-        >>> g.add_node(n2)
-        >>> len(g.nodes)
-        2
-        >>> g.add_edge(e1)
-        >>> g.add_edge(e2)
-        >>> len(g.edges)
-        2
+        >>> g.add_edge(Edge(n1, n2))
+        >>> g.add_edge(Edge(n2, n3))
         >>> node_distance(n1, n3, g.outgoing_nodes)
         2
         >>> node_distance(n3, n1, g.outgoing_nodes)
@@ -104,15 +94,15 @@ def node_distance(
     return dist
 
 
-def _directed_node_distance(
-    start_node: AbstractNode,
-    end_node: AbstractNode,
-    connections: t.Callable[[AbstractNode], t.Iterable[AbstractNode]],
-    max_distance: int | None = None,
+def _directed_node_distance[N: AbstractNode](
+    start_node: N,
+    end_node: N,
+    connections: Callable[[N], Iterable[N]],
+    max_distance: int | None,
 ) -> int | None:
     """Breadth-first search for the shortest distance."""
     visited = {start_node}
-    pending: deque[tuple[AbstractNode, int]] = deque([(start_node, 0)])
+    pending: deque[tuple[N, int]] = deque([(start_node, 0)])
 
     while pending:
         node, distance = pending.popleft()

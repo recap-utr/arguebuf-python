@@ -1,16 +1,16 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
-__all__ = ("Format", "Config")
+__all__ = ("Config", "DefaultConfig", "Format")
 
 
-class Format(str, Enum):
+class Format(StrEnum):
     ARGUEBUF = "arguebuf"
     AIF = "aif"
     XAIF = "xaif"
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class Config:
     format: Format = Format.ARGUEBUF
     prettify: bool = True

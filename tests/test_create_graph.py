@@ -90,7 +90,7 @@ def test_create_graph(tmp_path: Path):
     g.add_resource(r1)
     n1 = ag.AtomNode(
         text="Node 1",
-        reference=ag.Reference(r1, 0, "Resource234"),
+        reference=ag.Reference("Resource234", resource=r1, offset=0),
         participant=p1,
     )
     n2 = ag.SchemeNode(ag.Support.DEFAULT)
@@ -168,33 +168,23 @@ def test_create_graph(tmp_path: Path):
     g.remove_node(n4)
     g.add_node(n4)
 
-    # e4 = "Hallo ich bin keine Kante"
-    # g.add_edge(e4)
-
     with pytest.raises(ValueError):
         g.add_edge(e12)
-
-    # r10 = "Hallo ich bin keine Quelle"
-    # g.add_resource(r10)
 
     with pytest.raises(ValueError):
         g.add_resource(r2)
 
-    # g.remove_resource(r10)
     g.remove_resource(r2)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyError):
         g.remove_resource(r2)
-
-    # p3 = "Hallo ich bin kein Teilnehmer"
-    # g.add_participant(p3)
 
     with pytest.raises(ValueError):
         g.add_participant(p1)
-    # g.remove_participant(p3)
+
     g.remove_participant(p1)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyError):
         g.remove_participant(p1)
 
     assert len(g.participants) == 0
@@ -205,4 +195,6 @@ def test_create_graph(tmp_path: Path):
 
     assert len(g.nodes) == len(gc.nodes)
 
-    ag.render.graphviz(ag.dump.graphviz(g), tmp_path / "test.pdf")
+    gv = ag.dump.graphviz(g)
+    assert gv is not None
+    ag.render.graphviz(gv, tmp_path / "test.pdf")

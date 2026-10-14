@@ -2,8 +2,8 @@ import typing as t
 
 from arguebuf.schemas.aif import NodeType
 
-DATE_FORMAT = "DD/MM/YYYY - HH:mm:ss"
-DATE_FORMAT_ANALYSIS = "DD/MM/YYYY"
+DATE_FORMAT = "%d/%m/%Y - %H:%M:%S"
+DATE_FORMAT_ANALYSIS = "%d/%m/%Y"
 
 
 class Node(t.TypedDict):

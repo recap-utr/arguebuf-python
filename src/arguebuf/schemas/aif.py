@@ -1,8 +1,8 @@
 import typing as t
 
-SchemeType = t.Literal["RA", "CA", "MA", "PA", ""]
-NodeType = t.Literal["RA", "CA", "MA", "PA", "", "I", "TA", "YA", "L"]
-DATE_FORMAT = "YYYY-MM-DD HH:mm:ss"
+type SchemeType = t.Literal["RA", "CA", "MA", "PA", ""]
+type NodeType = t.Literal["RA", "CA", "MA", "PA", "", "I", "TA", "YA", "L"]
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 class Node(t.TypedDict):
@@ -10,6 +10,7 @@ class Node(t.TypedDict):
     text: str
     type: NodeType
     timestamp: str
+    scheme: t.NotRequired[str]
 
 
 class Edge(t.TypedDict):

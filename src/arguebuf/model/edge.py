@@ -1,95 +1,20 @@
-import logging
+from dataclasses import KW_ONLY, dataclass, field
 
-from arguebuf.model import utils
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AbstractNode
 from arguebuf.model.userdata import Userdata
+from arguebuf.model.utils import Entity, uuid
 
-log = logging.getLogger(__name__)
-
-__all__ = ("warn_missing_nodes", "Edge")
-
-
-def warn_missing_nodes(
-    edge_id: str | None, source_id: str | None, target_id: str | None
-) -> None:
-    log.warning(
-        f"Skipping edge '{edge_id}': Source '{source_id}' or target '{target_id}' not"
-        " found."
-    )
+__all__ = ("Edge",)
 
 
-class Edge:
-    """Edge in AIF format. Connection from one Node object to another Node object."""
+@dataclass(slots=True, frozen=True, eq=False)
+class Edge(Entity):
+    """Directed connection from a source node to a target node."""
 
-    __slots__ = (
-        "_id",
-        "_source",
-        "_target",
-        "metadata",
-        "userdata",
-    )
-
-    _id: str
-    _source: AbstractNode
-    _target: AbstractNode
-    metadata: Metadata
-    userdata: Userdata
-
-    def __init__(
-        self,
-        source: AbstractNode,
-        target: AbstractNode,
-        metadata: Metadata | None = None,
-        userdata: Userdata | None = None,
-        id: str | None = None,
-    ):
-        # if isinstance(source, AtomNode) and isinstance(target, AtomNode):
-        #     raise ValueError("Cannot create an edge between two atom nodes.")
-
-        self._id = id or utils.uuid()
-        self._source = source
-        self._target = target
-        self.metadata = metadata or Metadata()
-        self.userdata = userdata or {}
-
-        self.__post_init__()
-
-    def __post_init__(self):
-        pass
-
-    def __eq__(self, other) -> bool:
-        if other is None or not isinstance(other, Edge):
-            return False
-
-        return (
-            self.id == other.id
-            and self.source == other.source
-            and self.target == other.target
-        )
-
-    def __hash__(self) -> int:
-        return hash((self.id, self.source, self.target))
-
-    def __str__(self) -> str:
-        return str(self.id)
-
-    def __repr__(self):
-        return utils.class_repr(
-            self,
-            [str(self._id), f"{self._source.__repr__()}->{self._target.__repr__()}"],
-        )
-
-    @property
-    def id(self) -> str:
-        return self._id
-
-    @property
-    def source(self) -> AbstractNode:
-        """Gives the 'From'-Node."""
-        return self._source
-
-    @property
-    def target(self) -> AbstractNode:
-        """Gives the 'To'-Node."""
-        return self._target
+    source: AbstractNode
+    target: AbstractNode
+    _: KW_ONLY
+    metadata: Metadata = field(default_factory=Metadata, repr=False)
+    userdata: Userdata = field(default_factory=dict, repr=False)
+    id: str = field(default_factory=uuid)

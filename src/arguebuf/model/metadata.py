@@ -1,21 +1,14 @@
-import pendulum
+from dataclasses import dataclass, field
+from datetime import datetime
+
+from arguebuf.dt import now
 
 __all__ = ("Metadata",)
 
 
+@dataclass(slots=True, frozen=True)
 class Metadata:
-    created: pendulum.DateTime
-    updated: pendulum.DateTime
+    """Creation and modification timestamps of an element."""
 
-    def __init__(
-        self,
-        created: pendulum.DateTime | None = None,
-        updated: pendulum.DateTime | None = None,
-    ) -> None:
-        now = pendulum.now()
-
-        self.created = created or now
-        self.updated = updated or now
-
-    def update(self) -> None:
-        self.updated = pendulum.now()
+    created: datetime = field(default_factory=now)
+    updated: datetime = field(default_factory=now)

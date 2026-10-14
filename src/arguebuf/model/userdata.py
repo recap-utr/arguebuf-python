@@ -1,5 +1,5 @@
-import typing as t
+from typing import Any
 
 __all__ = ("Userdata",)
 
-Userdata = dict[str, t.Any]
+type Userdata = dict[str, Any]

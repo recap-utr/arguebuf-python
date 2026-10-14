@@ -1,19 +1,15 @@
-from enum import Enum
+from enum import StrEnum
 from typing import cast
 
 from arg_services.graph.v1 import graph_pb2
 
 from arguebuf.schemas import aif
 
-__all__ = ("Scheme", "Support", "Attack", "Preference", "Rephrase")
+__all__ = ("Attack", "Preference", "Rephrase", "Scheme", "Support")
 
 
-class Support(str, Enum):
-    """Enumeration of all available Argumentation Schemes (Walton et al.)
-
-    .. autoclasssumm:: Support
-        :autosummary-sections: Methods
-    """
+class Support(StrEnum):
+    """Supporting argumentation schemes according to Walton et al."""
 
     DEFAULT = "Default"
     POSITION_TO_KNOW = "Position to Know"
@@ -86,37 +82,25 @@ class Support(str, Enum):
     # DEFINITION = "Definition"
 
 
-class Attack(str, Enum):
-    """Enumeration of attacking schemes
-
-    .. autoclasssumm:: Attack
-        :autosummary-sections: Methods
-    """
+class Attack(StrEnum):
+    """Attacking argumentation schemes."""
 
     DEFAULT = "Default"
 
 
-class Preference(str, Enum):
-    """Enumeration of preference schemes
-
-    .. autoclasssumm:: Preference
-        :autosummary-sections: Methods
-    """
+class Preference(StrEnum):
+    """Preference argumentation schemes."""
 
     DEFAULT = "Default"
 
 
-class Rephrase(str, Enum):
-    """Enumeration of rephrase schemes
-
-    .. autoclasssumm:: Rephrase
-        :autosummary-sections: Methods
-    """
+class Rephrase(StrEnum):
+    """Rephrasing argumentation schemes."""
 
     DEFAULT = "Default"
 
 
-Scheme = Support | Attack | Rephrase | Preference
+type Scheme = Support | Attack | Rephrase | Preference
 
 support2protobuf = {
     item: cast(graph_pb2.Support, graph_pb2.Support.Value(f"SUPPORT_{item.name}"))
@@ -150,7 +134,7 @@ scheme2aif: dict[type[Scheme], aif.SchemeType] = {
     Rephrase: "MA",
     Preference: "PA",
 }
-aif2scheme: dict[aif.SchemeType, Scheme | None] = {
+aif2scheme: dict[str, Scheme | None] = {
     "RA": Support.DEFAULT,
     "CA": Attack.DEFAULT,
     "MA": Rephrase.DEFAULT,
@@ -268,3 +252,14 @@ text2scheme: dict[
     Rephrase: {},
     Preference: {},
 }
+
+
+def resolve_aif_scheme(aif_type: str, text: str) -> Scheme | None:
+    """Get the scheme of an AIF scheme node, refined by its text if possible.
+
+    Callers must ensure that `aif_type` is a key of `aif2scheme`.
+    """
+    scheme = aif2scheme[aif_type]
+
+    # TODO: Handle formatting like capitalization, spaces, underscores, etc.
+    return text2scheme[type(scheme)].get(text, scheme) if scheme else None

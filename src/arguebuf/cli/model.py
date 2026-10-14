@@ -1,10 +1,13 @@
 import shutil
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Self
+
+import typer
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class PathPair:
     """A pair of paths for modification of files."""
 
@@ -18,8 +21,8 @@ class PathPair:
         path_out: Path,
         input_glob: str | None,
         output_suffix: str | None,
-    ) -> list["PathPair"]:
-        pairs: list[PathPair] = []
+    ) -> list[Self]:
+        pairs: list[Self] = []
 
         if path_in.is_file():
             if path_out.suffix:
@@ -57,26 +60,41 @@ class PathPair:
 
         return pairs
 
-    @staticmethod
-    def label(path_pair: Optional["PathPair"]) -> str:
-        """Generate a string for representing a path pair.
 
-        Args:
-            path_pair: The item that should be represented.
-
-        Returns:
-            A label for use in UI contexts.
-        """
-
-        return path_pair.source.name if path_pair else ""
+def _label(path_pair: PathPair | None) -> str:
+    return path_pair.source.name if path_pair else ""
 
 
-def clean_folder(input_folder: Path, output_folder: Path) -> None:
-    """Recreate the output folder, refusing to delete the inputs."""
-    if input_folder.resolve().is_relative_to(output_folder.resolve()):
-        raise ValueError(
-            "The output folder must not contain the input when using --clean."
-        )
+def pending_pairs(
+    input_folder: Path,
+    output_folder: Path | None,
+    input_glob: str | None,
+    output_suffix: str | None,
+    clean: bool,
+    overwrite: bool,
+    start: int,
+) -> Iterator[PathPair]:
+    """Yield the path pairs still to be processed while showing a progress bar.
 
-    shutil.rmtree(output_folder, ignore_errors=True)
-    output_folder.mkdir(parents=True)
+    The output folder defaults to the input folder.
+    """
+    output_folder = output_folder or input_folder
+
+    if clean:
+        # cleaning an output folder that contains the inputs would delete them
+        if input_folder.resolve().is_relative_to(output_folder.resolve()):
+            raise typer.BadParameter(
+                "The output folder must not contain the input when using --clean."
+            )
+
+        shutil.rmtree(output_folder, ignore_errors=True)
+        output_folder.mkdir(parents=True)
+
+    pairs = PathPair.create(input_folder, output_folder, input_glob, output_suffix)
+
+    with typer.progressbar(
+        pairs[start - 1 :], item_show_func=_label, show_pos=True
+    ) as bar:
+        for path_pair in bar:
+            if overwrite or not path_pair.target.exists():
+                yield path_pair

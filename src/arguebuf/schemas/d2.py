@@ -1,4 +1,7 @@
 import json
+from dataclasses import dataclass, field
+
+__all__ = ("D2Edge", "D2Graph", "D2Node", "D2Style")
 
 
 def _quote(value: str) -> str:
@@ -6,62 +9,56 @@ def _quote(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+@dataclass(slots=True, frozen=True)
 class D2Style:
-    def __init__(
-        self, font_color: str, bold: bool, stroke: str, stroke_width: int, fill: str
-    ):
-        self.font_color: str = font_color
-        self.bold = bold
-        self.stroke = stroke
-        self.stroke_width = stroke_width
-        self.fill = fill
+    font_color: str
+    bold: bool
+    stroke: str
+    stroke_width: int
+    fill: str
+
+    def __str__(self) -> str:
+        return (
+            "{\n"
+            f"font-color: {_quote(self.font_color)}\n"
+            f"bold: {str(self.bold).lower()}\n"
+            f"stroke: {_quote(self.stroke)}\n"
+            f"stroke-width: {self.stroke_width}\n"
+            f"fill: {_quote(self.fill)}\n"
+            "}"
+        )
 
 
+@dataclass(slots=True, frozen=True)
 class D2Node:
-    def __init__(self, id: str, label: str, shape: str, style: D2Style):
-        self.id = id
-        self.label = label
-        self.shape = shape
-        self.style = style
+    id: str
+    label: str
+    shape: str
+    style: D2Style
+
+    def __str__(self) -> str:
+        return (
+            f"{_quote(self.id)}: {{\n"
+            f"label: {_quote(self.label)}\n"
+            f"shape: {self.shape}\n"
+            f"style: {self.style}\n"
+            "}\n"
+        )
 
 
+@dataclass(slots=True, frozen=True)
 class D2Edge:
-    def __init__(self, from_id: str, to_id: str):
-        self.from_id = from_id
-        self.to_id = to_id
+    from_id: str
+    to_id: str
+
+    def __str__(self) -> str:
+        return f"{_quote(self.from_id)} -> {_quote(self.to_id)}\n"
 
 
+@dataclass(slots=True)
 class D2Graph:
-    def __init__(self, nodes: list[D2Node], edges: list[D2Edge]):
-        self.nodes = nodes
-        self.edges = edges
+    nodes: list[D2Node] = field(default_factory=list)
+    edges: list[D2Edge] = field(default_factory=list)
 
-    def __str__(self):
-        str = ""
-        for node in self.nodes:
-            str += self.__write_node(node)
-        for edge in self.edges:
-            str += self.__write_edge(edge)
-        return str
-
-    def __write_node(self, node: D2Node) -> str:
-        str = ""
-        str += _quote(node.id) + ": {\n"
-        str += "label: " + _quote(node.label) + "\n"
-        str += "shape: " + node.shape + "\n"
-        str += "style: " + self.__write_style(node.style) + "\n}\n"
-        return str
-
-    def __write_style(self, style: D2Style) -> str:
-        str = "{\n"
-        str += "font-color: " + '"' + style.font_color + '"' + "\n"
-        str += "bold: " + style.bold.__str__().lower() + "\n"
-        str += "stroke: " + '"' + style.stroke + '"' + "\n"
-        str += "stroke-width: " + style.stroke_width.__str__() + "\n"
-        str += "fill: " + '"' + style.fill + '"' + "\n}"
-        return str
-
-    def __write_edge(self, edge: D2Edge) -> str:
-        str = ""
-        str += _quote(edge.from_id) + " -> " + _quote(edge.to_id) + "\n"
-        return str
+    def __str__(self) -> str:
+        return "".join(map(str, [*self.nodes, *self.edges]))

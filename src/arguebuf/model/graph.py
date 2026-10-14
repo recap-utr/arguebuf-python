@@ -1,135 +1,170 @@
 import itertools
-import logging
-import typing as t
+from collections.abc import Mapping
+from collections.abc import Set as AbstractSet
+from dataclasses import KW_ONLY, dataclass, field, replace
+from types import MappingProxyType
 
-from arguebuf.model import utils
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.resource import Resource
-from arguebuf.model.typing import TextType
 from arguebuf.model.userdata import Userdata
-from arguebuf.model.utils import ImmutableDict, ImmutableSet
-
-log = logging.getLogger(__name__)
+from arguebuf.model.utils import Entity, uuid
 
 __all__ = ("Graph",)
 
 
-# noinspection PyProtectedMember
-class Graph(t.Generic[TextType]):
-    """Graph in AIF format.
+@dataclass(slots=True, eq=False)
+class Graph[T = str]:
+    """Argument graph consisting of atom nodes, scheme nodes, and edges.
 
-    No attribute is mandatory.
-    All nodes and edges attributes are read-only.
+    Elements are added and removed through the methods of the graph,
+    all collections exposed by it are read-only.
     """
 
-    __slots__ = (
-        "name",
-        "_nodes",
-        "_atom_nodes",
-        "_scheme_nodes",
-        "_edges",
-        "_incoming_nodes",
-        "_incoming_edges",
-        "_outgoing_nodes",
-        "_outgoing_edges",
-        "_major_claim",
-        "_resources",
-        "_participants",
-        "_analysts",
-        "metadata",
-        "userdata",
-        "library_version",
-        "schema_version",
+    name: str = field(default_factory=uuid)
+    _: KW_ONLY
+    metadata: Metadata = field(default_factory=Metadata, repr=False)
+    userdata: Userdata = field(default_factory=dict, repr=False)
+    library_version: str | None = None
+    schema_version: int | None = None
+    _nodes: dict[str, AbstractNode] = field(
+        default_factory=dict, init=False, repr=False
     )
-
-    name: str
-    _nodes: ImmutableDict[str, AbstractNode]
-    _atom_nodes: ImmutableDict[str, AtomNode]
-    _scheme_nodes: ImmutableDict[str, SchemeNode]
-    _edges: ImmutableDict[str, Edge]
-    _incoming_nodes: ImmutableDict[AbstractNode, ImmutableSet[AbstractNode]]
-    _incoming_edges: ImmutableDict[AbstractNode, ImmutableSet[Edge]]
-    _outgoing_nodes: ImmutableDict[AbstractNode, ImmutableSet[AbstractNode]]
-    _outgoing_edges: ImmutableDict[AbstractNode, ImmutableSet[Edge]]
-    _resources: ImmutableDict[str, Resource]
-    _participants: ImmutableDict[str, Participant]
-    _major_claim: AtomNode | None
-    _analysts: ImmutableDict[str, Analyst]
-    library_version: str | None
-    schema_version: int | None
-    metadata: Metadata
-    userdata: Userdata
-
-    @property
-    def edges(self) -> t.Mapping[str, Edge]:
-        return self._edges
-
-    @property
-    def nodes(self) -> t.Mapping[str, AbstractNode]:
-        return self._nodes
-
-    @property
-    def atom_nodes(self) -> t.Mapping[str, AtomNode]:
-        return self._atom_nodes
+    _atom_nodes: dict[str, AtomNode[T]] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _scheme_nodes: dict[str, SchemeNode] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _edges: dict[str, Edge] = field(default_factory=dict, init=False, repr=False)
+    _incoming_nodes: dict[AbstractNode, set[AbstractNode]] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _incoming_edges: dict[AbstractNode, set[Edge]] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _outgoing_nodes: dict[AbstractNode, set[AbstractNode]] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _outgoing_edges: dict[AbstractNode, set[Edge]] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _resources: dict[str, Resource[T]] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _participants: dict[str, Participant] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _analysts: dict[str, Analyst] = field(default_factory=dict, init=False, repr=False)
+    _major_claim: AtomNode[T] | None = field(default=None, init=False, repr=False)
 
     @property
-    def scheme_nodes(self) -> t.Mapping[str, SchemeNode]:
-        return self._scheme_nodes
+    def nodes(self) -> Mapping[str, AbstractNode]:
+        return MappingProxyType(self._nodes)
 
-    def incoming_nodes(self, node: str | AbstractNode) -> t.AbstractSet[AbstractNode]:
-        if isinstance(node, str):
-            node = self._nodes[node]
+    @property
+    def atom_nodes(self) -> Mapping[str, AtomNode[T]]:
+        return MappingProxyType(self._atom_nodes)
 
-        return self._incoming_nodes[node]
+    @property
+    def scheme_nodes(self) -> Mapping[str, SchemeNode]:
+        return MappingProxyType(self._scheme_nodes)
 
-    def incoming_atom_nodes(self, node: str | AbstractNode) -> t.AbstractSet[AtomNode]:
-        if isinstance(node, str):
-            node = self._nodes[node]
+    @property
+    def edges(self) -> Mapping[str, Edge]:
+        return MappingProxyType(self._edges)
 
-        incoming_nodes = list(self._incoming_nodes[node])
-        incoming_atom_nodes: set[AtomNode] = set()
+    @property
+    def resources(self) -> Mapping[str, Resource[T]]:
+        return MappingProxyType(self._resources)
 
-        while incoming_nodes:
-            incoming_node = incoming_nodes.pop()
+    @property
+    def participants(self) -> Mapping[str, Participant]:
+        return MappingProxyType(self._participants)
 
-            if isinstance(incoming_node, AtomNode):
-                incoming_atom_nodes.add(incoming_node)
-            else:
-                incoming_nodes.extend(self._incoming_nodes[incoming_node])
+    @property
+    def analysts(self) -> Mapping[str, Analyst]:
+        return MappingProxyType(self._analysts)
 
-        return incoming_atom_nodes
+    @property
+    def major_claim(self) -> AtomNode[T] | None:
+        return self._major_claim
 
-    def outgoing_nodes(self, node: str | AbstractNode) -> t.AbstractSet[AbstractNode]:
-        if isinstance(node, str):
-            node = self._nodes[node]
+    @major_claim.setter
+    def major_claim(self, value: str | AtomNode[T] | None) -> None:
+        self._major_claim = self._atom_nodes[value] if isinstance(value, str) else value
 
-        return self._outgoing_nodes[node]
+    @property
+    def root_node(self) -> AtomNode[T] | None:
+        """If there is a single node with no outgoing edges, return it, otherwise None"""
+        candidates = self.root_nodes
 
-    def outgoing_atom_nodes(self, node: str | AbstractNode) -> t.AbstractSet[AtomNode]:
-        if isinstance(node, str):
-            node = self._nodes[node]
+        if len(candidates) == 1:
+            return next(iter(candidates))
 
-        outgoing_nodes = list(self._outgoing_nodes[node])
-        outgoing_atom_nodes: set[AtomNode] = set()
+        return None
 
-        while outgoing_nodes:
-            outgoing_node = outgoing_nodes.pop()
+    @property
+    def root_nodes(self) -> set[AtomNode[T]]:
+        """Find all nodes with no outgoing edges"""
+        return {
+            node for node in self._atom_nodes.values() if not self._outgoing_nodes[node]
+        }
 
-            # If it is an Atom, just add it to our result set
-            if isinstance(outgoing_node, AtomNode):
-                outgoing_atom_nodes.add(outgoing_node)
-            # Otherwise, add the outgoing nodes of the current node to the search path
-            else:
-                outgoing_nodes.extend(self._outgoing_nodes[outgoing_node])
+    @property
+    def leaf_nodes(self) -> set[AtomNode[T]]:
+        """Find all nodes with no incoming edges"""
+        return {
+            node for node in self._atom_nodes.values() if not self._incoming_nodes[node]
+        }
 
-        return outgoing_atom_nodes
+    def _node(self, node: str | AbstractNode) -> AbstractNode:
+        return self._nodes[node] if isinstance(node, str) else node
+
+    def incoming_nodes(self, node: str | AbstractNode) -> AbstractSet[AbstractNode]:
+        return frozenset(self._incoming_nodes[self._node(node)])
+
+    def outgoing_nodes(self, node: str | AbstractNode) -> AbstractSet[AbstractNode]:
+        return frozenset(self._outgoing_nodes[self._node(node)])
 
     child_nodes = incoming_nodes
     parent_nodes = outgoing_nodes
+
+    def incoming_edges(self, node: str | AbstractNode) -> AbstractSet[Edge]:
+        return frozenset(self._incoming_edges[self._node(node)])
+
+    def outgoing_edges(self, node: str | AbstractNode) -> AbstractSet[Edge]:
+        return frozenset(self._outgoing_edges[self._node(node)])
+
+    def incoming_atom_nodes(self, node: str | AbstractNode) -> set[AtomNode[T]]:
+        """Find the closest atom nodes connected to `node` via incoming edges."""
+        return self._neighbor_atom_nodes(node, self._incoming_nodes)
+
+    def outgoing_atom_nodes(self, node: str | AbstractNode) -> set[AtomNode[T]]:
+        """Find the closest atom nodes connected to `node` via outgoing edges."""
+        return self._neighbor_atom_nodes(node, self._outgoing_nodes)
+
+    def _neighbor_atom_nodes(
+        self,
+        node: str | AbstractNode,
+        neighbors: Mapping[AbstractNode, AbstractSet[AbstractNode]],
+    ) -> set[AtomNode[T]]:
+        candidates = list(neighbors[self._node(node)])
+        atom_nodes: set[AtomNode[T]] = set()
+
+        while candidates:
+            candidate = candidates.pop()
+
+            # atom nodes are collected, all other nodes are expanded
+            if candidate.id in self._atom_nodes:
+                atom_nodes.add(self._atom_nodes[candidate.id])
+            else:
+                candidates.extend(neighbors[candidate])
+
+        return atom_nodes
 
     def sibling_node_distances(
         self,
@@ -138,45 +173,39 @@ class Graph(t.Generic[TextType]):
         node_type: type[AbstractNode] = AbstractNode,
     ) -> dict[AbstractNode, int]:
         """Find all sibling nodes of a node and their distance in the graph"""
-
-        if isinstance(node, str):
-            node = self._nodes[node]
-
-        # visited: set[AbstractNode] = set()
+        node = self._node(node)
         sibling_nodes: dict[AbstractNode, int] = {}
         parent_nodes: dict[AbstractNode, int] = {
-            parent: 1 for parent in self.parent_nodes(node)
+            parent: 1 for parent in self._outgoing_nodes[node]
         }
 
         while parent_nodes:
             parent, level = parent_nodes.popitem()
-            child_nodes = self.child_nodes(parent)
-            grandparent_nodes = self.parent_nodes(parent)
+            child_nodes: AbstractSet[AbstractNode] = self._incoming_nodes[parent]
 
-            parent_nodes.update(
-                {parent: level + 1 for parent in grandparent_nodes}
-                if (max_levels is None or level < max_levels)
-                and len(grandparent_nodes) > 0
-                else {}
-            )
+            if max_levels is None or level < max_levels:
+                parent_nodes.update(
+                    {
+                        grandparent: level + 1
+                        for grandparent in self._outgoing_nodes[parent]
+                    }
+                )
 
             for _ in range(level - 1):
-                if len(child_nodes) == 0:
+                if not child_nodes:
                     break
 
-                next_child_nodes: set[AbstractNode] = set()
-
-                for child_node in child_nodes:
-                    next_child_nodes.update(self.child_nodes(child_node))
-
-                child_nodes = next_child_nodes
+                child_nodes = {
+                    grandchild
+                    for child in child_nodes
+                    for grandchild in self._incoming_nodes[child]
+                }
 
             sibling_nodes.update(
                 {
-                    child_node: level
-                    for child_node in child_nodes
-                    if isinstance(child_node, node_type)
-                    and child_node not in sibling_nodes
+                    child: level
+                    for child in child_nodes
+                    if isinstance(child, node_type) and child not in sibling_nodes
                 }
             )
 
@@ -187,120 +216,36 @@ class Graph(t.Generic[TextType]):
         node: str | AbstractNode,
         max_levels: int | None = 1,
         node_type: type[AbstractNode] = AbstractNode,
-    ) -> t.AbstractSet[AbstractNode]:
+    ) -> AbstractSet[AbstractNode]:
         return self.sibling_node_distances(node, max_levels, node_type).keys()
 
-    def incoming_edges(self, node: str | AbstractNode) -> t.AbstractSet[Edge]:
-        if isinstance(node, str):
-            node = self._nodes[node]
-
-        return self._incoming_edges[node]
-
-    def outgoing_edges(self, node: str | AbstractNode) -> t.AbstractSet[Edge]:
-        if isinstance(node, str):
-            node = self._nodes[node]
-
-        return self._outgoing_edges[node]
-
-    def scheme_between(self, premise: AtomNode, claim: AtomNode) -> SchemeNode | None:
-        candidates = set(self._outgoing_nodes[premise]).intersection(
-            self._incoming_nodes[claim]
-        )
+    def scheme_between(
+        self, premise: AtomNode[T], claim: AtomNode[T]
+    ) -> SchemeNode | None:
+        candidates = self._outgoing_nodes[premise] & self._incoming_nodes[claim]
 
         if len(candidates) == 1:
-            scheme = next(iter(candidates))
-
-            if isinstance(scheme, SchemeNode):
-                return scheme
+            return self._scheme_nodes.get(next(iter(candidates)).id)
 
         return None
 
-    @property
-    def resources(self) -> t.Mapping[str, Resource]:
-        return self._resources
+    def _insert[V: Entity](self, store: dict[str, V], value: V) -> None:
+        if value.id in store:
+            raise ValueError(
+                f"Graph '{self.name}' already contains an element with key '{value.id}'."
+            )
 
-    @property
-    def major_claim(self) -> AtomNode | None:
-        if self._major_claim:
-            return self._major_claim
+        store[value.id] = value
 
-    @major_claim.setter
-    def major_claim(self, value: str | AtomNode | None) -> None:
-        if isinstance(value, str):
-            value = self._atom_nodes[value]
-        elif not (value is None or isinstance(value, AtomNode)):
-            raise TypeError(utils.type_error(type(value), AtomNode))
+    def _delete[V: Entity](self, store: dict[str, V], value: V) -> None:
+        if value.id not in store:
+            raise KeyError(
+                f"Graph '{self.name}' does not contain an element with key '{value.id}'."
+            )
 
-        self._major_claim = value
-        # self._metadata.update()
+        del store[value.id]
 
-    @property
-    def root_node(self) -> AtomNode | None:
-        """If there is a single node with no outgoing edges, return it, otherwise None"""
-        candidates = self.root_nodes
-
-        if len(candidates) == 1:
-            return next(iter(candidates))
-
-        return None
-
-    @property
-    def root_nodes(self) -> set[AtomNode]:
-        """Find all nodes with no outgoing edges"""
-        return {
-            node
-            for node in self.atom_nodes.values()
-            if len(self.outgoing_nodes(node)) == 0
-        }
-
-    @property
-    def leaf_nodes(self) -> set[AtomNode]:
-        """Find all nodes with no incoming edges"""
-        return {
-            node
-            for node in self.atom_nodes.values()
-            if len(self.incoming_nodes(node)) == 0
-        }
-
-    @property
-    def participants(self) -> t.Mapping[str, Participant]:
-        return self._participants
-
-    @property
-    def analysts(self) -> t.Mapping[str, Analyst]:
-        return self._analysts
-
-    def __init__(self, name: str | None = None):
-        """Create a graph from scratch."""
-
-        self.name = name or utils.uuid()
-        self._nodes = ImmutableDict()
-        self._atom_nodes = ImmutableDict()
-        self._scheme_nodes = ImmutableDict()
-        self._edges = ImmutableDict()
-        self._analysts = ImmutableDict()
-        self.userdata = {}
-        self._resources = ImmutableDict()
-        self._participants = ImmutableDict()
-        self.metadata = Metadata()
-        self._major_claim = None
-
-        self._incoming_nodes = ImmutableDict()
-        self._incoming_edges = ImmutableDict()
-        self._outgoing_nodes = ImmutableDict()
-        self._outgoing_edges = ImmutableDict()
-        self.library_version = None
-        self.schema_version = None
-
-        self.__post_init__()
-
-    def __post_init__(self):
-        pass
-
-    def __repr__(self):
-        return utils.class_repr(self, [self.name])
-
-    def add_node(self, node: AbstractNode) -> None:
+    def add_node(self, node: AtomNode[T] | SchemeNode) -> None:
         """Add a node to the graph.
 
         Args:
@@ -314,39 +259,30 @@ class Graph(t.Generic[TextType]):
             >>> g.add_node(SchemeNode())
             >>> len(g.nodes)
             2
-            >>> g.add_node("Test")
-            Traceback (most recent call last):
-            TypeError: Expected type '<class 'arguebuf.node.Node'>', but got '<class 'str'>'. Make sure that you are passing the correct method arguments.
         """
+        self._insert(self._nodes, node)
 
-        if not isinstance(node, AbstractNode):
-            raise TypeError(utils.type_error(type(node), AbstractNode))
+        match node:
+            case AtomNode():
+                self._atom_nodes[node.id] = node
 
-        if node.id in self._nodes:
-            raise ValueError(utils.duplicate_key_error(self.name, node.id))
+                if node.participant and node.participant.id not in self._participants:
+                    self.add_participant(node.participant)
 
-        self._nodes._store[node.id] = node
+                if (
+                    node.reference
+                    and node.reference.resource
+                    and node.reference.resource.id not in self._resources
+                ):
+                    self.add_resource(node.reference.resource)
 
-        if isinstance(node, AtomNode):
-            self._atom_nodes._store[node.id] = node
+            case SchemeNode():
+                self._scheme_nodes[node.id] = node
 
-            if node.participant and node.participant.id not in self._participants:
-                self.add_participant(node.participant)
-
-            if (
-                node.reference
-                and node.reference.resource
-                and node.reference.resource.id not in self._resources
-            ):
-                self.add_resource(node.reference.resource)
-
-        elif isinstance(node, SchemeNode):
-            self._scheme_nodes._store[node.id] = node
-
-        self._incoming_nodes._store[node] = ImmutableSet()
-        self._incoming_edges._store[node] = ImmutableSet()
-        self._outgoing_nodes._store[node] = ImmutableSet()
-        self._outgoing_edges._store[node] = ImmutableSet()
+        self._incoming_nodes[node] = set()
+        self._incoming_edges[node] = set()
+        self._outgoing_nodes[node] = set()
+        self._outgoing_edges[node] = set()
 
     def remove_node(self, node: AbstractNode) -> None:
         """Remove a node and its corresponding edges from the graph.
@@ -358,12 +294,7 @@ class Graph(t.Generic[TextType]):
             >>> g = Graph()
             >>> n1 = AtomNode("Node1")
             >>> n2 = SchemeNode()
-            >>> e = Edge(n1, n2)
-            >>> g.add_edge(e)
-            >>> len(g.nodes)
-            2
-            >>> len(g.edges)
-            1
+            >>> g.add_edge(Edge(n1, n2))
             >>> g.remove_node(n1)
             >>> len(g.nodes)
             1
@@ -371,30 +302,19 @@ class Graph(t.Generic[TextType]):
             0
             >>> g.remove_node(n1)
             Traceback (most recent call last):
-            KeyError: Node not in graph.
+            KeyError: ...
         """
+        self._delete(self._nodes, node)
+        self._atom_nodes.pop(node.id, None)
+        self._scheme_nodes.pop(node.id, None)
 
-        if node.id not in self.nodes:
-            raise KeyError(utils.missing_key_error(self.name, node.id))
-
-        del self._nodes._store[node.id]
-
-        if isinstance(node, AtomNode):
-            del self._atom_nodes._store[node.id]
-        elif isinstance(node, SchemeNode):
-            del self._scheme_nodes._store[node.id]
-
-        neighbor_edges = list(self._incoming_edges[node]) + list(
-            self._outgoing_edges[node]
-        )
-
-        for edge in neighbor_edges:
+        for edge in self._incoming_edges[node] | self._outgoing_edges[node]:
             self.remove_edge(edge)
 
-        del self._incoming_nodes._store[node]
-        del self._incoming_edges._store[node]
-        del self._outgoing_nodes._store[node]
-        del self._outgoing_edges._store[node]
+        del self._incoming_nodes[node]
+        del self._incoming_edges[node]
+        del self._outgoing_nodes[node]
+        del self._outgoing_edges[node]
 
     def add_edge(self, edge: Edge) -> None:
         """Add an edge and its nodes (if not already added).
@@ -407,33 +327,21 @@ class Graph(t.Generic[TextType]):
             >>> n1 = AtomNode("Premise")
             >>> n2 = SchemeNode()
             >>> n3 = AtomNode("Claim")
-            >>> e1 = Edge(n1, n2)
-            >>> e2 = Edge(n2, n3)
-            >>> g.add_edge(e1)
-            >>> len(g.edges)
-            1
-            >>> g.add_edge(e2)
+            >>> g.add_edge(Edge(n1, n2))
+            >>> g.add_edge(Edge(n2, n3))
             >>> len(g.edges)
             2
         """
-        if not isinstance(edge, Edge):
-            raise TypeError(utils.type_error(type(edge), Edge))
+        self._insert(self._edges, edge)
 
-        if edge.id in self._edges:
-            raise ValueError(utils.duplicate_key_error(self.name, edge.id))
+        for node in (edge.source, edge.target):
+            if node.id not in self._nodes and isinstance(node, AtomNode | SchemeNode):
+                self.add_node(node)
 
-        self._edges._store[edge.id] = edge
-
-        if edge.source.id not in self.nodes:
-            self.add_node(edge.source)
-
-        if edge.target.id not in self.nodes:
-            self.add_node(edge.target)
-
-        self._outgoing_edges[edge.source]._store.add(edge)
-        self._incoming_edges[edge.target]._store.add(edge)
-        self._outgoing_nodes[edge.source]._store.add(edge.target)
-        self._incoming_nodes[edge.target]._store.add(edge.source)
+        self._outgoing_edges[edge.source].add(edge)
+        self._incoming_edges[edge.target].add(edge)
+        self._outgoing_nodes[edge.source].add(edge.target)
+        self._incoming_nodes[edge.target].add(edge.source)
 
     def remove_edge(self, edge: Edge) -> None:
         """Remove an edge.
@@ -443,204 +351,122 @@ class Graph(t.Generic[TextType]):
 
         Examples:
             >>> g = Graph()
-            >>> n1 = AtomNode("Node1")
-            >>> n2 = SchemeNode()
-            >>> e = Edge(n1, n2)
+            >>> e = Edge(AtomNode("Node1"), SchemeNode())
             >>> g.add_edge(e)
-            >>> len(g.edges)
-            1
-            >>> len(g.nodes)
-            2
             >>> g.remove_edge(e)
             >>> len(g.edges)
             0
             >>> len(g.nodes)
             2
         """
-        if not isinstance(edge, Edge):
-            raise TypeError(utils.type_error(type(edge), Edge))
+        self._delete(self._edges, edge)
 
-        if edge.id not in self._edges:
-            raise KeyError(utils.missing_key_error(self.name, edge.id))
+        self._outgoing_edges[edge.source].remove(edge)
+        self._incoming_edges[edge.target].remove(edge)
+        self._outgoing_nodes[edge.source].remove(edge.target)
+        self._incoming_nodes[edge.target].remove(edge.source)
 
-        del self._edges._store[edge.id]
-
-        self._outgoing_edges[edge.source]._store.remove(edge)
-        self._incoming_edges[edge.target]._store.remove(edge)
-        self._outgoing_nodes[edge.source]._store.remove(edge.target)
-        self._incoming_nodes[edge.target]._store.remove(edge.source)
-
-    ##What does a Resource look like?
-    def add_resource(self, resource: Resource) -> None:
+    def add_resource(self, resource: Resource[T]) -> None:
         """Add a resource.
-
-        Args:
-            resource: Resource object that is not part of the graph.
 
         Examples:
             >>> g = Graph()
-            >>> r1 = Resource("Resource1")
-            >>> g.add_resource(r1)
+            >>> g.add_resource(Resource("Resource1"))
             >>> len(g.resources)
             1
         """
-        if not isinstance(resource, Resource):
-            raise TypeError(utils.type_error(type(resource), Resource))
+        self._insert(self._resources, resource)
 
-        if resource.id in self._resources:
-            raise ValueError(utils.duplicate_key_error(self.name, resource.id))
-
-        self._resources._store[resource.id] = resource
-
-    def remove_resource(self, resource: Resource) -> None:
-        """Add a resource.
-
-        Args:
-            resource: Resource object that is part of the graph.
+    def remove_resource(self, resource: Resource[T]) -> None:
+        """Remove a resource and the references of all nodes pointing to it.
 
         Examples:
             >>> g = Graph()
             >>> r1 = Resource("Resource1")
             >>> g.add_resource(r1)
-            >>> len(g.resources)
-            1
             >>> g.remove_resource(r1)
             >>> len(g.resources)
             0
         """
-        if not isinstance(resource, Resource):
-            raise TypeError(utils.type_error(type(resource), Resource))
-
-        if resource.id not in self._resources:
-            raise ValueError(utils.missing_key_error(self.name, resource.id))
-
-        del self._resources._store[resource.id]
+        self._delete(self._resources, resource)
 
         for node in self._atom_nodes.values():
             if node.reference and node.reference.resource == resource:
-                node.reference._resource = None
-                node.reference.offset = None
+                node.reference = replace(node.reference, resource=None, offset=None)
 
     def clean_resources(self) -> None:
-        """Remove resources from the graph that are used by no nodes"""
-
-        node_resources = {
+        """Remove resources that are not referenced by any node."""
+        used = {
             node.reference.resource.id
             for node in self._atom_nodes.values()
             if node.reference and node.reference.resource
         }
 
-        for resource_id in set(self._resources):
-            if resource_id not in node_resources:
-                del self._resources._store[resource_id]
+        for resource_id in self._resources.keys() - used:
+            del self._resources[resource_id]
 
     def add_participant(self, participant: Participant) -> None:
-        """Add a resource.
-
-        Args:
-            participant: Participant object that is not part of the graph.
+        """Add a participant.
 
         Examples:
             >>> g = Graph()
-            >>> p1 = Participant("Participant1")
-            >>> g.add_participant(p1)
+            >>> g.add_participant(Participant("Participant1"))
             >>> len(g.participants)
             1
         """
-        if not isinstance(participant, Participant):
-            raise TypeError(utils.type_error(type(participant), Participant))
-
-        if participant.id in self._participants:
-            raise ValueError(utils.duplicate_key_error(self.name, participant.id))
-
-        self._participants._store[participant.id] = participant
+        self._insert(self._participants, participant)
 
     def remove_participant(self, participant: Participant) -> None:
-        """Add a resource.
-
-        Args:
-            participant: Participant object that is part of the graph.
+        """Remove a participant and unset it for all its nodes.
 
         Examples:
             >>> g = Graph()
             >>> p1 = Participant("Participant1")
             >>> g.add_participant(p1)
-            >>> len(g.participants)
-            1
             >>> g.remove_participant(p1)
             >>> len(g.participants)
             0
         """
-        if not isinstance(participant, Participant):
-            raise TypeError(utils.type_error(type(participant), Participant))
-
-        if participant.id not in self._participants:
-            raise ValueError(utils.missing_key_error(self.name, participant.id))
-
-        del self._participants._store[participant.id]
+        self._delete(self._participants, participant)
 
         for node in self._atom_nodes.values():
             if node.participant == participant:
-                node._participant = None
+                node.participant = None
 
     def clean_participants(self) -> None:
-        """Remove resources from the graph that are used by no nodes"""
-
-        node_participants = {
+        """Remove participants that are not assigned to any node."""
+        used = {
             node.participant.id
             for node in self._atom_nodes.values()
             if node.participant
         }
 
-        for participant in set(self._participants):
-            if participant not in node_participants:
-                del self._participants._store[participant]
+        for participant_id in self._participants.keys() - used:
+            del self._participants[participant_id]
 
     def add_analyst(self, analyst: Analyst) -> None:
-        """Add a resource.
-
-        Args:
-            analyst: analyst object that is not part of the graph.
+        """Add an analyst.
 
         Examples:
             >>> g = Graph()
-            >>> p1 = Analyst("Name")
-            >>> g.add_analyst(p1)
+            >>> g.add_analyst(Analyst("Name"))
             >>> len(g.analysts)
             1
         """
-        if not isinstance(analyst, Analyst):
-            raise TypeError(utils.type_error(type(analyst), Analyst))
-
-        if analyst.id in self._analysts:
-            raise ValueError(utils.duplicate_key_error(self.name, analyst.id))
-
-        self._analysts._store[analyst.id] = analyst
+        self._insert(self._analysts, analyst)
 
     def remove_analyst(self, analyst: Analyst) -> None:
-        """Add a resource.
-
-        Args:
-            analyst: analyst object that is part of the graph.
+        """Remove an analyst.
 
         Examples:
-            >>> import arguebuf
             >>> g = Graph()
-            >>> p1 = Analyst("Name")
-            >>> g.add_analyst(p1)
-            >>> len(g.analysts)
-            1
-            >>> g.remove_analyst(p1)
+            >>> a1 = Analyst("Name")
+            >>> g.add_analyst(a1)
+            >>> g.remove_analyst(a1)
             >>> len(g.analysts)
             0
         """
-        if not isinstance(analyst, Analyst):
-            raise TypeError(utils.type_error(type(analyst), Analyst))
-
-        if analyst.id not in self._analysts:
-            raise ValueError(utils.missing_key_error(self.name, analyst.id))
-
-        del self._analysts._store[analyst.id]
+        self._delete(self._analysts, analyst)
 
     def remove_scheme_nodes(self) -> None:
         """Remove scheme nodes from graph to connect atom nodes directly
@@ -648,35 +474,24 @@ class Graph(t.Generic[TextType]):
         Can be useful to analyze the structure of atom nodes
         without considering their relation types (i.e., the scheme nodes between them).
         """
-
-        schemes = list(self._scheme_nodes.values())
-
-        for scheme in schemes:
+        for scheme in list(self._scheme_nodes.values()):
             for incoming, outgoing in itertools.product(
                 self.incoming_atom_nodes(scheme), self.outgoing_atom_nodes(scheme)
             ):
-                self.add_edge(
-                    Edge(
-                        incoming,
-                        outgoing,
-                    )
-                )
+                self.add_edge(Edge(incoming, outgoing))
 
             self.remove_node(scheme)
 
     strip_scheme_nodes = remove_scheme_nodes
 
     def remove_empty_scheme_branches(self) -> None:
-        """Remove scheme nodes from graph where scheme is None"""
+        """Remove scheme nodes without a scheme together with their descendants."""
+        empty_schemes = [
+            node for node in self._scheme_nodes.values() if node.scheme is None
+        ]
 
-        scheme_nodes = {
-            node for node in self.scheme_nodes.values() if node.scheme is None
-        }
-
-        while scheme_nodes:
-            scheme_node = scheme_nodes.pop()
-
-            if scheme_node.id in self.scheme_nodes:
+        for scheme_node in empty_schemes:
+            if scheme_node.id in self._scheme_nodes:
                 self.remove_branch(scheme_node)
 
     def remove_branch(self, element: AbstractNode | Edge | str) -> None:
@@ -684,14 +499,17 @@ class Graph(t.Generic[TextType]):
 
         If the element is a string, it is interpreted as the id of a node.
         """
+        match element:
+            case str():
+                node = self._nodes[element]
+            case Edge():
+                node = element.source
+            case _:
+                node = element
 
-        if isinstance(element, str):
-            element = self.nodes[element]
-        if isinstance(element, Edge):
-            element = element.source
-
-        descendants = list(self.incoming_nodes(element))
-        self.remove_node(element)
+        descendants = list(self._incoming_nodes[node])
+        self.remove_node(node)
 
         for descendant in descendants:
-            self.remove_branch(descendant)
+            if descendant.id in self._nodes:
+                self.remove_branch(descendant)

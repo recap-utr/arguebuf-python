@@ -1,46 +1,51 @@
-import typing as t
+from collections.abc import Mapping
 
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf.json_format import MessageToDict
 
-from arguebuf import dt
-from arguebuf.model import Graph, utils
-from arguebuf.model.edge import Edge, warn_missing_nodes
+from arguebuf.dt import from_protobuf
+from arguebuf.model import Graph
+from arguebuf.model.edge import Edge
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.reference import Reference
 from arguebuf.model.resource import Resource
 from arguebuf.model.scheme import (
+    Scheme,
     protobuf2attack,
     protobuf2preference,
     protobuf2rephrase,
     protobuf2support,
 )
 
-from ._config import Config, DefaultConfig
+from ._config import Config
 
 __all__ = ("load_protobuf",)
 
 
-def load_protobuf(
+def load_protobuf[T = str](
     obj: graph_pb2.Graph,
     name: str | None = None,
-    config: Config = DefaultConfig,
-) -> Graph:
-    """Generate Graph structure from PROTOBUF argument graph file.(Link?)"""
-    g = config.GraphClass(name)
+    config: Config[T] = Config(),
+) -> Graph[T]:
+    """Generate Graph structure from a protobuf message."""
+    g = config.graph(name)
+    g.metadata = metadata_from_protobuf(obj.metadata, config)
+    g.userdata = MessageToDict(obj.userdata)
+    g.library_version = obj.library_version
+    g.schema_version = obj.schema_version
 
     for resource_id, resource in obj.resources.items():
         g.add_resource(
             config.ResourceClass(
-                utils.parse(resource.text, config.nlp),
-                resource.title,
-                resource.source,
-                dt.from_protobuf(resource.timestamp),
-                metadata_from_protobuf(resource.metadata, config),
-                MessageToDict(resource.userdata),
-                resource_id,
+                config.parse(resource.text),
+                title=resource.title,
+                source=resource.source,
+                timestamp=from_protobuf(resource.timestamp),
+                metadata=metadata_from_protobuf(resource.metadata, config),
+                userdata=MessageToDict(resource.userdata),
+                id=resource_id,
             )
         )
 
@@ -48,14 +53,14 @@ def load_protobuf(
         g.add_participant(
             config.ParticipantClass(
                 participant.name,
-                participant.username,
-                participant.email,
-                participant.url,
-                participant.location,
-                participant.description,
-                metadata_from_protobuf(participant.metadata, config),
-                MessageToDict(participant.userdata),
-                participant_id,
+                username=participant.username,
+                email=participant.email,
+                url=participant.url,
+                location=participant.location,
+                description=participant.description,
+                metadata=metadata_from_protobuf(participant.metadata, config),
+                userdata=MessageToDict(participant.userdata),
+                id=participant_id,
             )
         )
 
@@ -63,130 +68,113 @@ def load_protobuf(
         g.add_analyst(
             config.AnalystClass(
                 analyst.name,
-                analyst.email,
-                MessageToDict(analyst.userdata),
-                analyst_id,
+                email=analyst.email,
+                userdata=MessageToDict(analyst.userdata),
+                id=analyst_id,
             )
         )
 
     for node_id, node in obj.nodes.items():
-        if node.WhichOneof("type") == "atom":
-            g.add_node(
-                atom_from_protobuf(node_id, node, g.resources, g.participants, config)
-            )
-        elif node.WhichOneof("type") == "scheme":
-            g.add_node(scheme_from_protobuf(node_id, node, config))
-        # TODO: Raise error if node is neither scheme nor atom
+        match node.WhichOneof("type"):
+            case "atom":
+                g.add_node(
+                    atom_from_protobuf(
+                        node_id, node, g.resources, g.participants, config
+                    )
+                )
+            case "scheme":
+                g.add_node(scheme_from_protobuf(node_id, node, config))
+            case _:
+                raise ValueError(f"Node '{node_id}' is neither an atom nor a scheme.")
 
     for edge_id, proto_edge in obj.edges.items():
         if edge := edge_from_protobuf(edge_id, proto_edge, g.nodes, config):
             g.add_edge(edge)
 
-    major_claim = g.nodes[obj.major_claim] if obj.major_claim else None
-
-    if major_claim and isinstance(major_claim, AtomNode):
-        g._major_claim = major_claim
-
-    g.userdata = MessageToDict(obj.userdata)
-    g.metadata = metadata_from_protobuf(obj.metadata, config)
-    g.library_version = obj.library_version
-    g.schema_version = obj.schema_version
+    if obj.major_claim in g.atom_nodes:
+        g.major_claim = obj.major_claim
 
     return g
 
 
-def atom_from_protobuf(
+def atom_from_protobuf[T](
     id: str,
     obj: graph_pb2.Node,
-    resources: t.Mapping[str, Resource],
-    participants: t.Mapping[str, Participant],
-    config: Config,
-) -> AtomNode:
-    """Generate AtomNode object from PROTOBUF Node object."""
+    resources: Mapping[str, Resource[T]],
+    participants: Mapping[str, Participant],
+    config: Config[T],
+) -> AtomNode[T]:
+    """Generate AtomNode object from protobuf Node object."""
     return config.AtomNodeClass(
-        utils.parse(obj.atom.text, config.nlp),
-        reference_from_protobuf(obj.atom.reference, resources, config),
-        participants.get(obj.atom.participant),
-        metadata_from_protobuf(obj.metadata, config),
-        MessageToDict(obj.userdata),
+        config.parse(obj.atom.text),
+        reference=reference_from_protobuf(obj.atom.reference, resources, config),
+        participant=participants.get(obj.atom.participant),
+        metadata=metadata_from_protobuf(obj.metadata, config),
+        userdata=MessageToDict(obj.userdata),
         id=id,
     )
 
 
-def scheme_from_protobuf(id: str, obj: graph_pb2.Node, config: Config) -> SchemeNode:
-    """Generate SchemeNode object from OVA Node object."""
+def scheme_from_protobuf[T](
+    id: str, obj: graph_pb2.Node, config: Config[T]
+) -> SchemeNode:
+    """Generate SchemeNode object from protobuf Node object."""
+    scheme: Scheme | None = None
 
-    scheme_type = obj.scheme.WhichOneof("type")
-    scheme = None
-
-    if scheme_type is None:
-        scheme = None
-    elif scheme_type == "support":
-        scheme = protobuf2support[obj.scheme.support]
-    elif scheme_type == "attack":
-        scheme = protobuf2attack[obj.scheme.attack]
-    elif scheme_type == "rephrase":
-        scheme = protobuf2rephrase[obj.scheme.rephrase]
-    elif scheme_type == "preference":
-        scheme = protobuf2preference[obj.scheme.preference]
+    match obj.scheme.WhichOneof("type"):
+        case "support":
+            scheme = protobuf2support[obj.scheme.support]
+        case "attack":
+            scheme = protobuf2attack[obj.scheme.attack]
+        case "rephrase":
+            scheme = protobuf2rephrase[obj.scheme.rephrase]
+        case "preference":
+            scheme = protobuf2preference[obj.scheme.preference]
 
     return config.SchemeNodeClass(
         scheme,
-        list(obj.scheme.premise_descriptors),
-        metadata_from_protobuf(obj.metadata, config),
-        MessageToDict(obj.userdata),
+        premise_descriptors=list(obj.scheme.premise_descriptors),
+        metadata=metadata_from_protobuf(obj.metadata, config),
+        userdata=MessageToDict(obj.userdata),
         id=id,
     )
 
 
-def edge_from_protobuf(
+def edge_from_protobuf[T](
     id: str,
     obj: graph_pb2.Edge,
-    nodes: t.Mapping[str, AbstractNode],
-    config: Config,
+    nodes: Mapping[str, AbstractNode],
+    config: Config[T],
 ) -> Edge | None:
-    """Generate Edge object from PROTOBUF Edge format."""
-    if obj.source in nodes and obj.target in nodes:
-        return config.EdgeClass(
-            nodes[obj.source],
-            nodes[obj.target],
-            metadata_from_protobuf(obj.metadata, config),
-            MessageToDict(obj.userdata),
-            id=id,
-        )
-    else:
-        warn_missing_nodes(id, obj.source, obj.target)
-
-    return None
-
-
-def metadata_from_protobuf(obj: graph_pb2.Metadata, config: Config) -> Metadata:
-    return config.MetadataClass(
-        dt.from_protobuf(obj.created),
-        dt.from_protobuf(obj.updated),
-        # analysts[obj.analyst]
+    """Generate Edge object from protobuf Edge format."""
+    return config.edge(
+        nodes,
+        obj.source,
+        obj.target,
+        id,
+        metadata=metadata_from_protobuf(obj.metadata, config),
+        userdata=MessageToDict(obj.userdata),
     )
 
 
-def reference_from_protobuf(
+def metadata_from_protobuf[T](obj: graph_pb2.Metadata, config: Config[T]) -> Metadata:
+    return config.MetadataClass(
+        from_protobuf(obj.created),
+        from_protobuf(obj.updated),
+    )
+
+
+def reference_from_protobuf[T](
     obj: graph_pb2.Reference,
-    resources: t.Mapping[str, Resource],
-    config: Config,
-) -> Reference | None:
-    """Generate Resource object from PROTOBUF format Graph's Resource object."""
-    if obj.text:
-        if obj.resource:
-            return config.ReferenceClass(
-                resources[obj.resource],
-                obj.offset,
-                utils.parse(obj.text, config.nlp),
-            )
+    resources: Mapping[str, Resource[T]],
+    config: Config[T],
+) -> Reference[T] | None:
+    """Generate Reference object from protobuf Reference object."""
+    if not obj.text:
+        return None
 
-        else:
-            return config.ReferenceClass(
-                None,
-                None,
-                utils.parse(obj.text, config.nlp),
-            )
-
-    return None
+    return config.ReferenceClass(
+        config.parse(obj.text),
+        resource=resources[obj.resource] if obj.resource else None,
+        offset=obj.offset if obj.resource else None,
+    )

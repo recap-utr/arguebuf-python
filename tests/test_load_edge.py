@@ -1,10 +1,10 @@
 import json
+from datetime import UTC, datetime
 
-import pendulum
 import pytest
 
 import arguebuf as ag
-from arguebuf.load._config import DefaultConfig
+from arguebuf.load import Config
 from arguebuf.load._load_aif import edge_from_aif
 from arguebuf.load._load_argdown import edge_from_argdown
 from arguebuf.load._load_ova import edge_from_ova
@@ -111,7 +111,7 @@ ova_data = [
         """,
         "119935",
         "119940",
-        pendulum.datetime(2019, 3, 6, 14, 31, 23),
+        datetime(2019, 3, 6, 14, 31, 23, tzinfo=UTC),
     )
 ]
 
@@ -158,7 +158,7 @@ def test_xaif_edge(data, id, start, end):
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
-        DefaultConfig,
+        Config(),
     )
 
     assert edge
@@ -180,6 +180,7 @@ def test_argdown_json_edge(data, id, start, end):
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
+        Config(),
     )
 
     assert edge
@@ -201,7 +202,7 @@ def test_sadface_edge(data, id, start, end):
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
-        DefaultConfig,
+        Config(),
     )
 
     assert edge
@@ -223,7 +224,7 @@ def test_aif_edge(data, id, start, end):
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
-        DefaultConfig,
+        Config(),
     )
 
     assert edge
@@ -245,7 +246,7 @@ def test_ova_edge(data, start, end, date):
             start: ag.AtomNode(id=start, text=""),
             end: ag.AtomNode(id=end, text=""),
         },
-        DefaultConfig,
+        Config(),
     )
 
     assert edge

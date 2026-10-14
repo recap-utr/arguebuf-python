@@ -2,7 +2,7 @@ import importlib.metadata
 
 from arg_services.graph.v1 import graph_pb2
 
-from arguebuf import dt
+from arguebuf.dt import to_protobuf
 from arguebuf.model import Graph
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge
@@ -24,36 +24,33 @@ from arguebuf.model.scheme import (
 
 __all__ = ("dump_protobuf",)
 
+LIBRARY_VERSION = importlib.metadata.version("arg_services")
 
-def dump_protobuf(obj: Graph) -> graph_pb2.Graph:
-    """Export structure of Graph instance to PROTOBUF argument graph format."""
-    try:
-        version = importlib.metadata.version("arg_services")
-    except importlib.metadata.PackageNotFoundError:
-        version = ""
 
+def dump_protobuf[T](obj: Graph[T]) -> graph_pb2.Graph:
+    """Export structure of Graph instance to protobuf argument graph format."""
     g = graph_pb2.Graph(
         schema_version=1,
-        library_version=version,
+        library_version=LIBRARY_VERSION,
         metadata=metadata_to_protobuf(obj.metadata),
     )
 
-    for node_id, node in obj._nodes.items():
+    for node_id, node in obj.nodes.items():
         g.nodes[node_id].CopyFrom(node_to_protobuf(node))
 
-    for edge_id, edge in obj._edges.items():
+    for edge_id, edge in obj.edges.items():
         g.edges[edge_id].CopyFrom(edge_to_protobuf(edge))
 
-    if obj._major_claim:
-        g.major_claim = obj._major_claim.id
+    if obj.major_claim:
+        g.major_claim = obj.major_claim.id
 
-    for resource_id, resource in obj._resources.items():
+    for resource_id, resource in obj.resources.items():
         g.resources[resource_id].CopyFrom(resource_to_protobuf(resource))
 
-    for participant_id, participant in obj._participants.items():
+    for participant_id, participant in obj.participants.items():
         g.participants[participant_id].CopyFrom(participant_to_protobuf(participant))
 
-    for analyst_id, analyst in obj._analysts.items():
+    for analyst_id, analyst in obj.analysts.items():
         g.analysts[analyst_id].CopyFrom(analyst_to_protobuf(analyst))
 
     g.userdata.update(obj.userdata)
@@ -62,16 +59,17 @@ def dump_protobuf(obj: Graph) -> graph_pb2.Graph:
 
 
 def node_to_protobuf(obj: AbstractNode) -> graph_pb2.Node:
-    if isinstance(obj, AtomNode):
-        return atom_to_protobuf(obj)
-    elif isinstance(obj, SchemeNode):
-        return scheme_to_protobuf(obj)
+    match obj:
+        case AtomNode():
+            return atom_to_protobuf(obj)
+        case SchemeNode():
+            return scheme_to_protobuf(obj)
+        case _:
+            raise ValueError("Node type not supported")
 
-    raise ValueError("Node type not supported")
 
-
-def atom_to_protobuf(obj: AtomNode) -> graph_pb2.Node:
-    """Export AtomNode object into PROTOBUF Node object."""
+def atom_to_protobuf[T](obj: AtomNode[T]) -> graph_pb2.Node:
+    """Export AtomNode object into protobuf Node object."""
     proto = graph_pb2.Node(metadata=metadata_to_protobuf(obj.metadata))
     proto.userdata.update(obj.userdata)
 
@@ -87,18 +85,19 @@ def atom_to_protobuf(obj: AtomNode) -> graph_pb2.Node:
 
 
 def scheme_to_protobuf(obj: SchemeNode) -> graph_pb2.Node:
-    """Export SchemeNode object into PROTOBUF Node object."""
+    """Export SchemeNode object into protobuf Node object."""
     proto = graph_pb2.Node(metadata=metadata_to_protobuf(obj.metadata))
     proto.userdata.update(obj.userdata)
 
-    if isinstance(obj.scheme, Support):
-        proto.scheme.support = support2protobuf[obj.scheme]
-    elif isinstance(obj.scheme, Attack):
-        proto.scheme.attack = attack2protobuf[obj.scheme]
-    elif isinstance(obj.scheme, Rephrase):
-        proto.scheme.rephrase = rephrase2protobuf[obj.scheme]
-    elif isinstance(obj.scheme, Preference):
-        proto.scheme.preference = preference2protobuf[obj.scheme]
+    match obj.scheme:
+        case Support():
+            proto.scheme.support = support2protobuf[obj.scheme]
+        case Attack():
+            proto.scheme.attack = attack2protobuf[obj.scheme]
+        case Rephrase():
+            proto.scheme.rephrase = rephrase2protobuf[obj.scheme]
+        case Preference():
+            proto.scheme.preference = preference2protobuf[obj.scheme]
 
     proto.scheme.premise_descriptors.extend(obj.premise_descriptors)
 
@@ -106,7 +105,7 @@ def scheme_to_protobuf(obj: SchemeNode) -> graph_pb2.Node:
 
 
 def analyst_to_protobuf(obj: Analyst) -> graph_pb2.Analyst:
-    """Export Analyst object into a Graph's Analyst object in PROTOBUF format."""
+    """Export Analyst object into a Graph's Analyst object in protobuf format."""
     proto = graph_pb2.Analyst(
         name=obj.name or "",
         email=obj.email or "",
@@ -117,7 +116,7 @@ def analyst_to_protobuf(obj: Analyst) -> graph_pb2.Analyst:
 
 
 def edge_to_protobuf(obj: Edge) -> graph_pb2.Edge:
-    """Export Edge object into PROTOBUF Edge format."""
+    """Export Edge object into protobuf Edge format."""
     proto = graph_pb2.Edge(
         source=obj.source.id,
         target=obj.target.id,
@@ -130,18 +129,14 @@ def edge_to_protobuf(obj: Edge) -> graph_pb2.Edge:
 
 def metadata_to_protobuf(obj: Metadata) -> graph_pb2.Metadata:
     proto = graph_pb2.Metadata()
-
-    # if analyst := obj._analyst:
-    #     proto.analyst = analyst.id
-
-    dt.to_protobuf(obj.created, proto.created)
-    dt.to_protobuf(obj.updated, proto.updated)
+    to_protobuf(obj.created, proto.created)
+    to_protobuf(obj.updated, proto.updated)
 
     return proto
 
 
 def participant_to_protobuf(obj: Participant) -> graph_pb2.Participant:
-    """Export Participant object into a Graph's Participant object in PROTOBUF format."""
+    """Export Participant object into a Graph's Participant object in protobuf format."""
     proto = graph_pb2.Participant(
         name=obj.name or "",
         username=obj.username or "",
@@ -156,11 +151,11 @@ def participant_to_protobuf(obj: Participant) -> graph_pb2.Participant:
     return proto
 
 
-def reference_to_protobuf(obj: Reference) -> graph_pb2.Reference:
-    """Export Resource object into a Graph's Resource object in PROTOBUF format."""
+def reference_to_protobuf[T](obj: Reference[T]) -> graph_pb2.Reference:
+    """Export Reference object into protobuf format."""
     proto = graph_pb2.Reference(text=obj.plain_text)
 
-    if resource := obj._resource:
+    if resource := obj.resource:
         proto.resource = resource.id
 
     if offset := obj.offset:
@@ -169,8 +164,8 @@ def reference_to_protobuf(obj: Reference) -> graph_pb2.Reference:
     return proto
 
 
-def resource_to_protobuf(obj: Resource) -> graph_pb2.Resource:
-    """Export Resource object into a Graph's Resource object in PROTOBUF format."""
+def resource_to_protobuf[T](obj: Resource[T]) -> graph_pb2.Resource:
+    """Export Resource object into protobuf format."""
     proto = graph_pb2.Resource(
         text=obj.plain_text, metadata=metadata_to_protobuf(obj.metadata)
     )
@@ -182,6 +177,6 @@ def resource_to_protobuf(obj: Resource) -> graph_pb2.Resource:
     if source := obj.source:
         proto.source = source
 
-    dt.to_protobuf(obj.timestamp, proto.timestamp)
+    to_protobuf(obj.timestamp, proto.timestamp)
 
     return proto

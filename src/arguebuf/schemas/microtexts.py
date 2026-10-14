@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class EdgeType(str, Enum):
+class EdgeType(StrEnum):
     SEGMENTATION = "seg"
     SUPPORT_DEFAULT = "sup"
     SUPPORT_EXAMPLE = "exa"

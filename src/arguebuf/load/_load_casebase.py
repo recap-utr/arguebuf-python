@@ -8,7 +8,7 @@ from arg_services.cbr.v1beta.model_pb2 import CasebaseFilter as CasebaseFilterPr
 
 from arguebuf.model import Graph
 
-from ._config import Config, DefaultConfig
+from ._config import Config
 from ._load_path import load_file
 
 __all__ = ("CasebaseFilter", "load_casebase")
@@ -98,7 +98,7 @@ class CasebaseFilter:
         return cls(obj.name, obj.cases, **obj.kwargs)
 
 
-CasebaseFilterType = CasebaseFilter | CasebaseFilterProto
+type CasebaseFilterType = CasebaseFilter | CasebaseFilterProto
 
 
 def _convert_filters(
@@ -116,14 +116,14 @@ def _convert_filters(
     ]
 
 
-def load_casebase(
+def load_casebase[T = str](
     include: CasebaseFilterType | Iterable[CasebaseFilterType],
     exclude: CasebaseFilterType | Iterable[CasebaseFilterType] | None = None,
     basepath: Path | str = ".",
     glob: str = "*/*",
-    config: Config = DefaultConfig,
+    config: Config[T] = Config(),
     strict_equal: bool = False,
-) -> dict[Path, Graph]:
+) -> dict[Path, Graph[T]]:
     """Load all cases selected by `include` and not selected by `exclude`.
 
     Args:
@@ -139,7 +139,7 @@ def load_casebase(
     """
     include_filters = _convert_filters(include)
     exclude_filters = _convert_filters(exclude)
-    graphs: dict[Path, Graph] = {}
+    graphs: dict[Path, Graph[T]] = {}
 
     for folder in sorted(Path(basepath).glob(glob)):
         if (

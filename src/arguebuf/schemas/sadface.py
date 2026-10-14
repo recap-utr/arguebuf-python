@@ -1,7 +1,6 @@
 import typing as t
 
-NodeType = t.Literal["scheme", "atom"]
-DATE_FORMAT = "YYYY-MM-DDTHH:mm:ss"
+type NodeType = t.Literal["scheme", "atom"]
 
 
 class Node(t.TypedDict):

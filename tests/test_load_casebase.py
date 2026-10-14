@@ -1,6 +1,7 @@
 import json
-import typing as t
+from collections.abc import MutableMapping
 from pathlib import Path
+from typing import Any
 
 from deepdiff.diff import DeepDiff
 
@@ -61,7 +62,7 @@ def _test_generic(graph: ag.Graph):
     assert ag.dump.dict(graph, ag.dump.Config(format=ag.dump.Format.ARGUEBUF)) != {}
 
 
-def _clean_raw_aif(g: t.MutableMapping[str, t.Any]) -> None:
+def _clean_raw_aif(g: MutableMapping[str, Any]) -> None:
     # Remove locutions as these are not parsed
     g["locutions"] = []
     g["nodes"] = [
@@ -87,7 +88,7 @@ def _clean_raw_aif(g: t.MutableMapping[str, t.Any]) -> None:
                 del node["schemeID"]
 
 
-def _clean_exported_aif(g: t.MutableMapping[str, t.Any]) -> None:
+def _clean_exported_aif(g: MutableMapping[str, Any]) -> None:
     for node in g["nodes"]:
         if node["type"] != "I":
             assert len(node["text"]) > 1

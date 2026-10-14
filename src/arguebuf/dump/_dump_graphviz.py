@@ -1,176 +1,92 @@
 import textwrap
-import typing as t
+from collections.abc import Callable, Mapping
 
-from graphviz import Digraph
+from pygraphviz import AGraph
 
 from arguebuf.model import Graph
-from arguebuf.model.edge import Edge
 from arguebuf.model.node import AtomNode, SchemeNode
-from arguebuf.schemas.graphviz import EdgeStyle, GraphvizGraph
-
-try:
-    from pygraphviz import AGraph
-
-    def init_gv_graph(*args, **kwargs):  # type: ignore
-        return AGraph(*args, **kwargs, directed=True)
-
-    def add_gv_node(graph, *args, **kwargs):  # type: ignore
-        return graph.add_node(*args, **kwargs)
-
-    def add_gv_edge(graph, *args, **kwargs):  # type: ignore
-        return graph.add_edge(*args, **kwargs)
-
-except ModuleNotFoundError:
-
-    def init_gv_graph(*args, **kwargs):  # type: ignore
-        return Digraph(*args, **kwargs)
-
-    def add_gv_node(graph, *args, **kwargs):  # type: ignore
-        return graph.node(*args, **kwargs)
-
-    def add_gv_edge(graph, *args, **kwargs):  # type: ignore
-        return graph.edge(*args, **kwargs)
-
+from arguebuf.schemas.graphviz import EdgeStyle
 
 __all__ = ("dump_graphviz",)
 
 
-def dump_graphviz(
-    graph: Graph,
-    nodesep: float | None = None,
-    ranksep: float | None = None,
-    wrap_col: int | None = None,
-    margin: tuple[float, float] | None = None,
-    font_name: str | None = None,
-    font_size: float | None = None,
-    atom_label: t.Callable[[AtomNode], str] | None = None,
-    scheme_label: t.Callable[[SchemeNode], str] | None = None,
-    graph_attr: t.Mapping[str, str] | None = None,
-    node_attr: t.Mapping[str, str] | None = None,
-    edge_attr: t.Mapping[str, str] | None = None,
-    edge_style: EdgeStyle | None = None,
-    max_nodes: int | None = None,
+def dump_graphviz[T](
+    graph: Graph[T],
+    nodesep: float = 0.25,
+    ranksep: float = 0.5,
+    wrap_col: int = 36,
+    margin: tuple[float, float] = (0.15, 0.1),
+    font_name: str = "Arial",
+    font_size: float = 11,
+    atom_label: Callable[[AtomNode[T]], str] | None = None,
+    scheme_label: Callable[[SchemeNode], str] | None = None,
+    graph_attr: Mapping[str, str] | None = None,
+    node_attr: Mapping[str, str] | None = None,
+    edge_attr: Mapping[str, str] | None = None,
+    edge_style: EdgeStyle = EdgeStyle.STEP,
+    max_nodes: int = 1000,
     monochrome: bool = False,
-) -> GraphvizGraph | None:
-    """Transform a Graph instance into an instance of GraphViz directed graph. Make sure that a GraphViz Executable path is set on your machine for visualization. Refer to the GraphViz library for additional information."""
-
-    if len(graph.nodes) > (max_nodes or 1000):
+) -> AGraph | None:
+    """Transform a graph into a directed GraphViz graph, returns `None` if it is too large."""
+    if len(graph.nodes) > max_nodes:
         return None
 
-    def gv_margin(x):
-        return f"{x[0]},{x[1]}"
-
-    if not graph_attr:
-        graph_attr = {}
-
-    if not node_attr:
-        node_attr = {}
-
-    if not edge_attr:
-        edge_attr = {}
-
-    gv_graph = init_gv_graph(
-        name=str(graph.name),
-        strict=True,
-    )
-    # NameError
-
+    margin_x, margin_y = margin
+    gv_graph = AGraph(name=graph.name, strict=True, directed=True)
     gv_graph.node_attr.update(
         {
-            "fontname": font_name or "Arial",
-            "fontsize": str(font_size or 11),
-            "margin": gv_margin(margin or (0.15, 0.1)),
+            "fontname": font_name,
+            "fontsize": str(font_size),
+            "margin": f"{margin_x},{margin_y}",
             "style": "rounded,filled",
             "shape": "box",
             "width": "0",
             "height": "0",
-            **node_attr,
+            **(node_attr or {}),
         }
     )
     gv_graph.edge_attr.update(
-        {"color": "#000000" if monochrome else "#9E9E9E", **edge_attr}
+        {"color": "#000000" if monochrome else "#9E9E9E", **(edge_attr or {})}
     )
     gv_graph.graph_attr.update(
         {
             "rankdir": "BT",
             "margin": "0",
-            "nodesep": str(nodesep or 0.25),
-            "ranksep": str(ranksep or 0.5),
+            "nodesep": str(nodesep),
+            "ranksep": str(ranksep),
             "overlap": "false",
-            "splines": edge_style.value if edge_style else EdgeStyle.STEP.value,
-            **graph_attr,
+            "splines": edge_style,
+            **(graph_attr or {}),
         }
     )
 
     for node in graph.atom_nodes.values():
-        _dump_atom(
-            node,
-            gv_graph,
-            graph.major_claim == node,
-            label_func=atom_label,
-            wrap_col=wrap_col or 36,
-            monochrome=monochrome,
+        major_claim = graph.major_claim == node
+        color = node.color(major_claim, monochrome)
+        label = atom_label(node) if atom_label else node.label
+
+        # TODO: Improve wrapping
+        # https://stackoverflow.com/a/26538082/7626878
+        gv_graph.add_node(
+            node.id,
+            label=textwrap.fill(label, wrap_col).strip(),
+            fontcolor=color.fg,
+            fillcolor=color.bg,
+            color=color.border,
+            root=str(major_claim),
         )
 
     for node in graph.scheme_nodes.values():
-        _dump_scheme(node, gv_graph, label_func=scheme_label, monochrome=monochrome)
+        color = node.color(False, monochrome)
+        gv_graph.add_node(
+            node.id,
+            label=scheme_label(node) if scheme_label else node.label,
+            fontcolor=color.fg,
+            fillcolor=color.bg,
+            color=color.border,
+        )
 
     for edge in graph.edges.values():
-        _dump_edge(edge, gv_graph)
+        gv_graph.add_edge(edge.source.id, edge.target.id)
 
     return gv_graph
-
-
-def _dump_atom(
-    node: AtomNode,
-    g: GraphvizGraph,
-    major_claim: bool,
-    wrap_col: int,
-    monochrome: bool,
-    label_func: t.Callable[[AtomNode], str] | None = None,
-) -> None:
-    """Submethod used to export Graph object g into GV Graph format."""
-    color = node.color(major_claim, monochrome)
-    label = label_func(node) if label_func else node.label
-
-    # TODO: Improve wrapping
-    # https://stackoverflow.com/a/26538082/7626878
-    add_gv_node(
-        g,
-        node.id,
-        label=textwrap.fill(label, wrap_col).strip(),
-        fontcolor=color.fg,
-        fillcolor=color.bg,
-        color=color.border,
-        root=str(major_claim),
-    )
-
-
-def _dump_scheme(
-    node: SchemeNode,
-    g: GraphvizGraph,
-    monochrome: bool,
-    label_func: t.Callable[[SchemeNode], str] | None = None,
-) -> None:
-    """Submethod used to export Graph object g into GV Graph format."""
-
-    color = node.color(False, monochrome)
-    label = label_func(node) if label_func else node.label
-
-    add_gv_node(
-        g,
-        node.id,
-        label=label,
-        fontcolor=color.fg,
-        fillcolor=color.bg,
-        color=color.border,
-    )
-
-
-def _dump_edge(edge: Edge, g: GraphvizGraph) -> None:
-    """Submethod used to export Graph object g into GV Graph format."""
-    add_gv_edge(
-        g,
-        edge.source.id,
-        edge.target.id,
-    )

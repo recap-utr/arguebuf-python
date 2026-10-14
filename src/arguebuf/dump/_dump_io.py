@@ -1,4 +1,4 @@
-import typing as t
+from typing import TextIO
 
 from arguebuf.model import Graph
 
@@ -8,6 +8,6 @@ from ._dump_json import dump_json
 __all__ = ("dump_io",)
 
 
-def dump_io(graph: Graph, obj: t.TextIO, config: Config = DefaultConfig) -> None:
-    """Export structure of Graph instance to IO argument graph format."""
+def dump_io[T](graph: Graph[T], obj: TextIO, config: Config = DefaultConfig) -> None:
+    """Export structure of Graph instance to a file object."""
     dump_json(graph, obj, config)

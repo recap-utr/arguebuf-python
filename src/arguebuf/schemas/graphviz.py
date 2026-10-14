@@ -1,12 +1,9 @@
-from enum import Enum
-from typing import Any
+from enum import StrEnum
 
-from graphviz import Digraph
-
-GraphvizGraph = Digraph | Any
+__all__ = ("EdgeStyle",)
 
 
-class EdgeStyle(str, Enum):
+class EdgeStyle(StrEnum):
     BEZIER = "curved"
     STRAIGHT = "line"
     STEP = "ortho"

@@ -1,8 +1,8 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from pathlib import Path
-from typing import Optional
 
 import typer
+from deepl import DeepLClient
 
 import arguebuf as ag
 
@@ -19,34 +19,20 @@ def translate(
     target_lang: str,
     auth_key: str,
     input_glob: str,
-    output_folder: Optional[Path] = None,
+    output_folder: Path | None = None,
     output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
 ) -> None:
-    if not output_folder:
-        output_folder = input_folder
+    translator = Translator(DeepLClient(auth_key), source_lang, target_lang)
 
-    if clean:
-        model.clean_folder(input_folder, output_folder)
-
-    path_pairs = model.PathPair.create(input_folder, output_folder, input_glob, ".json")
-    translator = Translator(auth_key, source_lang, target_lang)
-    bar: Iterable[model.PathPair]
-
-    with typer.progressbar(
-        path_pairs[start - 1 :],
-        item_show_func=model.PathPair.label,
-        show_pos=True,
-    ) as bar:
-        for path_pair in bar:
-            if overwrite or not path_pair.target.exists():
-                graph = ag.load.file(path_pair.source)
-                translator.translate_graph(graph)
-                ag.dump.file(
-                    graph, path_pair.target, ag.dump.Config(format=output_format)
-                )
+    for path_pair in model.pending_pairs(
+        input_folder, output_folder, input_glob, ".json", clean, overwrite, start
+    ):
+        graph = ag.load.file(path_pair.source)
+        translator.translate_graph(graph)
+        ag.dump.file(graph, path_pair.target, ag.dump.Config(format=output_format))
 
 
 def node_label_formatter(
@@ -67,117 +53,79 @@ def node_label_formatter(
 def render(
     input_folder: Path,
     input_glob: str,
-    output_folder: Optional[Path] = None,
+    output_folder: Path | None = None,
     output_format: str = ".pdf",
     strip_scheme_nodes: bool = False,
     strip_node_labels: bool = False,
-    strip_node_labels_char: Optional[str] = None,
-    edge_style: Optional[ag.schemas.graphviz.EdgeStyle] = None,
-    nodesep: Optional[float] = None,
-    ranksep: Optional[float] = None,
-    node_wrap_col: Optional[int] = None,
-    node_margin: tuple[float, float] = (0, 0),
-    font_name: Optional[str] = None,
-    font_size: Optional[float] = None,
+    strip_node_labels_char: str | None = None,
+    edge_style: ag.schemas.graphviz.EdgeStyle = ag.schemas.graphviz.EdgeStyle.STEP,
+    nodesep: float = 0.25,
+    ranksep: float = 0.5,
+    node_wrap_col: int = 36,
+    node_margin: tuple[float, float] = (0.15, 0.1),
+    font_name: str = "Arial",
+    font_size: float = 11,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
-    max_nodes: Optional[int] = None,
+    max_nodes: int = 1000,
     prog: str = "dot",
     dpi: int = 300,
     monochrome: bool = False,
 ) -> None:
-    if not output_folder:
-        output_folder = input_folder
+    label_formatter = node_label_formatter(strip_node_labels, strip_node_labels_char)
 
-    if clean:
-        model.clean_folder(input_folder, output_folder)
+    for path_pair in model.pending_pairs(
+        input_folder, output_folder, input_glob, output_format, clean, overwrite, start
+    ):
+        g = ag.load.file(path_pair.source)
 
-    paths = model.PathPair.create(
-        input_folder, output_folder, input_glob, output_format
-    )
-    bar: Iterable[model.PathPair]
+        if strip_scheme_nodes:
+            g.strip_scheme_nodes()
 
-    with typer.progressbar(
-        paths[start - 1 :],
-        item_show_func=model.PathPair.label,
-        show_pos=True,
-    ) as bar:
-        for path_pair in bar:
-            if overwrite or not path_pair.target.exists():
-                g = ag.load.file(path_pair.source)
+        gv = ag.dump.graphviz(
+            g,
+            nodesep=nodesep,
+            ranksep=ranksep,
+            wrap_col=node_wrap_col,
+            margin=node_margin,
+            font_name=font_name,
+            font_size=font_size,
+            atom_label=label_formatter,
+            scheme_label=label_formatter,
+            edge_style=edge_style,
+            max_nodes=max_nodes,
+            monochrome=monochrome,
+        )
 
-                if strip_scheme_nodes:
-                    g.strip_scheme_nodes()
-
-                gv = ag.dump.graphviz(
-                    g,
-                    nodesep=nodesep,
-                    ranksep=ranksep,
-                    wrap_col=node_wrap_col,
-                    margin=(
-                        node_margin
-                        if all(margin > 0 for margin in node_margin)
-                        else None
-                    ),
-                    font_name=font_name,
-                    font_size=font_size,
-                    atom_label=node_label_formatter(
-                        strip_node_labels, strip_node_labels_char
-                    ),
-                    scheme_label=node_label_formatter(
-                        strip_node_labels, strip_node_labels_char
-                    ),
-                    edge_style=edge_style,
-                    max_nodes=max_nodes,
-                    monochrome=monochrome,
-                )
-
-                # graphs exceeding `max_nodes` are skipped
-                if gv is not None:
-                    ag.render.graphviz(gv, path_pair.target, prog, dpi)
+        # graphs exceeding `max_nodes` are skipped
+        if gv is not None:
+            ag.render.graphviz(gv, path_pair.target, prog, dpi)
 
 
 @cli.command()
 def convert(
     input_folder: Path,
     input_glob: str,
-    output_folder: Optional[Path] = None,
+    output_folder: Path | None = None,
     output_format: ag.dump.Format = ag.dump.Format.ARGUEBUF,
     clean: bool = False,
     overwrite: bool = False,
     start: int = 1,
-    text_folder: Optional[Path] = None,
+    text_folder: Path | None = None,
     text_suffix: str = ".txt",
 ) -> None:
-    if not output_folder:
-        output_folder = input_folder
-
-    if clean:
-        model.clean_folder(input_folder, output_folder)
-
-    paths = model.PathPair.create(input_folder, output_folder, input_glob, ".json")
-    bar: Iterable[model.PathPair]
-
-    with typer.progressbar(
-        paths[start - 1 :],
-        item_show_func=model.PathPair.label,
-        show_pos=True,
-    ) as bar:
-        for path_pair in bar:
-            if overwrite or not path_pair.target.exists():
-                text_file = None
-
-                if text_folder:
-                    text_file = text_folder / path_pair.source.relative_to(
-                        input_folder
-                    ).with_suffix(text_suffix)
-
-                graph = ag.load.file(path_pair.source, text_file=text_file)
-
-                ag.dump.file(
-                    graph, path_pair.target, ag.dump.Config(format=output_format)
-                )
+    for path_pair in model.pending_pairs(
+        input_folder, output_folder, input_glob, ".json", clean, overwrite, start
+    ):
+        text_file = (
+            text_folder
+            / path_pair.source.relative_to(input_folder).with_suffix(text_suffix)
+            if text_folder
+            else None
+        )
+        graph = ag.load.file(path_pair.source, text_file=text_file)
+        ag.dump.file(graph, path_pair.target, ag.dump.Config(format=output_format))
 
 
 @cli.command()

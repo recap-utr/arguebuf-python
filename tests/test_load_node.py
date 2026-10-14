@@ -1,18 +1,18 @@
 import json
+from datetime import UTC, datetime
 from xml.etree import ElementTree as ET
 
-import pendulum
 import pytest
 
 import arguebuf as ag
-from arguebuf.load._config import DefaultConfig
+from arguebuf.load import Config
 from arguebuf.load._load_aif import atom_from_aif
 from arguebuf.load._load_aml import atom_from_aml, scheme_from_aml
 from arguebuf.load._load_argdown import atom_from_argdown
 from arguebuf.load._load_ova import atom_from_ova
 from arguebuf.load._load_sadface import atom_from_sadface, scheme_from_sadface
 from arguebuf.load._load_xaif import atom_from_xaif, scheme_from_xaif
-from arguebuf.model.node import Support
+from arguebuf.model.scheme import Support
 
 aif_data_AtomNode = [
     (
@@ -30,7 +30,7 @@ aif_data_AtomNode = [
             " permanently scanning the ground for dog dirt."
         ),
         ag.AtomNode,
-        pendulum.datetime(2015, 12, 14, 12, 9, 15),
+        datetime(2015, 12, 14, 12, 9, 15, tzinfo=UTC),
     )
 ]
 
@@ -85,7 +85,7 @@ ova_data_AtomNode = [
             " permanently scanning the ground for dog dirt."
         ),
         ag.AtomNode,
-        pendulum.datetime(2019, 3, 6, 14, 31, 23),
+        datetime(2019, 3, 6, 14, 31, 23, tzinfo=UTC),
     )
 ]
 
@@ -142,7 +142,7 @@ argdown_json_data_AtomNode = [
 @pytest.mark.parametrize("data,id,text,type", argdown_json_data_AtomNode)
 def test_argdown_json_node_AN(data, id, text, type):
     data_json = json.loads(data)
-    node = atom_from_argdown(data_json)
+    node = atom_from_argdown(data_json, Config())
 
     assert node.id == id
     assert node.text == text
@@ -154,7 +154,7 @@ def test_argdown_json_node_AN(data, id, text, type):
 @pytest.mark.parametrize("data,id,text,type", aml_data_AtomNode)
 def test_aml_node_AN(data, id, text, type):
     tree = ET.fromstring(data)
-    node = atom_from_aml(tree, DefaultConfig)
+    node = atom_from_aml(tree, Config())
 
     assert node.id == id
     assert node.text == text
@@ -166,7 +166,7 @@ def test_aml_node_AN(data, id, text, type):
 @pytest.mark.parametrize("data,id,text,type", sadface_data_AtomNode)
 def test_sadface_node_AN(data, id, text, type):
     data_json = json.loads(data)
-    node = atom_from_sadface(data_json, DefaultConfig)
+    node = atom_from_sadface(data_json, Config())
 
     assert node.id == id
     assert node.text == text
@@ -178,7 +178,7 @@ def test_sadface_node_AN(data, id, text, type):
 @pytest.mark.parametrize("data,id,text,type,date", aif_data_AtomNode)
 def test_aif_node_AN(data, id, text, type, date):
     data_json = json.loads(data)
-    node = atom_from_aif(data_json, DefaultConfig)
+    node = atom_from_aif(data_json, Config())
 
     assert node.id == id
     assert node.text == text
@@ -192,7 +192,7 @@ def test_aif_node_AN(data, id, text, type, date):
 @pytest.mark.parametrize("data,id,text,type", xaif_data_AtomNode)
 def test_xaif_node_AN(data, id, text, type):
     data_json = json.loads(data)
-    node = atom_from_xaif(data_json, DefaultConfig)
+    node = atom_from_xaif(data_json, Config())
 
     assert node.id == id
     assert node.text == text
@@ -207,7 +207,7 @@ def test_xaif_node_AN(data, id, text, type):
 )
 def test_ova_node_AN(data, id, text, type, date):
     data_json = json.loads(data)
-    node = atom_from_ova(data_json, DefaultConfig)
+    node = atom_from_ova(data_json, Config())
 
     assert node.id == id
     assert node.text == text
@@ -238,7 +238,7 @@ sadface_data_SchemeNode = [
 @pytest.mark.parametrize("data,id,type,name", sadface_data_SchemeNode)
 def test_sadface_node_SN(data, id, type, name):
     data_json = json.loads(data)
-    node = scheme_from_sadface(data_json, DefaultConfig)
+    node = scheme_from_sadface(data_json, Config())
 
     assert node.id == id
     assert isinstance(node, type)
@@ -265,7 +265,7 @@ xaif_data_SchemeNode = [
 @pytest.mark.parametrize("data,id,text,type", xaif_data_SchemeNode)
 def test_xaif_node_SN(data, id, text, type):
     data_json = json.loads(data)
-    node = scheme_from_xaif(data_json, DefaultConfig)
+    node = scheme_from_xaif(data_json, Config())
 
     assert node is not None
     assert node.id == id
@@ -292,94 +292,9 @@ aml_data_SchemeNode = [
 @pytest.mark.parametrize("data,id,type,name", aml_data_SchemeNode)
 def test_aml_node_SN(data, id, type, name):
     tree = ET.fromstring(data)
-    node = scheme_from_aml(tree, DefaultConfig)
+    node = scheme_from_aml(tree, Config())
 
     assert node.id == id
     assert isinstance(node, type)
     assert node.scheme == name
     assert isinstance(node.metadata, ag.Metadata)
-
-
-'''
-aif_data_SchemeNode = [
-    (
-        """
-        {
-            "nodeID": "119935",
-            "text": "One can hardly move in Friedrichshain or Neuk\u00f6lln these days without permanently scanning the ground for dog dirt.",
-            "type": "S",
-            "timestamp": "2015-12-14 12:09:15"
-        }
-        """,
-        "119935",
-        "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
-        ag.SchemeNode,
-        pendulum.datetime(2015, 12, 14, 12, 9, 15),
-    )
-]
-
-ova_data_SchemeNode = [
-    (
-        """
-        {
-            "id": 119935,
-            "x": 656,
-            "y": 317,
-            "color": "b",
-            "text": "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
-            "text_begin": [],
-            "text_end": [],
-            "text_length": [114],
-            "comment": "",
-            "type": "S",
-            "scheme": "0",
-            "descriptors": {},
-            "cqdesc": {},
-            "visible": true,
-            "imgurl": "",
-            "annotator": "",
-            "date": "06/03/2019 - 14:31:23",
-            "participantID": "0",
-            "w": 200,
-            "h": 90,
-            "majorClaim": false
-        }
-        """,
-        "119935",
-        "One can hardly move in Friedrichshain or Neukölln these days without permanently scanning the ground for dog dirt.",
-        ag.SchemeNode,
-        pendulum.datetime(2019, 3, 6, 14, 31, 23),
-    )
-]
-
-@pytest.mark.parametrize("data,id,text,type,date", aif_data_SchemeNode)
-def test_aif_node_SN(data, id, text, type, date):
-    data_json = json.loads(data)
-    node2 = ag.SchemeNode.from_aif(data_json)
-
-    assert node2.id == id
-    assert node2.text == text
-    assert isinstance(node2, type)
-    assert node2.created == date
-    assert node2.updated == date
-    assert node2.reference is None
-    assert node2.metadata == {}
-    assert isinstance(node2.to_aif(), Dict)
-    assert isinstance(node2.to_protobuf(), graph_pb2.Node)
-
-@pytest.mark.parametrize(
-    "data,id,text,type,date",
-    ova_data_SchemeNode,
-)
-def test_ova_node_SN(data, id, text, type, date):
-    data_json = json.loads(data)
-    node2 = ag.SchemeNode.from_ova(data_json)
-
-    assert node2.id == id
-    assert node2.text == text
-    assert isinstance(node2, type)
-    assert node2.created == date
-    assert node2.updated == date
-    assert node2.reference is None
-    assert node2.metadata == {}
-'''

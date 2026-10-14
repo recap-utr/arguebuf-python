@@ -2,54 +2,73 @@
 name = "arguebuf"
 version = "2.7.2"
 description = "Create and analyze argument graphs and serialize them via Protobuf"
-authors = [{ name = "Mirko Lenz", email = "mirko@mirkolenz.com" }]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13,<4"
+license = "MIT"
+authors = [{ name = "Mirko Lenz", email = "mirko@mirkolenz.com" }]
+keywords = ["argument-graph", "argument-mining", "argumentation", "nlp", "protobuf"]
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Typing :: Typed",
+]
 dependencies = [
-    "arg-services>=1,<2",
-    "networkx>=3,<4",
-    "pendulum>=3,<4",
-    "graphviz>=0.20,<1",
-    "lxml>=5,<7",
+  "arg-services>=1,<2",
+  "lxml>=6,<7",
+  "networkx>=3,<4",
+  "pygraphviz>=2,<3",
 ]
 
 [project.optional-dependencies]
-all = ["arguebuf[cli,graphviz]"]
-cli = ["typer>=0.9,<1", "deepl>=1,<2"]
-graphviz = ["pygraphviz>=1,<2"]
+cli = ["deepl>=1,<2", "typer>=0.27,<0.28"]
 
 [project.scripts]
 arguebuf = "arguebuf.cli.app:cli"
 
 [project.urls]
-Repository = "https://github.com/recap-utr/arguebuf-python"
+Changelog = "https://github.com/recap-utr/arguebuf-python/releases"
 Documentation = "https://arguebuf.readthedocs.io"
 Issues = "https://github.com/recap-utr/arguebuf-python/issues"
-Changelog = "https://github.com/recap-utr/arguebuf-python/releases"
+Repository = "https://github.com/recap-utr/arguebuf-python"
 
 [dependency-groups]
-test = [
-    "pytest>=9,<10",
-    "pytest-cov>=7,<8",
-    "pytest-xdist>=3,<4",
-    "deepdiff>=8,<9",
-    "lxml-stubs>=0.5,<1",
+dev = [
+  "lxml-stubs>=0.5,<0.6",
+  "types-networkx>=3,<4",
+  { include-group = "docs" },
+  { include-group = "test" },
 ]
 docs = ["pdoc>=16,<17"]
+test = [
+  "deepdiff>=9,<10",
+  "pytest>=9,<10",
+  "pytest-cov>=7,<8",
+  "pytest-xdist>=3,<4",
+]
 
 [build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
+requires = ["uv-build>=0.13,<0.14"]
+build-backend = "uv_build"
 
-[tool.pytest.ini_options]
-addopts = "--numprocesses 4 --dist load --cov arguebuf --cov-report term-missing --doctest-modules --ignore arguebuf/cli --ignore data --ignore result"
-doctest_optionflags = "NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
+[tool.pytest]
+addopts = [
+  "--numprocesses=auto",
+  "--cov=arguebuf",
+  "--cov-report=term-missing",
+  "--doctest-modules",
+  "--ignore=src/arguebuf/cli",
+]
+testpaths = ["src", "tests"]
+doctest_optionflags = ["NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL", "ELLIPSIS"]
 
-[tool.ruff]
-target-version = "py311"
+[tool.ruff.lint.flake8-bugbear]
+# frozen and thus safe to use as default argument
+extend-immutable-calls = ["arguebuf.load._config.Config"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[tool.uv]
-default-groups = ["test", "docs"]

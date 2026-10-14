@@ -1,4 +1,5 @@
-import typing as t
+from collections.abc import Mapping
+from typing import Any, cast
 
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf.json_format import ParseDict
@@ -6,24 +7,24 @@ from google.protobuf.json_format import ParseDict
 from arguebuf.model import Graph
 from arguebuf.schemas import aif, ova
 
-from ._config import Config, DefaultConfig
-from ._load_aif import load_aif as load_aif
+from ._config import Config
+from ._load_aif import load_aif
 from ._load_ova import load_ova
 from ._load_protobuf import load_protobuf
 
 __all__ = ("load_dict",)
 
 
-def load_dict(
-    obj: t.Mapping[str, t.Any],
+def load_dict[T = str](
+    obj: Mapping[str, Any],
     name: str | None = None,
-    config: Config = DefaultConfig,
-) -> Graph:
-    """Generate Graph structure from DICT argument graph file(Link?)."""
+    config: Config[T] = Config(),
+) -> Graph[T]:
+    """Generate Graph structure from a dict in the OVA, AIF, or arguebuf format."""
     if "analysis" in obj:
-        return load_ova(t.cast(ova.Graph, obj), name, config)
+        return load_ova(cast(ova.Graph, obj), name, config)
 
     if "locutions" in obj:
-        return load_aif(t.cast(aif.Graph, obj), name, config)
+        return load_aif(cast(aif.Graph, obj), name, config)
 
     return load_protobuf(ParseDict(obj, graph_pb2.Graph()), name, config)

@@ -9,12 +9,11 @@ class Node(t.TypedDict):
     labelText: str  # text of argument/statement
 
 
-class Edge(t.TypedDict):
-    id: str
-    type: str
-    relationType: str
-    source: str
-    target: str
+# `from` is a keyword and thus requires the functional syntax
+Edge = t.TypedDict(
+    "Edge",
+    {"id": str, "type": str, "relationType": str, "from": str, "to": str},
+)
 
 
 class Map(t.TypedDict):

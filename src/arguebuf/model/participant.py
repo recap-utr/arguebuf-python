@@ -1,43 +1,23 @@
-from arguebuf.model import utils
+from dataclasses import KW_ONLY, dataclass, field
+
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.userdata import Userdata
+from arguebuf.model.utils import Entity, uuid
 
 __all__ = ("Participant",)
 
 
-class Participant:
-    name: str | None
-    username: str | None
-    email: str | None
-    url: str | None
-    location: str | None
-    description: str | None
-    metadata: Metadata
-    userdata: Userdata
-    _id: str
+@dataclass(slots=True, frozen=True, eq=False)
+class Participant(Entity):
+    """Person who authored atom nodes of the argument graph."""
 
-    def __init__(
-        self,
-        name: str | None = None,
-        username: str | None = None,
-        email: str | None = None,
-        url: str | None = None,
-        location: str | None = None,
-        description: str | None = None,
-        metadata: Metadata | None = None,
-        userdata: Userdata | None = None,
-        id: str | None = None,
-    ) -> None:
-        self.name = name
-        self.username = username
-        self.email = email
-        self.url = url
-        self.location = location
-        self.description = description
-        self.metadata = metadata or Metadata()
-        self.userdata = userdata or {}
-        self._id = id or utils.uuid()
-
-    @property
-    def id(self) -> str:
-        return self._id
+    name: str | None = None
+    _: KW_ONLY
+    username: str | None = None
+    email: str | None = None
+    url: str | None = None
+    location: str | None = None
+    description: str | None = None
+    metadata: Metadata = field(default_factory=Metadata, repr=False)
+    userdata: Userdata = field(default_factory=dict, repr=False)
+    id: str = field(default_factory=uuid)

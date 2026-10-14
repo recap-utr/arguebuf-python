@@ -1,4 +1,5 @@
-import typing as t
+from collections.abc import Callable, Mapping
+from typing import Any
 
 import networkx as nx
 
@@ -8,14 +9,17 @@ from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
 
 __all__ = ("dump_networkx",)
 
+# lazily evaluated since networkx graphs are only generic in their type stubs
+type DiGraph = nx.DiGraph[str]
 
-def dump_networkx(
-    graph: Graph,
-    graph_attrs: t.MutableMapping[str, t.Callable[[Graph], t.Any]] | None = None,
-    atom_attrs: t.MutableMapping[str, t.Callable[[AtomNode], t.Any]] | None = None,
-    scheme_attrs: t.MutableMapping[str, t.Callable[[SchemeNode], t.Any]] | None = None,
-    edge_attrs: t.MutableMapping[str, t.Callable[[Edge], t.Any]] | None = None,
-) -> nx.DiGraph:
+
+def dump_networkx[T](
+    graph: Graph[T],
+    graph_attrs: Mapping[str, Callable[[Graph[T]], Any]] | None = None,
+    atom_attrs: Mapping[str, Callable[[AtomNode[T]], Any]] | None = None,
+    scheme_attrs: Mapping[str, Callable[[SchemeNode], Any]] | None = None,
+    edge_attrs: Mapping[str, Callable[[Edge], Any]] | None = None,
+) -> DiGraph:
     """Transform the argument graph for use with the library `NetworkX`
 
     This library allows you to apply advanced graph-related algorithms directly on your argument graphs.
@@ -26,8 +30,10 @@ def dump_networkx(
     For this, you need to pass a dictionary with the desired name of the attribute and a function that is used to compute the attribute's value.
     The function will be passed the corresponding element as its only parameter.
     For instance, you could pass `atom_attrs={"text": lambda node: node.plain_text}` to set a `text` attribute for atom nodes.
+    All nodes have a `label` attribute unless it is overridden.
 
     Args:
+        graph: The graph to transform.
         graph_attrs: Attribute functions for the whole graph.
         atom_attrs: Attribute functions for the atom nodes.
         scheme_attrs: Attribute functions for the scheme nodes.
@@ -37,57 +43,34 @@ def dump_networkx(
         Instance of the *directed* `NetworkX` graph.
 
     Examples:
+        >>> from arguebuf import AtomNode, Edge, Graph
         >>> g = Graph("Test")
-        >>> n1 = AtomNode("Node1")
-        >>> n2 = AtomNode("Node2")
-        >>> e = Edge(n1, n2)
-        >>> g.add_edge(e)
+        >>> g.add_edge(Edge(AtomNode("Node1"), AtomNode("Node2")))
         >>> gnx = dump_networkx(g)
         >>> gnx.number_of_nodes()
         2
     """
+    g: DiGraph = nx.DiGraph(None, **_attrs(graph, graph_attrs))
 
-    if graph_attrs is None:
-        graph_attrs = {}
+    for atom in graph.atom_nodes.values():
+        g.add_node(atom.id, **_node_attrs(atom, atom_attrs))
 
-    g = nx.DiGraph(None, **{key: func(graph) for key, func in graph_attrs.items()})
-
-    for node in graph.atom_nodes.values():
-        node_to_nx(node, g, atom_attrs)  # type: ignore
-
-    for node in graph.scheme_nodes.values():
-        node_to_nx(node, g, scheme_attrs)  # type: ignore
+    for scheme in graph.scheme_nodes.values():
+        g.add_node(scheme.id, **_node_attrs(scheme, scheme_attrs))
 
     for edge in graph.edges.values():
-        edge_to_nx(edge, g, edge_attrs)
+        g.add_edge(edge.source.id, edge.target.id, **_attrs(edge, edge_attrs))
 
     return g
 
 
-def edge_to_nx(
-    edge: Edge,
-    g: nx.DiGraph,
-    attrs: t.MutableMapping[str, t.Callable[[Edge], t.Any]] | None = None,
-) -> None:
-    """Submethod used to export Graph object g into NX Graph format."""
-
-    if attrs is None:
-        attrs = {}
-
-    g.add_edge(
-        edge.source.id,
-        edge.target.id,
-        **{key: func(edge) for key, func in attrs.items()},
-    )
+def _attrs[E](
+    element: E, attrs: Mapping[str, Callable[[E], Any]] | None
+) -> dict[str, Any]:
+    return {key: func(element) for key, func in (attrs or {}).items()}
 
 
-def node_to_nx(
-    node: AbstractNode,
-    g: nx.DiGraph,
-    attrs: t.MutableMapping[str, t.Callable[[AbstractNode], t.Any]] | None = None,
-) -> None:
-    """Submethod used to export Graph object g into NX Graph format."""
-    # copied to avoid adding the label to the mapping of the caller
-    attrs = {"label": lambda x: x.label, **(attrs or {})}
-
-    g.add_node(node._id, **{key: func(node) for key, func in attrs.items()})
+def _node_attrs[N: AbstractNode](
+    node: N, attrs: Mapping[str, Callable[[N], Any]] | None
+) -> dict[str, Any]:
+    return {"label": node.label, **_attrs(node, attrs)}

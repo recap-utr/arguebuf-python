@@ -1,218 +1,121 @@
-import typing as t
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import KW_ONLY, dataclass, field
+from typing import Self
 
-from arguebuf.model import utils
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.participant import Participant
 from arguebuf.model.reference import Reference
 from arguebuf.model.scheme import Attack, Preference, Rephrase, Scheme, Support
-from arguebuf.model.typing import TextType
 from arguebuf.model.userdata import Userdata
+from arguebuf.model.utils import Entity, uuid, xstr
 
 NO_SCHEME_LABEL = "Unknown"
 
 __all__ = (
+    "NO_SCHEME_LABEL",
     "AbstractNode",
     "AtomNode",
-    "SchemeNode",
     "AtomOrSchemeNode",
-    "NO_SCHEME_LABEL",
-    "NodeType",
+    "Color",
+    "SchemeNode",
 )
 
 
-@dataclass
+@dataclass(slots=True, frozen=True)
 class Color:
     bg: str
     fg: str
     border: str
 
-    def __init__(
-        self,
-        bg: str | None = None,
-        fg: str | None = None,
-        border: str | None = None,
-    ) -> None:
-        self.bg = bg or "#000000"
-        self.fg = fg or "#ffffff"
-        self.border = border or self.bg
+    @classmethod
+    def filled(cls, bg: str) -> Self:
+        return cls(bg=bg, fg="#ffffff", border=bg)
 
 
 COLOR_MONOCHROME_LIGHT = Color(bg="#ffffff", fg="#000000", border="#000000")
 COLOR_MONOCHROME_DARK = Color(bg="#000000", fg="#ffffff", border="#000000")
-
+COLOR_SCHEME_FALLBACK = Color.filled("#009688")
 
 scheme2color: dict[type[Scheme], Color] = {
-    Support: Color(bg="#4CAF50"),
-    Attack: Color(bg="#F44336"),
-    Rephrase: Color(bg="#009688"),
-    Preference: Color(bg="#009688"),
+    Support: Color.filled("#4CAF50"),
+    Attack: Color.filled("#F44336"),
+    Rephrase: Color.filled("#009688"),
+    Preference: Color.filled("#009688"),
 }
 
 
-class AbstractNode(ABC):
-    """Node in the AIF format."""
+@dataclass(slots=True, eq=False)
+class AbstractNode(Entity, ABC):
+    """Node of an argument graph."""
 
-    _id: str
-    metadata: Metadata
-    userdata: Userdata
-
-    def __init__(
-        self,
-        metadata: Metadata | None = None,
-        userdata: Userdata | None = None,
-        id: str | None = None,
-    ):
-        self._id = id or utils.uuid()
-        self.metadata = metadata or Metadata()
-        self.userdata = userdata or {}
-
-        self.__post_init__()
-
-    def __post_init__(self):  # noqa: B027
-        pass
-
-    def __eq__(self, other) -> bool:
-        if other is None or not isinstance(other, AbstractNode):
-            return False
-
-        return self.id == other.id
-
-    def __hash__(self) -> int:
-        return hash(self.id)
-
-    def __str__(self) -> str:
-        return str(self.id)
-
-    def __repr__(self):
-        return utils.class_repr(self, [self.id])
-
-    @property
-    def id(self) -> str:
-        return self._id
+    _: KW_ONLY
+    metadata: Metadata = field(default_factory=Metadata, repr=False)
+    userdata: Userdata = field(default_factory=dict, repr=False)
+    id: str = field(default_factory=uuid)
 
     @property
     @abstractmethod
     def label(self) -> str:
-        """Generate a matching node label (e.g., for graphviz)"""
+        """Label used when rendering the node."""
 
     @abstractmethod
     def color(self, major_claim: bool, monochrome: bool) -> Color:
-        """Get the color used in OVA based on `category`."""
+        """Color used when rendering the node."""
 
 
-class AtomNode(AbstractNode, t.Generic[TextType]):
-    __slots__ = (
-        "_id",
-        "metadata",
-        "userdata",
-        "text",
-        "_reference",
-        "_participant",
-    )
+@dataclass(slots=True, eq=False)
+class AtomNode[T = str](AbstractNode):
+    """Node containing a claim or premise of an argument."""
 
-    text: TextType
-    _reference: Reference | None
-    _participant: Participant | None
-
-    def __init__(
-        self,
-        text: TextType,
-        reference: Reference | None = None,
-        participant: Participant | None = None,
-        metadata: Metadata | None = None,
-        userdata: Userdata | None = None,
-        id: str | None = None,
-    ):
-        super().__init__(metadata, userdata, id)
-        self.text = text
-        self._reference = reference
-        self._participant = participant
+    text: T
+    _: KW_ONLY
+    reference: Reference[T] | None = None
+    participant: Participant | None = None
 
     @property
     def plain_text(self) -> str:
-        """Get the standard `text` as string."""
-
-        return utils.xstr(self.text)
+        """Get the `text` as string."""
+        return xstr(self.text)
 
     @property
     def label(self) -> str:
         return self.plain_text
 
-    @property
-    def reference(self) -> Reference | None:
-        return self._reference
-
-    @property
-    def participant(self) -> Participant | None:
-        return self._participant
-
-    def __repr__(self):
-        return utils.class_repr(self, [self._id, self.plain_text])
-
     def color(self, major_claim: bool, monochrome: bool) -> Color:
-        """Get the color for rendering the node."""
         if monochrome:
             return COLOR_MONOCHROME_LIGHT
 
-        return Color(bg="#0D47A1") if major_claim else Color(bg="#2196F3")
+        return Color.filled("#0D47A1") if major_claim else Color.filled("#2196F3")
 
 
+@dataclass(slots=True, eq=False)
 class SchemeNode(AbstractNode):
-    __slots__ = (
-        "_id",
-        "created",
-        "updated",
-        "userdata",
-        "scheme",
-        "premise_descriptors",
-    )
+    """Node describing the relation between atom nodes."""
 
-    scheme: Scheme | None
-    premise_descriptors: list[str]
-
-    def __init__(
-        self,
-        scheme: Scheme | None = None,
-        premise_descriptors: list[str] | None = None,
-        metadata: Metadata | None = None,
-        userdata: Userdata | None = None,
-        id: str | None = None,
-    ):
-        super().__init__(metadata, userdata, id)
-        self.scheme = scheme
-        self.premise_descriptors = premise_descriptors or []
-
-    def __repr__(self):
-        return utils.class_repr(
-            self,
-            [
-                self._id,
-                type(self.scheme).__name__ if self.scheme else NO_SCHEME_LABEL,
-                self.scheme.value if self.scheme else "",
-            ],
-        )
+    scheme: Scheme | None = None
+    _: KW_ONLY
+    premise_descriptors: list[str] = field(default_factory=list)
 
     @property
     def label(self) -> str:
-        label = NO_SCHEME_LABEL
+        if self.scheme is None:
+            return NO_SCHEME_LABEL
 
-        if self.scheme:
-            label = type(self.scheme).__name__
+        label = type(self.scheme).__name__
 
-            if self.scheme.value != "Default":
-                label = f"{label}: {self.scheme.value}"
+        if self.scheme.value != "Default":
+            label = f"{label}: {self.scheme.value}"
 
         return label
 
     def color(self, major_claim: bool, monochrome: bool) -> Color:
-        """Get the color used in OVA based on `category`."""
         if monochrome:
             return COLOR_MONOCHROME_DARK
 
-        return scheme2color[type(self.scheme)] if self.scheme else Color(bg="#009688")
+        if self.scheme is None:
+            return COLOR_SCHEME_FALLBACK
+
+        return scheme2color[type(self.scheme)]
 
 
-AtomOrSchemeNode = AtomNode | SchemeNode
-NodeType = t.TypeVar("NodeType", AtomNode, SchemeNode, AbstractNode)
+type AtomOrSchemeNode[T = str] = AtomNode[T] | SchemeNode

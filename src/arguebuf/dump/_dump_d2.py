@@ -1,106 +1,65 @@
-import typing as t
+from collections.abc import Callable
 
 from arguebuf.model import Graph
-from arguebuf.model.edge import Edge
-from arguebuf.model.node import AtomNode, SchemeNode
+from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
 from arguebuf.schemas.d2 import D2Edge, D2Graph, D2Node, D2Style
 
+__all__ = ("dump_d2",)
 
-def dump_d2(
-    graph: Graph,
-    atom_label: t.Callable[[AtomNode], str] | None = None,
-    scheme_label: t.Callable[[SchemeNode], str] | None = None,
-    max_nodes: int | None = None,
+
+def dump_d2[T](
+    graph: Graph[T],
+    atom_label: Callable[[AtomNode[T]], str] | None = None,
+    scheme_label: Callable[[SchemeNode], str] | None = None,
+    max_nodes: int = 1000,
     monochrome: bool = False,
 ) -> D2Graph | None:
-    if len(graph.nodes) > (max_nodes or 1000):
+    """Transform a graph into the D2 diagram language, returns `None` if it is too large."""
+    if len(graph.nodes) > max_nodes:
         return None
 
-    d2_graph = D2Graph(
-        nodes=[],
-        edges=[],
+    return D2Graph(
+        nodes=[
+            *(
+                _dump_node(
+                    node,
+                    atom_label(node) if atom_label else node.label,
+                    graph.major_claim == node,
+                    monochrome,
+                )
+                for node in graph.atom_nodes.values()
+            ),
+            *(
+                _dump_node(
+                    node,
+                    scheme_label(node) if scheme_label else node.label,
+                    False,
+                    monochrome,
+                )
+                for node in graph.scheme_nodes.values()
+            ),
+        ],
+        edges=[
+            D2Edge(from_id=edge.source.id, to_id=edge.target.id)
+            for edge in graph.edges.values()
+        ],
     )
 
-    for node in graph.atom_nodes.values():
-        _dump_atom(
-            node,
-            d2_graph,
-            major_claim=graph.major_claim == node,
-            label_func=atom_label,
-            monochrome=monochrome,
-        )
 
-    for node in graph.scheme_nodes.values():
-        _dump_scheme(
-            node,
-            d2_graph,
-            label_func=scheme_label,
-            major_claim=False,
-            monochrome=monochrome,
-        )
-
-    for edge in graph.edges.values():
-        _dump_edge(edge, d2_graph)
-
-    return d2_graph
-
-
-def _dump_atom(
-    node: AtomNode,
-    g: D2Graph,
-    major_claim: bool,
-    monochrome: bool,
-    label_func: t.Callable[[AtomNode], str] | None = None,
-) -> None:
-    label: str = label_func(node) if label_func else node.label
+def _dump_node(
+    node: AbstractNode, label: str, major_claim: bool, monochrome: bool
+) -> D2Node:
     color = node.color(major_claim, monochrome)
 
-    nodeStyle: D2Style = D2Style(
-        font_color=color.fg,
-        stroke_width=2,
-        bold=False,
-        stroke=color.border,
-        fill=color.bg,
+    return D2Node(
+        id=node.id,
+        label=label.replace("\n", ""),
+        shape="rectangle",
+        style=D2Style(
+            font_color=color.fg,
+            bold=False,
+            stroke=color.border,
+            stroke_width=2,
+            fill=color.bg,
+        ),
     )
-
-    g.nodes.append(
-        D2Node(
-            id=node.id,
-            label=label.replace("\n", ""),
-            shape="rectangle",
-            style=nodeStyle,
-        )
-    )
-
-
-def _dump_scheme(
-    node: SchemeNode,
-    g: D2Graph,
-    major_claim: bool,
-    monochrome: bool,
-    label_func: t.Callable[[SchemeNode], str] | None = None,
-) -> None:
-    label: str = label_func(node) if label_func else node.label
-    color = node.color(False, monochrome)
-
-    nodeStyle: D2Style = D2Style(
-        font_color=color.fg,
-        stroke_width=2,
-        bold=False,
-        stroke=color.border,
-        fill=color.bg,
-    )
-
-    g.nodes.append(
-        D2Node(
-            id=node.id,
-            label=label.replace("\n", ""),
-            shape="rectangle",
-            style=nodeStyle,
-        )
-    )
-
-
-def _dump_edge(edge: Edge, g: D2Graph) -> None:
-    """Submethod used to export Graph object g into D2 Graph format."""
-    g.edges.append(D2Edge(from_id=edge.source.id, to_id=edge.target.id))
