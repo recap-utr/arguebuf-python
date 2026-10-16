@@ -1,5 +1,45 @@
 # Changelog
 
+## [3.0.0](https://github.com/recap-utr/arguebuf-python/compare/v2.7.2...v3.0.0) (2026-10-16)
+
+### ⚠ BREAKING CHANGES
+
+* **aif:** follow aif and xaif specs and reconstruct dialogs soundly
+* modernize api with generic dataclass models
+
+### Features
+
+* **aif:** follow aif and xaif specs and reconstruct dialogs soundly ([387a677](https://github.com/recap-utr/arguebuf-python/commit/387a677b0bbe8a4c63e8b3a40356b95bcd19f341))
+* **cli:** describe all commands and parameters in help output ([97cc406](https://github.com/recap-utr/arguebuf-python/commit/97cc4062b58299b97560988897af7d03ae5188e6))
+* **cli:** validate casebase requests in the server ([5199a26](https://github.com/recap-utr/arguebuf-python/commit/5199a26badc354cbe8ec65fdae382198d03596ae))
+* **deps:** update arg-services to v2 and make grpcio optional ([e8ecf6f](https://github.com/recap-utr/arguebuf-python/commit/e8ecf6f695ee4b7e0f0e64e4c353a557e8461d47))
+* modernize api with generic dataclass models ([d7643d3](https://github.com/recap-utr/arguebuf-python/commit/d7643d3b7bace9957f2d2cbc74e979bb16873f06))
+
+### Bug Fixes
+
+* **cli:** pass deepl auth key as option or environment variable ([aa95bcd](https://github.com/recap-utr/arguebuf-python/commit/aa95bcdf9e2ecc99696b80b4c5ae4b79ed302474))
+* **cli:** refuse to delete the input folder when cleaning ([3d0fd38](https://github.com/recap-utr/arguebuf-python/commit/3d0fd380c9695b334d9fb31abd606a928c1e397f))
+* **cli:** skip rendering graphs that exceed the node limit ([38ca0ce](https://github.com/recap-utr/arguebuf-python/commit/38ca0ceb4ef4550e9e7c699c8837a4a4d4c59099))
+* **cli:** translate references of the matching atom nodes ([aa7d85f](https://github.com/recap-utr/arguebuf-python/commit/aa7d85f17507f8a8a74a3686713420e1a501a934))
+* **dump:** keep the networkx attribute mappings unchanged ([1fbc3fd](https://github.com/recap-utr/arguebuf-python/commit/1fbc3fda383da66be7d4956a8471446cb4c25672))
+* **load:** apply exclude and strict filters when loading casebases ([c650fa1](https://github.com/recap-utr/arguebuf-python/commit/c650fa161f973a8471003b8a298ee1b0651b3fd9))
+* **load:** avoid direct edges between argdown atoms ([d604571](https://github.com/recap-utr/arguebuf-python/commit/d6045718165f7320767641ebde8c6c2d27a9cba8))
+* **load:** keep aml owners and give schemes distinct ids ([bbb6f91](https://github.com/recap-utr/arguebuf-python/commit/bbb6f91f5505226ea53143ec560eb79d84339041))
+* **load:** read the major claim of ova graphs ([37f53c4](https://github.com/recap-utr/arguebuf-python/commit/37f53c467f3ecafbd92162853e235bd50dd92dd0))
+* **load:** stop kialo parsing from hanging on unmatched lines ([1104fa6](https://github.com/recap-utr/arguebuf-python/commit/1104fa615c6cd400552a5175be4e9154bc007463))
+* **load:** treat unset protobuf timestamps as missing ([ecc4734](https://github.com/recap-utr/arguebuf-python/commit/ecc4734512a2d4b4c5b894fc7d227cf1b30bc53e))
+* **load:** use the configured classes in all loaders ([0937431](https://github.com/recap-utr/arguebuf-python/commit/0937431af3d079e19d8c1c1dc912955a75980ee7))
+* **nix:** drop the renderer wrapper of the app ([49a142f](https://github.com/recap-utr/arguebuf-python/commit/49a142f13ae9c2b76e0d3433425eb5e639d57cd7))
+* **protobuf:** load unset participant and analyst names as missing ([c1b7ac6](https://github.com/recap-utr/arguebuf-python/commit/c1b7ac608c5a1acdc4368da58a9fe455bc6945fb))
+* **protobuf:** respect field presence when converting graphs ([13e346b](https://github.com/recap-utr/arguebuf-python/commit/13e346bae7f3c4ff43c80b5f8cf9c4f44ccac319))
+* **render:** quote d2 ids and labels ([82a71ea](https://github.com/recap-utr/arguebuf-python/commit/82a71ea2b8777aa6349a540f84547c626bfd61df))
+* **scheme:** match scheme labels exactly regardless of case and separators ([51f6c2e](https://github.com/recap-utr/arguebuf-python/commit/51f6c2e2051400274315210398c6edc47be1a09b))
+* **traverse:** return the shortest node distance ([e13344a](https://github.com/recap-utr/arguebuf-python/commit/e13344a6392448daaae697e181e2e92bfc947e8b))
+
+### Performance Improvements
+
+* **load:** index edges when reconstructing aif dialogs ([83dc4ff](https://github.com/recap-utr/arguebuf-python/commit/83dc4ffea1f87d6cca5ef76e86b7d3f158cd26c3))
+
 ## [2.7.2](https://github.com/recap-utr/arguebuf-python/compare/v2.7.1...v2.7.2) (2025-06-24)
 
 ### Bug Fixes
