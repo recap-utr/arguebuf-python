@@ -170,7 +170,6 @@ def test_aif_node_AN(data, id, text, date):
     assert node.userdata == {}
 
 
-
 @pytest.mark.parametrize(
     "data,id,text,type,date",
     ova_data_AtomNode,
