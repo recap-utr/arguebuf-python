@@ -171,11 +171,11 @@ wheels = [
 
 [[package]]
 name = "certifi"
-version = "2026.7.22"
+version = "2026.10.19"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a3/c2/24167ea9858356b47a87a50d39908bfdb72ceeefe0041586e704e5376b3a/certifi-2026.7.22.tar.gz", hash = "sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55", size = 138112, upload-time = "2026-07-22T03:35:12.644Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/bd/1436c50cc46699de0230fbaacc1d1de7bfec413176099949e9d5112e88f2/certifi-2026.10.19.tar.gz", hash = "sha256:035c1e85572b141bf1c3a3eff0e33a8eb74917522f2559075ff8d2fea780a1ae", size = 137598, upload-time = "2026-10-20T02:24:16.604Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl", hash = "sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775", size = 136983, upload-time = "2026-07-22T03:35:11.276Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/51/29046e48f693c54e5b7412216d447a1d8362c9653148d98c02cdf65fa733/certifi-2026.10.19-py3-none-any.whl", hash = "sha256:42d35340cc5b9ba78e818ddbff0c5b1c2b779de448a340fd1b989f5fa8670e1b", size = 136464, upload-time = "2026-10-20T02:24:15.072Z" },
 ]
 
 [[package]]
@@ -789,11 +789,11 @@ wheels = [
 
 [[package]]
 name = "pluggy"
-version = "1.6.0"
+version = "1.7.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3", size = 69412, upload-time = "2025-05-15T12:30:07.975Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/db/7fc19e6f2dc92a966727031389fc2e08b558f0f25eb7403c1119ad4713cd/pluggy-1.7.0.tar.gz", hash = "sha256:d1eaa46ebb595891b860ab086b4d09c8588af65ebd4361b8e8f4bb8920b90ba8", size = 123304, upload-time = "2026-10-15T09:50:58.343Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746", size = 20538, upload-time = "2025-05-15T12:30:06.134Z" },
+    { url = "https://files.pythonhosted.org/packages/40/9e/2b38731e0fc536806f16490e1a12d7f0dc2a1235aa8cc07bcc75416a7daa/pluggy-1.7.0-py3-none-any.whl", hash = "sha256:7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec", size = 27082, upload-time = "2026-10-15T09:50:56.808Z" },
 ]
 
 [[package]]
@@ -822,25 +822,15 @@ wheels = [
 
 [[package]]
 name = "pygraphviz"
-version = "2.0.3"
+version = "2.0.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/01/f7/a82e7f47573168960ce7e2a6c937a084a14d58599fe2a48ea3cde8ca555b/pygraphviz-2.0.3.tar.gz", hash = "sha256:e46818608638959ceabec66a36d2efc1d60b790a845f29705e403feecc7ee0c0", size = 82969, upload-time = "2026-10-01T17:14:04.075Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/56/92b970deefddb2c31f92a9c8c794db89e4d6562a8a11af93269107cf30d2/pygraphviz-2.0.4.tar.gz", hash = "sha256:510164db9abc5b7ffd79007ed94638958c0190c8206853b07dda05fa1050b829", size = 82048, upload-time = "2026-10-15T19:50:53.517Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/b4/5a7ba19a5799b3a48aebd7c607f59406962c32bcdfeba1c922e9929e6bcd/pygraphviz-2.0.3-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:fe903241e1c5ac8648ec5c50b7da91eff60876e211c51009c2f8a1f74695ce13", size = 1412496, upload-time = "2026-10-01T17:13:37.851Z" },
-    { url = "https://files.pythonhosted.org/packages/11/d7/d53ee53ce47ac314881f8c82ebe590fc6218b38c9afed4f828a7f1b65c7b/pygraphviz-2.0.3-cp313-cp313-macosx_11_0_x86_64.whl", hash = "sha256:016c038494fdd06fa1c82f60878b8c0db44028d4e149c4a8e5a432c8697b1183", size = 1585146, upload-time = "2026-10-01T17:13:39.637Z" },
-    { url = "https://files.pythonhosted.org/packages/6c/09/dc90465d48fe15b236753e0974bf010857d1556cc0de7f5396ba80f144b8/pygraphviz-2.0.3-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:3849ecc617f7a6610a2e76bd99461932093666ba3f14b50aec651c1f6d0bc400", size = 5154943, upload-time = "2026-10-01T17:13:41.153Z" },
-    { url = "https://files.pythonhosted.org/packages/7d/7a/855c62199d7daa2499088e372abc03e90f9f7ee384f0d7001ed6d11fa360/pygraphviz-2.0.3-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:f829d99bcff0317fdfb149bf878d0dd2637507d2befe2cb5eb66e6f6b329b898", size = 5501721, upload-time = "2026-10-01T17:13:42.857Z" },
-    { url = "https://files.pythonhosted.org/packages/2f/18/5296fdc3275ecd742501e0383c9016b48c457ba3165f0ea5881af5975c90/pygraphviz-2.0.3-cp313-cp313-win_amd64.whl", hash = "sha256:b73b3efd02ac46a0b44671c47709e03207bedac78afac06139a70f6093991a0b", size = 6971103, upload-time = "2026-10-01T17:13:44.634Z" },
-    { url = "https://files.pythonhosted.org/packages/0d/09/74630d9f4e279ab8a105255b9c8b503181c0b552fad95f2a096ce5285552/pygraphviz-2.0.3-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:84e01f6abaddc163defa2c56c4211966370d66ac94f00541a72caf5ba2bcc6bd", size = 1412520, upload-time = "2026-10-01T17:13:46.375Z" },
-    { url = "https://files.pythonhosted.org/packages/bd/fc/99138c9f1c9b43313e15ec7ebdac2ebe70ed8d6c44d339db2018a13c63b4/pygraphviz-2.0.3-cp314-cp314-macosx_11_0_x86_64.whl", hash = "sha256:9a2f9ae31f6dc5033345a17f2d68db7a37641c87da475bd7e25662b9ac5593ee", size = 1585149, upload-time = "2026-10-01T17:13:48.134Z" },
-    { url = "https://files.pythonhosted.org/packages/91/ac/dc3c8ee261010d5b78213146c35e5f5eb11ed4fa1f07d68fe1f2c7f6a3a7/pygraphviz-2.0.3-cp314-cp314-manylinux_2_28_aarch64.whl", hash = "sha256:bafeb8186da499b945017fd26776ed9dc39e2efcdfe09edae06f5a307e3873eb", size = 5154375, upload-time = "2026-10-01T17:13:49.849Z" },
-    { url = "https://files.pythonhosted.org/packages/40/25/ed3e0ace7b9045d53be959d7138fa55971c94e3fbd5823be5640f85e715f/pygraphviz-2.0.3-cp314-cp314-manylinux_2_28_x86_64.whl", hash = "sha256:c83851acd4e5638087bf1d2fca420c8a2393d117fe0619dba8cf92fdd780b860", size = 5501232, upload-time = "2026-10-01T17:13:52.064Z" },
-    { url = "https://files.pythonhosted.org/packages/49/10/2aeb033e6dd9a385b1b54fcd5c77ad6812268126dde86dbd93b2c427e7c3/pygraphviz-2.0.3-cp314-cp314-win_amd64.whl", hash = "sha256:b0a764665b52922d95d829d7a5dc922a248e1b3b317eed6593d46ccdc4eadc11", size = 7195968, upload-time = "2026-10-01T17:13:53.771Z" },
-    { url = "https://files.pythonhosted.org/packages/ff/62/9aa31b39b546c00660b8aef984e9cf27c3e7be5c39730618b36f2426c09f/pygraphviz-2.0.3-cp315-cp315-macosx_11_0_arm64.whl", hash = "sha256:ae7f2375b3adc3537adf921d97e537a97c350e647b78e2ffaf1a35bd0f8c0222", size = 1412495, upload-time = "2026-10-01T17:13:55.363Z" },
-    { url = "https://files.pythonhosted.org/packages/9b/4a/f06347cfdf76f7495ea32e9a3062cdb7f9a0d780c998b97658b8c097b6f9/pygraphviz-2.0.3-cp315-cp315-macosx_11_0_x86_64.whl", hash = "sha256:16cb4be3ae995921ed0401f8cd05c7b80780c5ccc465f8cec74d9c41f00b16f2", size = 1585150, upload-time = "2026-10-01T17:13:57.235Z" },
-    { url = "https://files.pythonhosted.org/packages/26/31/8e6608c8e6ada4d3416201010d0bae3f6556d26055892ab2fce024449d94/pygraphviz-2.0.3-cp315-cp315-manylinux_2_28_aarch64.whl", hash = "sha256:f11086e1a6f003bf09a2bb86f7b8b5e13c2a743c84df8ef0f93eb201f32efbb3", size = 5154905, upload-time = "2026-10-01T17:13:59.058Z" },
-    { url = "https://files.pythonhosted.org/packages/ea/cb/d3454844ff55147bb6f2d4c1ec53acf7a42eedd5c3dffecd0f3d9978ad44/pygraphviz-2.0.3-cp315-cp315-manylinux_2_28_x86_64.whl", hash = "sha256:54e538064f5d8f66b1f871fbbbe25d7b2963ac66e949a093040716672c4a26e1", size = 5500956, upload-time = "2026-10-01T17:14:00.693Z" },
-    { url = "https://files.pythonhosted.org/packages/fa/33/c4f9747052fe338d0e8fcc3d5b8e0f148e6c377387b38f24b4c13c7c03ca/pygraphviz-2.0.3-cp315-cp315-win_amd64.whl", hash = "sha256:21fa2e479ff88f3b62310bdc288b70e2883e3ae754b6e916fb217a5383306310", size = 7195968, upload-time = "2026-10-01T17:14:02.457Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/a8/6918aa92e4c5745e95f4ee3dfadf5aa82153c8e9341dfb7a17fcb5c55ea9/pygraphviz-2.0.4-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:6454122030c33b73b10722f335bb1ffce6bbe50e74643739ea92b3b0e860be90", size = 1439293, upload-time = "2026-10-15T19:50:45.288Z" },
+    { url = "https://files.pythonhosted.org/packages/75/00/c6c0f783be59820f2896d7c29b0074e8018e78c3802e7ff25dc31abf1457/pygraphviz-2.0.4-cp310-abi3-macosx_11_0_x86_64.whl", hash = "sha256:613556c622ed6d1527a2959012c80db8e2c50e2988fec5ec257027cc2f7d350a", size = 1610632, upload-time = "2026-10-15T19:50:46.897Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/f4/7b4bed465c1cbb88fa6f3175499704b18ec57f98eb7b5905047ea456e4c2/pygraphviz-2.0.4-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:b699f002b0290196ff3255805855c5561029777c68dfc0451853ae113e8afee2", size = 5123877, upload-time = "2026-10-15T19:50:48.406Z" },
+    { url = "https://files.pythonhosted.org/packages/14/8e/458b0d7283bd81b21262ac10cc4bea2d069f7111afa6099b532eb03e75df/pygraphviz-2.0.4-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:bb324ad5012a7a844e190be831260240113a1847cff901c4096bbef812f7e470", size = 5473639, upload-time = "2026-10-15T19:50:50.136Z" },
+    { url = "https://files.pythonhosted.org/packages/7f/32/c4480b6110ab3e9f7c6f3c57524438e78033605a31dc80ccdd18b37d22c6/pygraphviz-2.0.4-cp310-abi3-win_amd64.whl", hash = "sha256:60d066faedb10fc4aa775a6ff9fbf09533320a9f93630491c40d08aa8eaf1b6c", size = 6971616, upload-time = "2026-10-15T19:50:51.869Z" },
 ]
 
 [[package]]
@@ -940,20 +930,20 @@ wheels = [
 
 [[package]]
 name = "types-grpcio"
-version = "1.84.0.20260928"
+version = "1.84.0.20261020"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/29/db/c27d359c03c8d77917599d046d436424d74b08fb7e657c26d593912adb12/types_grpcio-1.84.0.20260928.tar.gz", hash = "sha256:eacb229deeb94e23a37c7ed0dd739dd2098ee63c7e432cc88340109ae3ad2fc1", size = 15892, upload-time = "2026-09-28T07:50:44.444Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/e0/f466872bd2cfa5382b5fd2da95d80c2fbc4762e94b68238f03f8b57b78c1/types_grpcio-1.84.0.20261020.tar.gz", hash = "sha256:c918e729e94b37344ffce45fae61139b2ea77ff14efe98e9e7d347d05810a098", size = 16043, upload-time = "2026-10-20T06:47:42.711Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/f2/0a9f21ae6db691facba76d7443ebb26c016e28ce2fa094642ca4a899e15b/types_grpcio-1.84.0.20260928-py3-none-any.whl", hash = "sha256:f0b54cbed12cf8fb0d8e6e7e699562da06515ca5a88014a209bf75780d6d1145", size = 15965, upload-time = "2026-09-28T07:50:43.62Z" },
+    { url = "https://files.pythonhosted.org/packages/cc/4d/b4004fb724c64207fc84ad52a872d0be1fd5f572ac33cfd744731e43bc53/types_grpcio-1.84.0.20261020-py3-none-any.whl", hash = "sha256:24cbca187e88673b98ed1d31e6721ac4ebd07104eeac0c7e546778fe899e3ff4", size = 16076, upload-time = "2026-10-20T06:47:41.762Z" },
 ]
 
 [[package]]
 name = "types-networkx"
-version = "3.6.1.20261006"
+version = "3.6.1.20261018"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fb/a9/a55d05982aafa8777530b287c3dbcc6127914bd1e5f2343b17a5c9def1f0/types_networkx-3.6.1.20261006.tar.gz", hash = "sha256:6c27cc7b49c8b49c4ac7ca2460299a5b43c4dad221e558eb4a9b59c78f19709d", size = 76482, upload-time = "2026-10-06T08:15:37.926Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/9f/ee7fe1e7670eed177ba4e7bc205982651967ac1348f49ecd2f5f7440bec5/types_networkx-3.6.1.20261018.tar.gz", hash = "sha256:136175a247087a8fe2ab0e6fc16c5e1e40ab5a7e497446c7dd18f69f0dac9cc9", size = 76528, upload-time = "2026-10-18T06:44:10.697Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/d0/81f49b8450029396433262c1b036f1928fa073e578991bd9e22ebeb54a60/types_networkx-3.6.1.20261006-py3-none-any.whl", hash = "sha256:8e2fedb83bb906c0d37a6ae020da3adc4abbd6bd999d8dd3d3266216bd6fae07", size = 167424, upload-time = "2026-10-06T08:15:36.734Z" },
+    { url = "https://files.pythonhosted.org/packages/60/6f/4cb796c2e2c3db8c32f32c3467512c828a8f214f724e754732d25abf30e2/types_networkx-3.6.1.20261018-py3-none-any.whl", hash = "sha256:9b6180cd8e2bb78c31b7f031941da2be270340f8f2d4e46880497c4ef1326b0c", size = 167452, upload-time = "2026-10-18T06:44:09.678Z" },
 ]
 
 [[package]]
