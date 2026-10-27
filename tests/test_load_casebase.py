@@ -11,31 +11,9 @@ from arguebuf.schemas import aif
 ARGUEBASE = Path("data", "arguebase")
 
 
-# def test_convert_kialo():
-#     graphs = ag.load.casebase(
-#         ag.load.CasebaseFilter("kialo", r"^the-"),
-#         basepath=ARGUEBASE_PRIVATE,
-#     )
-#     assert len(graphs) == 27
-
-#     for graph in graphs.values():
-#         _test_generic(graph)
-
-
-# def test_convert_ova():
-#     graphs = ag.load.casebase(
-#         ag.load.CasebaseFilter("recap", format="ova", lang="de"),
-#         basepath=ARGUEBASE_PRIVATE,
-#     )
-#     assert len(graphs) == 100
-
-#     for graph in graphs.values():
-#         _test_generic(graph)
-
-
 def test_convert_aif():
     graphs = ag.load.casebase(
-        ag.load.CasebaseFilter("microtexts", format="aif"),
+        ag.load.CasebaseFilter("microtexts", kwargs={"format": "aif"}),
         basepath=ARGUEBASE,
     )
     assert len(graphs) == 110
@@ -48,7 +26,7 @@ def test_convert_aif():
 def test_convert_arggraph():
     graphs = ag.load.casebase(
         ag.load.CasebaseFilter(
-            r"microtexts", r"^micro_[bc]", format="arggraph", lang="en"
+            "microtexts.*", r"micro_[bc].*", {"format": "arggraph", "lang": "en"}
         ),
         basepath=ARGUEBASE,
     )
@@ -59,8 +37,8 @@ def test_convert_arggraph():
 
 
 def _test_generic(graph: ag.Graph):
-    assert ag.dump.dict(graph, ag.dump.Config(format=ag.dump.Format.AIF)) != {}
-    assert ag.dump.dict(graph, ag.dump.Config(format=ag.dump.Format.ARGUEBUF)) != {}
+    assert ag.dump.dict(graph, format=ag.dump.Format.AIF) != {}
+    assert ag.dump.dict(graph, format=ag.dump.Format.ARGUEBUF) != {}
 
 
 def _clean_raw_aif(g: MutableMapping[str, Any]) -> None:
@@ -102,17 +80,10 @@ def _test_aif(graph: ag.Graph, file: Path):
 
     _clean_raw_aif(raw)
 
-    export = ag.dump.dict(graph, ag.dump.Config(format=ag.dump.Format.AIF))
+    export = ag.dump.dict(graph, format=ag.dump.Format.AIF)
     _clean_exported_aif(export)
 
     assert export == raw, file  # for debugging
     diff = DeepDiff(raw, export, ignore_order=True)
-
-    # if diff != {}:
-    #     print("RAW:")
-    #     print(json.dumps(raw))
-    #     print("EXPORT:")
-    #     print(json.dumps(export))
-    #     print()
 
     assert diff == {}, file

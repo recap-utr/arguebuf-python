@@ -1,5 +1,7 @@
 from enum import StrEnum
 
+__all__ = ("EdgeType",)
+
 
 class EdgeType(StrEnum):
     SEGMENTATION = "seg"

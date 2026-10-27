@@ -1,15 +1,19 @@
+import html
+
 from arguebuf.model import Graph
-from arguebuf.schemas import xaif
+from arguebuf.model.participant import AbstractParticipant
+from arguebuf.schemas import aif, xaif
 
 from ._dump_aif import dump_edge, dump_node
 
-__all__ = ("dump_xaif",)
+__all__ = ("dump_participant", "dump_xaif")
 
 
-def dump_xaif[T](obj: Graph[T]) -> xaif.Graph:
+def dump_xaif[A, S, E, G, R, P, N](obj: Graph[A, S, E, G, R, P, N]) -> xaif.Graph:
     """Export structure of Graph instance to xAIF argument graph format.
 
     xAIF nodes have no timestamps, so they are omitted.
+    The resources are joined into an HTML `text` with newlines as `<br>`.
     """
     return {
         "AIF": {
@@ -18,8 +22,21 @@ def dump_xaif[T](obj: Graph[T]) -> xaif.Graph:
             "locutions": [],
             "schemefulfillments": [],
             "descriptorfulfillments": [],
-            "participants": [],
+            "participants": [
+                dump_participant(participant)
+                for participant in obj.participants.values()
+            ],
         },
-        "text": "<br>".join(resource.plain_text for resource in obj.resources.values()),
+        "text": "<br>".join(
+            html.escape(resource.text, quote=False).replace("\n", "<br>")
+            for resource in obj.resources.values()
+        ),
         "dialog": False,
     }
+
+
+def dump_participant(obj: AbstractParticipant) -> aif.Participant:
+    """Export a participant, its name is split at the first space into first name and surname."""
+    firstname, _, surname = (obj.name or "").partition(" ")
+
+    return {"participantID": obj.id, "firstname": firstname, "surname": surname}

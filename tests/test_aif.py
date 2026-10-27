@@ -25,9 +25,8 @@ def _relations(graph: ag.Graph) -> Counter[tuple[str, frozenset[str], frozenset[
 
 
 def test_reconstruct_dialog():
-    config = ag.load.Config(reconstruct_dialog=True)
-    graph = ag.load.file(DATA / "6064-original.json", config=config)
-    expected = ag.load.file(DATA / "6064-reconstructed.json")
+    graph = ag.load.file(DATA / "dialog-original.json", reconstruct_dialog=True)
+    expected = ag.load.file(DATA / "dialog-reconstructed.json")
 
     assert graph.atom_nodes.keys() == expected.atom_nodes.keys()
     assert _relations(graph) == _relations(expected)
@@ -82,7 +81,7 @@ def test_dialog_xaif():
         assert atom.participant and atom.participant.name == name
         assert atom.reference and atom.reference.text == text
 
-    graph = ag.load.dict(obj, config=ag.load.Config(reconstruct_dialog=True))
+    graph = ag.load.dict(obj, reconstruct_dialog=True)
 
     assert _relations(graph) == Counter(
         [("Rephrase", frozenset({"1"}), frozenset({"4"}))]
@@ -93,15 +92,17 @@ def test_dialog_xaif():
 def test_roundtrip(format: ag.dump.Format):
     timestamp = datetime(2020, 1, 2, 3, 4, 5, tzinfo=UTC)
     graph = ag.Graph()
-    claim = ag.AtomNode("Claim", metadata=ag.Metadata(timestamp, timestamp))
+    claim = ag.AtomNode("Claim", metadata=ag.Metadata(timestamp))
+    graph.add_node(claim)
 
     for scheme in (*Support, Attack.DEFAULT, Rephrase.DEFAULT, Preference.DEFAULT):
         premise = ag.AtomNode(scheme.value)
-        graph.add_edge(ag.Edge(premise, node := ag.SchemeNode(scheme)))
+        graph.add_node(premise)
+        graph.add_node(node := ag.SchemeNode(scheme))
+        graph.add_edge(ag.Edge(premise, node))
         graph.add_edge(ag.Edge(node, claim))
 
-    config = ag.dump.Config(format=format)
-    loaded = ag.load.dict(json.loads(json.dumps(ag.dump.dict(graph, config))))
+    loaded = ag.load.dict(json.loads(json.dumps(ag.dump.dict(graph, format=format))))
 
     assert _relations(loaded) == _relations(graph)
     assert loaded.edges.keys() == graph.edges.keys()
@@ -109,3 +110,76 @@ def test_roundtrip(format: ag.dump.Format):
     assert (loaded.atom_nodes[claim.id].metadata.created == timestamp) == (
         format == ag.dump.Format.AIF
     )
+
+
+def test_ambiguous_locutions():
+    def node(id: int, type: str) -> dict[str, object]:
+        return {"nodeID": id, "text": f"{type}{id}", "type": type}
+
+    def edge(source: int, target: int) -> dict[str, object]:
+        return {"edgeID": f"{source}-{target}", "fromID": source, "toID": target}
+
+    # I0 is asserted by L1 and L2 of different persons, I3 by L4 and L5 of one person
+    obj = {
+        "nodes": [node(i, t) for i, t in enumerate("ILLILL")]
+        + [node(i, "YA") for i in range(6, 10)],
+        "edges": [
+            *(edge(source, ya) for source, ya in ((1, 6), (2, 7), (4, 8), (5, 9))),
+            *(edge(ya, atom) for ya, atom in ((6, 0), (7, 0), (8, 3), (9, 3))),
+        ],
+        "locutions": [
+            {"nodeID": node_id, "personID": person}
+            for node_id, person in ((1, "a"), (2, "b"), (4, "a"), (5, "a"))
+        ],
+    }
+    graph = ag.load.dict(obj)
+
+    assert graph.atom_nodes["0"].participant is None
+    assert graph.atom_nodes["3"].participant == graph.participants["a"]
+    assert graph.atom_nodes["0"].reference is None
+    assert graph.atom_nodes["3"].reference is None
+
+
+def test_xaif_resources_and_participants():
+    graph = ag.Graph()
+    graph.add_resource(ag.Resource("a < b &\nc"))
+    graph.add_participant(ag.Participant("Bob van Smith"))
+    xaif = ag.dump.xaif(graph)
+    loaded = ag.load.dict(json.loads(json.dumps(xaif)))
+
+    assert [r.text for r in loaded.resources.values()] == ["a < b &\nc"]
+    assert [p.name for p in loaded.participants.values()] == ["Bob van Smith"]
+    assert xaif["AIF"].get("participants") == [
+        {
+            "participantID": next(iter(graph.participants)),
+            "firstname": "Bob",
+            "surname": "van Smith",
+        }
+    ]
+
+
+def test_lenient_aif():
+    # a locution node listed with two speakers, no `locutions` key in the second graph
+    nodes = [
+        {"nodeID": 1, "text": "I1", "type": "I"},
+        {"nodeID": 2.0, "text": "L2", "type": "L"},
+        {"nodeID": "3", "text": "YA3", "type": "YA"},
+        {"nodeID": 4, "text": "Default Conflict", "type": "CA", "scheme": None},
+    ]
+    edges = [
+        {"edgeID": 1, "fromID": 2, "toID": 3},
+        {"edgeID": 2, "fromID": 3, "toID": 1},
+    ]
+    locutions = [{"nodeID": 2, "personID": "a"}, {"nodeID": 2, "personID": "b"}]
+    graph = ag.load.dict({"nodes": nodes, "edges": edges, "locutions": locutions})
+
+    assert graph.atom_nodes["1"].participant is None
+    assert graph.atom_nodes["1"].reference == ag.Reference("L2")
+    assert graph.scheme_nodes["4"].label == "Attack"
+    assert ag.load.dict({"nodes": nodes, "edges": edges}).nodes.keys() == {"1", "4"}
+    assert not ag.load.dict({"AIF": {"nodes": [], "edges": []}, "text": None}).resources
+
+    with pytest.raises(ValueError, match="integer"):
+        ag.load.dict(
+            {"nodes": [{"nodeID": 1.5, "text": "I", "type": "I"}], "edges": []}
+        )

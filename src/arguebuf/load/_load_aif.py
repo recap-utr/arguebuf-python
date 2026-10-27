@@ -5,90 +5,132 @@ from typing import Self
 
 from arguebuf.dt import from_format
 from arguebuf.model import Graph
+from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
+from arguebuf.model.reference import Reference
 from arguebuf.model.scheme import Rephrase, aif2scheme, resolve_aif_scheme
+from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
 from arguebuf.schemas import aif
 
-from ._config import Config
+from ._helpers import add_edge, connect, new_participant, stringify_id
 
 __all__ = ("load_aif",)
 
 
-def load_aif[T = str](
-    obj: aif.Graph, name: str | None = None, config: Config[T] = Config()
-) -> Graph[T]:
+def load_aif[
+    A = JsonObject,
+    S = JsonObject,
+    E = JsonObject,
+    G = JsonObject,
+    R = JsonObject,
+    P = JsonObject,
+    N = JsonObject,
+](
+    obj: aif.Graph,
+    name: str | None = None,
+    *,
+    reconstruct_dialog: bool = False,
+    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+) -> Graph[A, S, E, G, R, P, N]:
     """Generate Graph structure from AIF argument graph file.
 
-    Dialog nodes (L, TA, YA) are skipped,
-    but an atom asserted by exactly one locution gets its speaker as participant
-    and the locution text as reference.
-    See `Config.reconstruct_dialog` to keep the atoms that dialog nodes connect.
+    Dialog nodes (L, TA, YA) are skipped.
+    Numeric ids are converted to strings, other numbers than integers raise an error.
+    All listed participants and the speakers of locutions become participants.
+    An atom asserted by locutions gets their speaker as participant
+    if all locutions together have exactly one speaker,
+    and the locution text as reference if there is exactly one locution.
+    A missing `scheme` of a scheme node falls back to its `text`.
+    With `reconstruct_dialog`, atoms only linked through dialog nodes
+    are connected to the atoms of adjacent turns via rephrase nodes,
+    otherwise they become isolated.
     """
-    g = config.graph(name)
+    g: Graph[A, S, E, G, R, P, N] = Graph(
+        name, userdata=codecs.graph.validate_python({})
+    )
     index = _Index.from_aif(obj)
-    names = {
-        str(participant["participantID"]): (
-            participant["firstname"],
-            participant["surname"],
-        )
-        for participant in obj.get("participants") or []
-    }
-    speakers: dict[str, Participant] = {}
 
-    for locution in obj["locutions"] or []:
-        person = str(locution["personID"])
+    for participant in obj.get("participants") or []:
+        g.add_participant(
+            new_participant(
+                codecs.participant,
+                stringify_id(participant["participantID"]),
+                participant.get("firstname", ""),
+                participant.get("surname", ""),
+            )
+        )
+
+    # a locution node may be listed several times with different speakers
+    speakers: defaultdict[str, dict[Participant[P], None]] = defaultdict(dict)
+
+    for locution in obj.get("locutions") or []:
+        person = stringify_id(locution["personID"])
 
         if person not in g.participants:
-            g.add_participant(config.participant(person, *names.get(person, ())))
+            g.add_participant(new_participant(codecs.participant, person))
 
-        speakers[str(locution["nodeID"])] = g.participants[person]
+        speakers[stringify_id(locution["nodeID"])][g.participants[person]] = None
 
     for aif_node in obj["nodes"]:
-        node = node_from_aif(aif_node, config)
+        node = node_from_aif(aif_node, codecs.atom, codecs.scheme)
 
         if node is None:
             continue
 
         if isinstance(node, AtomNode):
-            match index.locutions(node.id):
-                case [locution]:
-                    node.participant = speakers.get(locution)
-                    node.reference = config.ReferenceClass(
-                        config.parse(index.nodes[locution]["text"])
-                    )
+            locutions = dict.fromkeys(index.locutions(node.id))
+            participants = dict.fromkeys(
+                speaker
+                for locution in locutions
+                for speaker in speakers.get(locution, {})
+            )
+
+            if len(participants) == 1:
+                (node.participant,) = participants
+
+            if len(locutions) == 1:
+                (locution,) = locutions
+                node.reference = Reference(index.nodes[locution]["text"])
 
         g.add_node(node)
 
-    for edge_id, source, target in index.edges:
-        # edges of dialog nodes are expected to be missing, unlike dangling ones
-        if aif.DIALOG_TYPES.isdisjoint((index.type(source), index.type(target))) and (
-            edge := config.edge(g.nodes, source, target, edge_id)
-        ):
-            g.add_edge(edge)
+    # edges of dialog nodes are expected to be missing, unlike dangling ones
+    dialog = {
+        id for id, node in index.nodes.items() if node["type"] in aif.DIALOG_TYPES
+    }
 
-    if config.reconstruct_dialog:
-        _reconstruct_dialog(g, index, config)
+    for edge_id, source, target in index.edges:
+        add_edge(g, codecs, source, target, edge_id, ignore=dialog)
+
+    if reconstruct_dialog:
+        _reconstruct_dialog(g, codecs, index)
 
     return g
 
 
-def node_from_aif[T](
-    obj: aif.Node, config: Config[T]
-) -> AtomNode[T] | SchemeNode | None:
+def node_from_aif[A, S](
+    obj: aif.Node, atom_codec: Codec[A], scheme_codec: Codec[S]
+) -> AtomNode[A] | SchemeNode[S] | None:
     """Generate an atom or scheme node from an AIF node, None if it is a dialog node."""
     if obj["type"] != "I" and obj["type"] not in aif2scheme:
         return None
 
-    metadata = config.metadata(from_format(obj.get("timestamp"), aif.DATE_FORMAT))
-    id = str(obj["nodeID"])
+    metadata = Metadata(from_format(obj.get("timestamp"), aif.DATE_FORMAT))
+    id = stringify_id(obj["nodeID"])
 
     if obj["type"] == "I":
-        return config.AtomNodeClass(config.parse(obj["text"]), metadata=metadata, id=id)
+        return AtomNode(
+            obj["text"],
+            metadata=metadata,
+            userdata=atom_codec.validate_python({}),
+            id=id,
+        )
 
-    return config.SchemeNodeClass(
-        resolve_aif_scheme(obj["type"], obj.get("scheme", obj["text"])),
+    return SchemeNode(
+        resolve_aif_scheme(obj["type"], obj.get("scheme") or obj["text"]),
         metadata=metadata,
+        userdata=scheme_codec.validate_python({}),
         id=id,
     )
 
@@ -105,7 +147,11 @@ class _Index:
     @classmethod
     def from_aif(cls, obj: aif.Graph) -> Self:
         edges = [
-            (str(edge["edgeID"]), str(edge["fromID"]), str(edge["toID"]))
+            (
+                stringify_id(edge["edgeID"]),
+                stringify_id(edge["fromID"]),
+                stringify_id(edge["toID"]),
+            )
             for edge in obj["edges"]
         ]
         successors: defaultdict[str, list[str]] = defaultdict(list)
@@ -116,7 +162,7 @@ class _Index:
             predecessors[target].append(source)
 
         return cls(
-            {str(node["nodeID"]): node for node in obj["nodes"]},
+            {stringify_id(node["nodeID"]): node for node in obj["nodes"]},
             edges,
             successors,
             predecessors,
@@ -143,14 +189,19 @@ class _Index:
         return self.follow(self.follow([atom_id], False, "YA"), False, "L")
 
 
-def _reconstruct_dialog[T](g: Graph[T], index: _Index, config: Config[T]) -> None:
+def _reconstruct_dialog[A, S, E, G, R, P, N](
+    g: Graph[A, S, E, G, R, P, N], codecs: Codecs[A, S, E, G, R, P, N], index: _Index
+) -> None:
     """Connect isolated atoms to the atoms of adjacent turns via rephrase nodes.
 
     In AIF+, a locution (L) asserts an atom (I) via an illocution (YA)
     and is linked to the locutions before and after it via transitions (TA).
     """
-    isolated_nodes = g.root_nodes & g.leaf_nodes
-    isolated = [atom for atom in g.atom_nodes.values() if atom in isolated_nodes]
+    isolated = [
+        atom
+        for atom in g.atom_nodes.values()
+        if not g.incoming_edges(atom) and not g.outgoing_edges(atom)
+    ]
     connected: set[frozenset[str]] = set()
 
     for atom in isolated:
@@ -167,7 +218,9 @@ def _reconstruct_dialog[T](g: Graph[T], index: _Index, config: Config[T]) -> Non
 
                 if target != atom.id and pair not in connected:
                     connected.add(pair)
-                    scheme = config.SchemeNodeClass(
-                        Rephrase.DEFAULT, metadata=config.metadata(None)
+                    scheme = SchemeNode(
+                        Rephrase.DEFAULT,
+                        userdata=codecs.scheme.validate_python({}),
                     )
-                    config.connect(g, atom, scheme, g.atom_nodes[target])
+                    g.add_node(scheme)
+                    connect(g, codecs, [atom.id], scheme.id, target)

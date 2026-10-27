@@ -1,32 +1,22 @@
-from pathlib import Path
-
-import pytest
-from arg_services.graph.v1 import graph_pb2
-
 import arguebuf as ag
+
+from .conftest import new_graph
 
 
 def generate_graph() -> ag.Graph:
-    g = ag.Graph()
-    a1 = ag.AtomNode("", id="a1")
-    a2 = ag.AtomNode("", id="a2")
-    a3 = ag.AtomNode("", id="a3")
-    a4 = ag.AtomNode("", id="a4")
-    s1 = ag.SchemeNode(id="s1")
-    s2 = ag.SchemeNode(id="s2")
+    a1, a2, a3, a4 = (ag.AtomNode("", id=f"a{i}") for i in range(1, 5))
+    s1, s2, s3 = (ag.SchemeNode(id=f"s{i}") for i in range(1, 4))
 
-    g.add_edge(ag.Edge(a1, s1))
-    g.add_edge(ag.Edge(s1, s2))
-    g.add_edge(ag.Edge(s2, a4))
-    g.add_edge(ag.Edge(a2, s1))
-    g.add_edge(ag.Edge(a3, s2))
-
-    return g
+    # s3 duplicates the path from a1 to a4
+    return new_graph(
+        *(a1, a2, a3, a4, s1, s2, s3),
+        edges=((a1, s1), (s1, s2), (s2, a4), (a2, s1), (a3, s2), (a1, s3), (s3, a4)),
+    )
 
 
-def test_strip_scheme_nodes():
+def test_remove_scheme_nodes():
     g = generate_graph()
-    g.strip_scheme_nodes()
+    g.remove_scheme_nodes()
 
     assert len(g.nodes) == 4
     assert len(g.scheme_nodes) == 0
@@ -37,164 +27,55 @@ def test_remove_branch():
     g = generate_graph()
     g.remove_branch("s2")
 
-    assert len(g.nodes) == 1
-    assert len(g.edges) == 0
+    assert g.nodes.keys() == {"a4", "s3"}
+    assert len(g.edges) == 1
 
 
 def test_sibling_nodes():
-    g = ag.Graph()
-
-    a1 = ag.AtomNode("", id="a1")
-    a2 = ag.AtomNode("", id="a2")
-    a3 = ag.AtomNode("", id="a3")
-    a4 = ag.AtomNode("", id="a4")
-    a5 = ag.AtomNode("", id="a5")
-    a6 = ag.AtomNode("", id="a6")
-    s1 = ag.SchemeNode(id="s1")
-    s2 = ag.SchemeNode(id="s2")
-    s3 = ag.SchemeNode(id="s3")
-    s4 = ag.SchemeNode(id="s4")
-    s5 = ag.SchemeNode(id="s5")
-
-    g.add_edge(ag.Edge(a1, s1))
-    g.add_edge(ag.Edge(a2, s2))
-    g.add_edge(ag.Edge(s1, a3))
-    g.add_edge(ag.Edge(s2, a3))
-    g.add_edge(ag.Edge(a3, s3))
-    g.add_edge(ag.Edge(s3, a4))
-    g.add_edge(ag.Edge(s4, a4))
-    g.add_edge(ag.Edge(a5, s4))
-    g.add_edge(ag.Edge(s5, a5))
-    g.add_edge(ag.Edge(a6, s5))
-
-    siblings = g.sibling_node_distances(a2)
-
-    assert len(siblings) == 3
-    assert siblings[a1] == 2
-    assert siblings[a6] == 4
-
-
-def test_create_graph(tmp_path: Path):
-    g = ag.Graph("Test")
-
-    p1 = ag.Participant(
-        name="Participant 1",
-        username="Parti 1",
-        email="Parti1@gmail.com",
-        url="thesenuts",
-        location="Trier",
-        description="Hallo Welt!",
+    a1, a2, a3, a4, a5, a6 = (ag.AtomNode("", id=f"a{i}") for i in range(1, 7))
+    s1, s2, s3, s4, s5 = (ag.SchemeNode(id=f"s{i}") for i in range(1, 6))
+    g = new_graph(
+        *(a1, a2, a3, a4, a5, a6, s1, s2, s3, s4, s5),
+        edges=(
+            (a1, s1),
+            (a2, s2),
+            (s1, a3),
+            (s2, a3),
+            (a3, s3),
+            (s3, a4),
+            (s4, a4),
+            (a5, s4),
+            (s5, a5),
+            (a6, s5),
+        ),
     )
-    g.add_participant(p1)
-    r1 = ag.Resource("Resource234")
-    g.add_resource(r1)
-    n1 = ag.AtomNode(
-        text="Node 1",
-        reference=ag.Reference("Resource234", resource=r1, offset=0),
-        participant=p1,
+
+    assert g.sibling_node_distances(a2) == {}
+    assert g.sibling_node_distances(a2, max_levels=None) == {a1: 2, a6: 4}
+    assert g.sibling_nodes(a2, max_levels=2, node_type=ag.AtomNode) == {a1}
+
+
+def test_create_graph() -> None:
+    premise, scheme, claim = (
+        ag.AtomNode("Premise"),
+        ag.SchemeNode(),
+        ag.AtomNode("Claim"),
     )
-    n2 = ag.SchemeNode(ag.Support.DEFAULT)
-    n3 = ag.AtomNode("Node 3")
-    n4 = ag.SchemeNode(ag.Support.DEFAULT)
-    n5 = ag.AtomNode("Node 5")
-    e12 = ag.Edge(n1, n2)
-    e23 = ag.Edge(n2, n3)
-    e34 = ag.Edge(n3, n4)
-    e45 = ag.Edge(n4, n5)
+    graph = new_graph(
+        premise, scheme, claim, edges=((premise, scheme), (scheme, claim))
+    )
 
-    g.add_node(n1)
-    g.add_edge(e12)
-    g.add_edge(e23)
-    g.add_edge(e34)
-    g.add_edge(e45)
+    assert graph.root_node is claim
+    assert graph.leaf_nodes == {premise}
+    assert graph.incoming_nodes(claim) == {scheme}
+    assert not graph.incoming_edges(premise)
+    assert graph.outgoing_nodes(premise) == {scheme}
+    assert not graph.outgoing_edges(claim)
+    assert graph.scheme_between(premise, claim) is scheme
+    assert graph.outgoing_atom_nodes(premise) == {claim}
+    assert graph.incoming_atom_nodes(claim) == {premise}
 
-    assert e12.source == n1
-    assert e12.target == n2
-    assert e23.source == n2
-    assert e23.target == n3
-    assert e34.source == n3
-    assert e34.target == n4
-    assert e45.source == n4
-    assert e45.target == n5
-
-    assert len(g.incoming_nodes(n1)) == 0
-    assert len(g.incoming_edges(n1)) == 0
-    assert len(g.incoming_nodes(n3)) == 1
-    assert len(g.incoming_edges(n3)) == 1
-    assert len(g.incoming_edges(n5)) == 1
-    assert len(g.incoming_edges(n5)) == 1
-
-    assert len(g.outgoing_nodes(n1)) == 1
-    assert len(g.outgoing_edges(n1)) == 1
-    assert len(g.outgoing_nodes(n3)) == 1
-    assert len(g.outgoing_edges(n3)) == 1
-    assert len(g.outgoing_nodes(n5)) == 0
-    assert len(g.outgoing_edges(n5)) == 0
-
-    assert g.root_node == n5
-    assert g.major_claim is None
-    g.major_claim = n5
-    assert g.major_claim == n5
-
-    assert set(g.nodes.values()) == {n1, n2, n3, n4, n5}
-
-    assert ag.traverse.node_distance(n1, n1, g.outgoing_nodes) == 0
-    assert ag.traverse.node_distance(n1, n2, g.outgoing_nodes) == 1
-    assert ag.traverse.node_distance(n1, n3, g.outgoing_nodes) == 2
-    assert ag.traverse.node_distance(n1, n4, g.outgoing_nodes) == 3
-    assert ag.traverse.node_distance(n1, n5, g.outgoing_nodes) == 4
-    assert ag.traverse.node_distance(n2, n2, g.outgoing_nodes) == 0
-    assert ag.traverse.node_distance(n3, n3, g.outgoing_nodes) == 0
-    assert ag.traverse.node_distance(n4, n4, g.outgoing_nodes) == 0
-    assert ag.traverse.node_distance(n5, n5, g.outgoing_nodes) == 0
-    assert g.scheme_between(n1, n3) == n2
-    assert g.outgoing_atom_nodes(n1) == {n3}
-
-    assert len(g.resources) == 1
-    r2 = ag.Resource(text="Resource", title="Resourca", source="Wikipedia")
-    assert r2.plain_text == "Resource"
-    g.add_resource(r2)
-    g.add_resource(ag.Resource("Resource2"))
-    assert len(g.resources) == 3
-    assert len(g.atom_nodes) > 0
-    assert len(g.scheme_nodes) > 0
-    g.incoming_nodes(n3)
-    g.incoming_atom_nodes(n2)
-    g.outgoing_nodes(n3)
-    g.outgoing_atom_nodes(n2)
-    g.incoming_edges(n3)
-    g.outgoing_edges(n3)
-
-    g.remove_node(n4)
-    g.add_node(n4)
-
-    with pytest.raises(ValueError):
-        g.add_edge(e12)
-
-    with pytest.raises(ValueError):
-        g.add_resource(r2)
-
-    g.remove_resource(r2)
-
-    with pytest.raises(KeyError):
-        g.remove_resource(r2)
-
-    with pytest.raises(ValueError):
-        g.add_participant(p1)
-
-    g.remove_participant(p1)
-
-    with pytest.raises(KeyError):
-        g.remove_participant(p1)
-
-    assert len(g.participants) == 0
-
-    assert isinstance(ag.dump.protobuf(g), graph_pb2.Graph)
-
-    gc = ag.copy(g)
-
-    assert len(g.nodes) == len(gc.nodes)
-
-    gv = ag.dump.graphviz(g)
-    assert gv is not None
-    ag.render.graphviz(gv, tmp_path / "test.pdf")
+    for distance, node in enumerate((premise, scheme, claim)):
+        assert (
+            ag.traverse.node_distance(premise, node, graph.outgoing_nodes) == distance
+        )

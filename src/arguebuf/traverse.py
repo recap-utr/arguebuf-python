@@ -1,8 +1,7 @@
 from collections import deque
 from collections.abc import Callable, Iterable
-from collections.abc import Set as AbstractSet
 
-from arguebuf.model import AbstractNode
+from arguebuf.model.node import AbstractNode
 
 __all__ = ("bfs", "dfs", "node_distance")
 
@@ -10,7 +9,7 @@ __all__ = ("bfs", "dfs", "node_distance")
 # https://eddmann.com/posts/depth-first-search-and-breadth-first-search-in-python/
 def dfs[N: AbstractNode](
     start: N,
-    connections: Callable[[N], AbstractSet[N]],
+    connections: Callable[[N], Iterable[N]],
     include_start: bool = True,
 ) -> list[N]:
     """Visit all nodes reachable from `start` in depth-first order."""
@@ -19,7 +18,7 @@ def dfs[N: AbstractNode](
 
 def bfs[N: AbstractNode](
     start: N,
-    connections: Callable[[N], AbstractSet[N]],
+    connections: Callable[[N], Iterable[N]],
     include_start: bool = True,
 ) -> list[N]:
     """Visit all nodes reachable from `start` in breadth-first order."""
@@ -28,7 +27,7 @@ def bfs[N: AbstractNode](
 
 def _traverse[N: AbstractNode](
     start: N,
-    connections: Callable[[N], AbstractSet[N]],
+    connections: Callable[[N], Iterable[N]],
     include_start: bool,
     pop: Callable[[deque[N]], N],
 ) -> list[N]:
@@ -41,7 +40,9 @@ def _traverse[N: AbstractNode](
 
         if node not in visited:
             visited[node] = None
-            pending.extend(connections(node) - visited.keys())
+            pending.extend(
+                neighbor for neighbor in connections(node) if neighbor not in visited
+            )
 
     if not include_start:
         del visited[start]
@@ -68,7 +69,7 @@ def node_distance[N: AbstractNode](
         directed: If `False`, also search for the direction `end_node` -> `start_node`.
 
     Returns:
-        Number of nodes in between or `None` if no path between
+        Number of edges on the shortest path or `None` if there is no path.
 
     Examples:
         >>> from arguebuf import Graph, AtomNode, SchemeNode, Edge
@@ -76,6 +77,8 @@ def node_distance[N: AbstractNode](
         >>> n1 = AtomNode("Premise")
         >>> n2 = SchemeNode()
         >>> n3 = AtomNode("Claim")
+        >>> for node in (n1, n2, n3):
+        ...     g.add_node(node)
         >>> g.add_edge(Edge(n1, n2))
         >>> g.add_edge(Edge(n2, n3))
         >>> node_distance(n1, n3, g.outgoing_nodes)

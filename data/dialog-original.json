@@ -1,0 +1,30 @@
+{
+  "nodes": [
+    { "nodeID": "a", "type": "I", "text": "Premise" },
+    { "nodeID": "b", "type": "I", "text": "Claim" },
+    { "nodeID": "c", "type": "I", "text": "Next turn" },
+    { "nodeID": "s", "type": "RA", "text": "Default Inference" },
+    { "nodeID": "la", "type": "L", "text": "Premise" },
+    { "nodeID": "lb", "type": "L", "text": "Claim" },
+    { "nodeID": "lc", "type": "L", "text": "Next turn" },
+    { "nodeID": "ya", "type": "YA", "text": "Asserting" },
+    { "nodeID": "yb", "type": "YA", "text": "Asserting" },
+    { "nodeID": "yc", "type": "YA", "text": "Asserting" },
+    { "nodeID": "ab", "type": "TA", "text": "Transition" },
+    { "nodeID": "bc", "type": "TA", "text": "Transition" }
+  ],
+  "edges": [
+    { "edgeID": "0", "fromID": "a", "toID": "s" },
+    { "edgeID": "1", "fromID": "s", "toID": "b" },
+    { "edgeID": "2", "fromID": "la", "toID": "ya" },
+    { "edgeID": "3", "fromID": "ya", "toID": "a" },
+    { "edgeID": "4", "fromID": "lb", "toID": "yb" },
+    { "edgeID": "5", "fromID": "yb", "toID": "b" },
+    { "edgeID": "6", "fromID": "lc", "toID": "yc" },
+    { "edgeID": "7", "fromID": "yc", "toID": "c" },
+    { "edgeID": "8", "fromID": "la", "toID": "ab" },
+    { "edgeID": "9", "fromID": "ab", "toID": "lb" },
+    { "edgeID": "10", "fromID": "lb", "toID": "bc" },
+    { "edgeID": "11", "fromID": "bc", "toID": "lc" }
+  ]
+}

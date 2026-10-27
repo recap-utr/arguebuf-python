@@ -1,13 +1,20 @@
 from abc import ABC, abstractmethod
-from dataclasses import KW_ONLY, dataclass, field
-from typing import Self
+from dataclasses import dataclass, field
+from typing import Self, overload, override
 
 from arguebuf.model.metadata import Metadata
-from arguebuf.model.participant import Participant
+from arguebuf.model.participant import AbstractParticipant
 from arguebuf.model.reference import Reference
-from arguebuf.model.scheme import Attack, Preference, Rephrase, Scheme, Support
-from arguebuf.model.userdata import Userdata
-from arguebuf.model.utils import Entity, uuid, xstr
+from arguebuf.model.scheme import (
+    Attack,
+    Preference,
+    Rephrase,
+    Scheme,
+    Support,
+    is_default_scheme,
+)
+from arguebuf.model.userdata import JSON_OBJECT, JsonObject, own
+from arguebuf.model.utils import Entity, uuid
 
 NO_SCHEME_LABEL = "Unknown"
 
@@ -46,12 +53,14 @@ scheme2color: dict[type[Scheme], Color] = {
 
 @dataclass(slots=True, eq=False)
 class AbstractNode(Entity, ABC):
-    """Node of an argument graph."""
+    """Node of an argument graph, its subclasses add the userdata."""
 
-    _: KW_ONLY
-    metadata: Metadata = field(default_factory=Metadata, repr=False)
-    userdata: Userdata = field(default_factory=dict, repr=False)
-    id: str = field(default_factory=uuid)
+    metadata: Metadata = field(repr=False)
+    _id: str
+
+    def __init__(self, *, metadata: Metadata | None, id: str | None) -> None:
+        self.metadata = metadata or Metadata()
+        self._id = uuid() if id is None else id
 
     @property
     @abstractmethod
@@ -63,24 +72,71 @@ class AbstractNode(Entity, ABC):
         """Color used when rendering the node."""
 
 
+# lazily evaluated, so the overloads below can specialize the class they belong to
+type _AtomNode[T] = AtomNode[T]
+
+
 @dataclass(slots=True, eq=False)
-class AtomNode[T = str](AbstractNode):
-    """Node containing a claim or premise of an argument."""
+class AtomNode[A = JsonObject](AbstractNode):
+    """Node containing a claim or premise of an argument.
 
-    text: T
-    _: KW_ONLY
-    reference: Reference[T] | None = None
-    participant: Participant | None = None
+    The participant and the resource of the reference must be registered
+    in the graph before the node is added to it or they are assigned to it.
+    Their userdata is typed when they are accessed via the graph,
+    e.g. `graph.participants[node.participant.id]`.
+    """
+
+    text: str
+    reference: Reference | None
+    participant: AbstractParticipant | None
+    userdata: A = field(repr=False)
+
+    @overload
+    def __init__(
+        self: _AtomNode[JsonObject],
+        text: str,
+        *,
+        reference: Reference | None = None,
+        participant: AbstractParticipant | None = None,
+        metadata: Metadata | None = None,
+        userdata: JsonObject = ...,
+        id: str | None = None,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        text: str,
+        *,
+        reference: Reference | None = None,
+        participant: AbstractParticipant | None = None,
+        metadata: Metadata | None = None,
+        userdata: A,
+        id: str | None = None,
+    ) -> None: ...
+
+    def __init__(
+        self: _AtomNode[object],
+        text: str,
+        *,
+        reference: Reference | None = None,
+        participant: AbstractParticipant | None = None,
+        metadata: Metadata | None = None,
+        userdata: object = JSON_OBJECT,
+        id: str | None = None,
+    ) -> None:
+        AbstractNode.__init__(self, metadata=metadata, id=id)
+        self.text = text
+        self.reference = reference
+        self.participant = participant
+        self.userdata = own(userdata)
 
     @property
-    def plain_text(self) -> str:
-        """Get the `text` as string."""
-        return xstr(self.text)
-
-    @property
+    @override
     def label(self) -> str:
-        return self.plain_text
+        return self.text
 
+    @override
     def color(self, major_claim: bool, monochrome: bool) -> Color:
         if monochrome:
             return COLOR_MONOCHROME_LIGHT
@@ -88,26 +144,70 @@ class AtomNode[T = str](AbstractNode):
         return Color.filled("#0D47A1") if major_claim else Color.filled("#2196F3")
 
 
+# lazily evaluated, so the overloads below can specialize the class they belong to
+type _SchemeNode[T] = SchemeNode[T]
+
+
 @dataclass(slots=True, eq=False)
-class SchemeNode(AbstractNode):
+class SchemeNode[S = JsonObject](AbstractNode):
     """Node describing the relation between atom nodes."""
 
-    scheme: Scheme | None = None
-    _: KW_ONLY
-    premise_descriptors: list[str] = field(default_factory=list)
+    scheme: Scheme | None
+    premise_descriptors: list[str]
+    userdata: S = field(repr=False)
+
+    @overload
+    def __init__(
+        self: _SchemeNode[JsonObject],
+        scheme: Scheme | None = None,
+        *,
+        premise_descriptors: list[str] | None = None,
+        metadata: Metadata | None = None,
+        userdata: JsonObject = ...,
+        id: str | None = None,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        scheme: Scheme | None = None,
+        *,
+        premise_descriptors: list[str] | None = None,
+        metadata: Metadata | None = None,
+        userdata: S,
+        id: str | None = None,
+    ) -> None: ...
+
+    def __init__(
+        self: _SchemeNode[object],
+        scheme: Scheme | None = None,
+        *,
+        premise_descriptors: list[str] | None = None,
+        metadata: Metadata | None = None,
+        userdata: object = JSON_OBJECT,
+        id: str | None = None,
+    ) -> None:
+        AbstractNode.__init__(self, metadata=metadata, id=id)
+        self.scheme = scheme
+        self.premise_descriptors = (
+            [] if premise_descriptors is None else premise_descriptors
+        )
+        self.userdata = own(userdata)
 
     @property
+    @override
     def label(self) -> str:
         if self.scheme is None:
             return NO_SCHEME_LABEL
 
         label = type(self.scheme).__name__
 
-        if self.scheme is not type(self.scheme).DEFAULT:
+        if not is_default_scheme(self.scheme):
             label = f"{label}: {self.scheme.value}"
 
         return label
 
+    @override
     def color(self, major_claim: bool, monochrome: bool) -> Color:
         if monochrome:
             return COLOR_MONOCHROME_DARK
@@ -118,4 +218,4 @@ class SchemeNode(AbstractNode):
         return scheme2color[type(self.scheme)]
 
 
-type AtomOrSchemeNode[T = str] = AtomNode[T] | SchemeNode
+type AtomOrSchemeNode[A = JsonObject, S = JsonObject] = AtomNode[A] | SchemeNode[S]

@@ -4,7 +4,18 @@ from arg_services.graph.v1 import graph_pb2
 
 from arguebuf.schemas import aif
 
-__all__ = ("Attack", "Preference", "Rephrase", "Scheme", "Support")
+__all__ = (
+    "Attack",
+    "Preference",
+    "Rephrase",
+    "Scheme",
+    "Support",
+    "aif2scheme",
+    "resolve_aif_scheme",
+    "resolve_scheme",
+    "scheme2aif",
+    "scheme2aif_default",
+)
 
 
 class Support(StrEnum):
@@ -101,25 +112,25 @@ class Rephrase(StrEnum):
 
 type Scheme = Support | Attack | Rephrase | Preference
 
-support2protobuf = {
-    item: graph_pb2.Support.Value(f"SUPPORT_{item.name}") for item in Support
+# field of the protobuf `Scheme.type` oneof and enum value of each scheme,
+# keyed by type since members of different scheme types are equal strings
+scheme2protobuf: dict[type[Scheme], tuple[str, dict[Scheme, int]]] = {
+    scheme_type: (
+        field,
+        {item: enum.Value(f"{field.upper()}_{item.name}") for item in scheme_type},
+    )
+    for scheme_type, field, enum in (
+        (Support, "support", graph_pb2.Support),
+        (Attack, "attack", graph_pb2.Attack),
+        (Rephrase, "rephrase", graph_pb2.Rephrase),
+        (Preference, "preference", graph_pb2.Preference),
+    )
 }
-protobuf2support = {value: key for key, value in support2protobuf.items()}
-
-attack2protobuf = {
-    item: graph_pb2.Attack.Value(f"ATTACK_{item.name}") for item in Attack
+# schemes by the field of the protobuf `Scheme.type` oneof and their enum value
+protobuf2scheme: dict[str, dict[int, Scheme]] = {
+    field: {value: item for item, value in values.items()}
+    for field, values in scheme2protobuf.values()
 }
-protobuf2attack = {value: key for key, value in attack2protobuf.items()}
-
-rephrase2protobuf = {
-    item: graph_pb2.Rephrase.Value(f"REPHRASE_{item.name}") for item in Rephrase
-}
-protobuf2rephrase = {value: key for key, value in rephrase2protobuf.items()}
-
-preference2protobuf = {
-    item: graph_pb2.Preference.Value(f"PREFERENCE_{item.name}") for item in Preference
-}
-protobuf2preference = {value: key for key, value in preference2protobuf.items()}
 
 scheme2aif: dict[type[Scheme], aif.SchemeType] = {
     Support: "RA",
@@ -139,10 +150,19 @@ scheme2aif_default: dict[type[Scheme], str] = {
 }
 
 
-def _normalize(text: str) -> str:
+def is_default_scheme(scheme: Scheme) -> bool:
+    """Check whether the scheme is the default one of its type.
+
+    >>> is_default_scheme(Support.DEFAULT), is_default_scheme(Support.SIGN)
+    (True, False)
+    """
+    return scheme is type(scheme).DEFAULT
+
+
+def normalize_scheme_label(text: str) -> str:
     """Make scheme labels comparable regardless of case and separators.
 
-    >>> _normalize("Expert Opinion") == _normalize("ExpertOpinion")
+    >>> normalize_scheme_label("Expert Opinion") == normalize_scheme_label("ExpertOpinion")
     True
     """
     return "".join(char for char in text.casefold() if char.isalnum())
@@ -164,11 +184,11 @@ _support_aliases: dict[str, Support] = {
 }
 
 _text2scheme: dict[type[Scheme], dict[str, Scheme]] = {
-    scheme_type: {_normalize(item.value): item for item in scheme_type}
+    scheme_type: {normalize_scheme_label(item.value): item for item in scheme_type}
     for scheme_type in scheme2aif
 }
 _text2scheme[Support] |= {
-    _normalize(text): item for text, item in _support_aliases.items()
+    normalize_scheme_label(text): item for text, item in _support_aliases.items()
 }
 
 
@@ -176,14 +196,19 @@ def resolve_scheme(scheme_type: type[Scheme], text: str) -> Scheme:
     """Get the scheme of the given type whose label matches the text.
 
     Labels are compared regardless of case and separators,
-    unknown labels resolve to the default scheme.
+    a leading "Argument from" (as used by Araucaria) is ignored,
+    and unknown labels resolve to the default scheme.
 
     >>> resolve_scheme(Support, "ExpertOpinion")
     <Support.EXPERT_OPINION: 'Expert Opinion'>
+    >>> resolve_scheme(Support, "Argument from Sign")
+    <Support.SIGN: 'Sign'>
     >>> resolve_scheme(Attack, "Default Conflict")
     <Attack.DEFAULT: 'Default'>
     """
-    return _text2scheme[scheme_type].get(_normalize(text), scheme_type.DEFAULT)
+    key = normalize_scheme_label(text).removeprefix("argumentfrom")
+
+    return _text2scheme[scheme_type].get(key, scheme_type.DEFAULT)
 
 
 def resolve_aif_scheme(aif_type: str, text: str) -> Scheme | None:

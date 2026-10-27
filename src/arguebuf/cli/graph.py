@@ -38,7 +38,7 @@ def translate(
     ):
         graph = ag.load.file(path_pair.source)
         translator.translate_graph(graph)
-        ag.dump.file(graph, path_pair.target, ag.dump.Config(format=output_format))
+        ag.dump.file(graph, path_pair.target, format=output_format)
 
 
 def node_label_formatter(
@@ -67,7 +67,7 @@ def render(
             " e.g., '.pdf', '.png', or '.svg'."
         ),
     ] = ".pdf",
-    strip_scheme_nodes: Annotated[
+    remove_scheme_nodes: Annotated[
         bool,
         typer.Option(help="Remove scheme nodes and connect their atoms directly."),
     ] = False,
@@ -128,8 +128,8 @@ def render(
     ):
         g = ag.load.file(path_pair.source)
 
-        if strip_scheme_nodes:
-            g.strip_scheme_nodes()
+        if remove_scheme_nodes:
+            g.remove_scheme_nodes()
 
         gv = ag.dump.graphviz(
             g,
@@ -180,20 +180,23 @@ def convert(
     ] = False,
 ) -> None:
     """Convert graphs between formats, the input format is derived from the suffix."""
-    load_config = ag.load.Config(reconstruct_dialog=reconstruct_dialog)
-    dump_config = ag.dump.Config(format=output_format)
+    input_root = input_folder.parent if input_folder.is_file() else input_folder
 
     for path_pair in model.pending_pairs(
         input_folder, output_folder, input_glob, ".json", clean, overwrite, start
     ):
         text_file = (
             text_folder
-            / path_pair.source.relative_to(input_folder).with_suffix(text_suffix)
+            / path_pair.source.relative_to(input_root).with_suffix(text_suffix)
             if text_folder
             else None
         )
-        graph = ag.load.file(path_pair.source, text_file=text_file, config=load_config)
-        ag.dump.file(graph, path_pair.target, dump_config)
+        graph = ag.load.file(
+            path_pair.source,
+            text_file=text_file,
+            reconstruct_dialog=reconstruct_dialog,
+        )
+        ag.dump.file(graph, path_pair.target, format=output_format)
 
 
 @cli.command()

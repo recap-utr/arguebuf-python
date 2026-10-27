@@ -3,53 +3,69 @@ import typing as t
 from arguebuf.schemas.aif import Graph as AifGraph
 from arguebuf.schemas.aif import Id
 
+__all__ = (
+    "Aif",
+    "DescriptorFulfillment",
+    "Graph",
+    "Ova",
+    "OvaEdge",
+    "OvaNode",
+    "SchemeFulfillment",
+    "Text",
+)
+
 
 class SchemeFulfillment(t.TypedDict):
-    nodeID: Id
-    schemeID: Id
+    nodeID: t.ReadOnly[Id]
+    schemeID: t.ReadOnly[Id]
 
 
 class DescriptorFulfillment(t.TypedDict):
-    nodeID: Id
-    descriptorID: Id
-    selectedID: Id | None
+    nodeID: t.ReadOnly[Id]
+    descriptorID: t.ReadOnly[Id]
+    selectedID: t.ReadOnly[Id | None]
 
 
 class Aif(AifGraph):
-    schemefulfillments: list[SchemeFulfillment] | None
-    descriptorfulfillments: t.NotRequired[list[DescriptorFulfillment] | None]
-    cqdescriptorfulfillments: t.NotRequired[list[DescriptorFulfillment] | None]
+    schemefulfillments: t.ReadOnly[list[SchemeFulfillment] | None]
+    descriptorfulfillments: t.NotRequired[
+        t.ReadOnly[list[DescriptorFulfillment] | None]
+    ]
+    cqdescriptorfulfillments: t.NotRequired[
+        t.ReadOnly[list[DescriptorFulfillment] | None]
+    ]
 
 
 class OvaNode(t.TypedDict):
-    nodeID: Id
-    visible: bool
-    x: int
-    y: int
-    timestamp: str
+    nodeID: t.ReadOnly[Id]
+    visible: t.ReadOnly[bool]
+    x: t.ReadOnly[int]
+    y: t.ReadOnly[int]
+    timestamp: t.ReadOnly[str]
 
 
 class OvaEdge(t.TypedDict):
-    fromID: Id
-    toID: Id
-    visible: bool
+    fromID: t.ReadOnly[Id]
+    toID: t.ReadOnly[Id]
+    visible: t.ReadOnly[bool]
 
 
 class Ova(t.TypedDict):
-    firstname: str
-    surname: str
-    url: str
-    nodes: list[OvaNode]
-    edges: list[OvaEdge]
+    firstname: t.ReadOnly[str]
+    surname: t.ReadOnly[str]
+    url: t.ReadOnly[str]
+    nodes: t.ReadOnly[list[OvaNode]]
+    edges: t.ReadOnly[list[OvaEdge]]
 
 
 class Text(t.TypedDict, total=False):
-    txt: str
-    url: str
+    txt: t.ReadOnly[str]
+    url: t.ReadOnly[str]
 
 
 class Graph(t.TypedDict):
-    AIF: Aif
-    text: str | Text
-    OVA: t.NotRequired[Ova]
-    dialog: t.NotRequired[bool]
+    AIF: t.ReadOnly[Aif]
+    # a missing text yields no resource
+    text: t.NotRequired[t.ReadOnly[str | Text | None]]
+    OVA: t.NotRequired[t.ReadOnly[Ova]]
+    dialog: t.NotRequired[t.ReadOnly[bool]]

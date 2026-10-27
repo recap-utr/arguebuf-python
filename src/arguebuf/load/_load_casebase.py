@@ -1,22 +1,23 @@
 import re
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Self
 
 from arg_services.cbr.v1beta.model_pb2 import CasebaseFilter as CasebaseFilterProto
 
 from arguebuf.model import Graph
+from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
-from ._config import Config
 from ._load_path import load_file
 
 __all__ = ("CasebaseFilter", "load_casebase")
 
+# folders of other formats (e.g. argdown source files) are skipped
 format2glob = {
     "aif": "*.json",
     "aml": "*.aml",
-    "argdown": "*.json",
+    "argdown-json": "*.json",
     "arggraph": "*.xml",
     "arguebuf": "*.json",
     "brat": "*.ann",
@@ -24,9 +25,9 @@ format2glob = {
     "microtexts": "*.xml",
     "ova": "*.json",
     "protobuf": "*.json",
+    "sadface": "*.json",
+    "xaif": "*.json",
 }
-
-DEFAULT_GLOB = "*"
 
 
 @dataclass(slots=True, frozen=True)
@@ -41,61 +42,67 @@ class FilesystemFilter:
     kwargs: Mapping[str, str]
 
     @property
-    def glob(self) -> str:
-        return format2glob.get(self.kwargs.get("format", ""), DEFAULT_GLOB)
+    def glob(self) -> str | None:
+        """File pattern of the graphs in the folder, None if the format is unknown."""
+        return format2glob.get(self.kwargs.get("format", ""))
 
     @classmethod
     def from_path(cls, path: Path) -> Self:
+        """Parse the properties of a casebase folder, a key without value is `true`."""
         kwargs: dict[str, str] = {}
 
         for entry in path.name.replace(" ", "").split(","):
-            key, *values = entry.split("=")
-            kwargs[key] = values[0] if len(values) == 1 else "true"
+            key, separator, value = entry.partition("=")
+            kwargs[key] = value if separator else "true"
 
         return cls(path.parent.name, kwargs)
 
 
+@dataclass(slots=True, frozen=True)
 class CasebaseFilter:
-    """Regular expressions selecting cases from a casebase.
+    """Regular expressions selecting cases from a casebase, they must match completely.
 
-    Args:
+    Attributes:
         name: Pattern for the name of the casebase.
         cases: Pattern for the paths of the cases relative to their casebase folder.
         kwargs: Patterns for the properties of the casebase folder.
+
+    Examples:
+        >>> item = CasebaseFilter("micro.*", kwargs={"format": "aif"})
+        >>> item.matches_folder(FilesystemFilter("microtexts", {"format": "aif"}), True)
+        True
+        >>> item.matches_folder(FilesystemFilter("microtexts", {"format": "aifdb"}), True)
+        False
     """
 
-    __slots__ = ("cases", "kwargs", "name")
-
-    name: re.Pattern[str]
-    cases: re.Pattern[str] | None
-    kwargs: dict[str, re.Pattern[str]]
-
-    def __init__(self, name: str, cases: str | None = None, **kwargs: str) -> None:
-        self.name = re.compile(name)
-        self.cases = re.compile(cases) if cases else None
-        self.kwargs = {key: re.compile(value) for key, value in kwargs.items()}
+    name: str
+    cases: str | None = None
+    kwargs: Mapping[str, str] = field(default_factory=dict)
 
     def matches_folder(self, folder: FilesystemFilter, strict: bool) -> bool:
         """Check if a casebase folder is selected by this filter.
 
         If `strict` is set, the folder must not have properties absent in the filter.
+        A property of the filter that is absent in the folder never matches.
         """
         return (
-            self.name.match(folder.name) is not None
+            re.fullmatch(self.name, folder.name) is not None
             and (not strict or self.kwargs.keys() == folder.kwargs.keys())
             and all(
-                pattern.match(folder.kwargs.get(key, "null"))
+                (value := folder.kwargs.get(key)) is not None
+                and re.fullmatch(pattern, value) is not None
                 for key, pattern in self.kwargs.items()
             )
         )
 
     def matches_case(self, case: str) -> bool:
         """Check if a case path relative to its casebase folder is selected."""
-        return self.cases is None or self.cases.match(case) is not None
+        return self.cases is None or re.fullmatch(self.cases, case) is not None
 
     @classmethod
     def from_protobuf(cls, obj: CasebaseFilterProto) -> Self:
-        return cls(obj.name, obj.cases, **obj.kwargs)
+        """Generate a filter from its protobuf message, an empty `cases` selects all."""
+        return cls(obj.name, obj.cases or None, dict(obj.kwargs))
 
 
 type CasebaseFilterType = CasebaseFilter | CasebaseFilterProto
@@ -116,14 +123,24 @@ def _convert_filters(
     ]
 
 
-def load_casebase[T = str](
+def load_casebase[
+    A = JsonObject,
+    S = JsonObject,
+    E = JsonObject,
+    G = JsonObject,
+    R = JsonObject,
+    P = JsonObject,
+    N = JsonObject,
+](
     include: CasebaseFilterType | Iterable[CasebaseFilterType],
     exclude: CasebaseFilterType | Iterable[CasebaseFilterType] | None = None,
     basepath: Path | str = ".",
     glob: str = "*/*",
-    config: Config[T] = Config(),
     strict_equal: bool = False,
-) -> dict[Path, Graph[T]]:
+    *,
+    reconstruct_dialog: bool = False,
+    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+) -> dict[Path, Graph[A, S, E, G, R, P, N]]:
     """Load all cases selected by `include` and not selected by `exclude`.
 
     Args:
@@ -131,15 +148,17 @@ def load_casebase[T = str](
         exclude: Filters selecting cases to skip, always matched non-strictly.
         basepath: Folder containing the casebases.
         glob: Pattern matching the casebase folders in `basepath`.
-        config: Options for loading the graphs.
         strict_equal: Require the folder properties to equal the filter properties.
+        reconstruct_dialog: Reconstruct the dialog of AIF and xAIF graphs
+            (see `load_aif`), ignored for other formats.
+        codecs: Codecs loading the userdata.
 
     Returns:
         Dictionary containing all found file paths as well as the loaded graphs.
     """
     include_filters = _convert_filters(include)
     exclude_filters = _convert_filters(exclude)
-    graphs: dict[Path, Graph[T]] = {}
+    graphs: dict[Path, Graph[A, S, E, G, R, P, N]] = {}
 
     for folder in sorted(Path(basepath).glob(glob)):
         if (
@@ -150,6 +169,10 @@ def load_casebase[T = str](
             continue
 
         folder_filter = FilesystemFilter.from_path(folder)
+
+        if (glob_pattern := folder_filter.glob) is None:
+            continue
+
         includes = [
             item
             for item in include_filters
@@ -164,14 +187,16 @@ def load_casebase[T = str](
         if not includes:
             continue
 
-        for file in sorted(folder.glob(f"**/{folder_filter.glob}")):
-            case = str(file.relative_to(folder))
+        for file in sorted(folder.glob(f"**/{glob_pattern}")):
+            case = file.relative_to(folder).as_posix()
 
             if (
                 any(item.matches_case(case) for item in includes)
                 and not any(item.matches_case(case) for item in excludes)
                 and file.is_file()
             ):
-                graphs[file] = load_file(file, config=config)
+                graphs[file] = load_file(
+                    file, reconstruct_dialog=reconstruct_dialog, codecs=codecs
+                )
 
     return graphs

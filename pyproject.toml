@@ -19,7 +19,6 @@ classifiers = [
 ]
 dependencies = [
   "arg-services>=2,<3",
-  "lxml>=6,<7",
   "networkx>=3,<4",
   "pygraphviz>=2,<3",
 ]
@@ -38,7 +37,6 @@ cli = ["arg-services[grpcio]>=2,<3", "deepl>=1,<2", "typer>=0.27,<0.28"]
 
 [dependency-groups]
 dev = [
-  "lxml-stubs>=0.5,<0.6",
   "types-networkx>=3,<4",
   { include-group = "docs" },
   { include-group = "test" },
@@ -55,6 +53,14 @@ test = [
 requires = ["uv-build>=0.13,<0.14"]
 build-backend = "uv_build"
 
+[tool.basedpyright]
+pythonVersion = "3.13"
+
+[tool.ty.rules]
+# ty checks defaults against unsolved type parameters (e.g., `userdata: A = {}`),
+# basedpyright checks them at every call against the solved ones (see arguebuf.model.userdata)
+invalid-parameter-default = "ignore"
+
 [tool.pytest]
 addopts = [
   "--numprocesses=auto",
@@ -65,13 +71,6 @@ addopts = [
 ]
 doctest_optionflags = ["ELLIPSIS", "IGNORE_EXCEPTION_DETAIL", "NORMALIZE_WHITESPACE"]
 testpaths = ["src", "tests"]
-
-[tool.ruff.lint.flake8-bugbear]
-# frozen and thus safe to use as default argument
-extend-immutable-calls = ["arguebuf.load._config.Config"]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
 
 [tool.uv.exclude-newer-package]
 arg-services = false

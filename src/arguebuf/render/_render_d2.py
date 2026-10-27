@@ -12,7 +12,7 @@ def d2(graph: D2Graph, path: Path | str) -> None:
     The output format (e.g., png, pdf, svg) is derived from the suffix of `path`.
     """
     subprocess.run(
-        ["d2", "-", str(path)],
+        ["d2", "-", path],
         input=str(graph),
         text=True,
         check=True,

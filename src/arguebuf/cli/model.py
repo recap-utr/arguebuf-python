@@ -85,20 +85,12 @@ class PathPair:
         elif path_in.is_dir() and input_glob and output_suffix:
             path_out.mkdir(parents=True, exist_ok=True)
 
-            files_in = sorted(path_in.glob(input_glob))
-            files_out: list[Path] = []
-
-            for file_in in files_in:
-                file_out = path_out / file_in.relative_to(path_in)
-                file_out = file_out.with_suffix(output_suffix)
+            for file_in in sorted(path_in.glob(input_glob)):
+                file_out = (path_out / file_in.relative_to(path_in)).with_suffix(
+                    output_suffix
+                )
                 file_out.parent.mkdir(parents=True, exist_ok=True)
-
-                files_out.append(file_out)
-
-            pairs.extend(
-                cls(file_in, file_out)
-                for file_in, file_out in zip(files_in, files_out, strict=True)
-            )
+                pairs.append(cls(file_in, file_out))
 
         else:
             raise ValueError(

@@ -1,8 +1,8 @@
 from typing import TextIO
 
 from arguebuf.model import Graph
+from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
-from ._config import Config
 from ._load_aml import load_aml
 from ._load_brat import load_brat
 from ._load_json import load_json
@@ -12,21 +12,41 @@ from ._load_text import load_text
 __all__ = ("load_io",)
 
 
-def load_io[T = str](
+def load_io[
+    A = JsonObject,
+    S = JsonObject,
+    E = JsonObject,
+    G = JsonObject,
+    R = JsonObject,
+    P = JsonObject,
+    N = JsonObject,
+](
     obj: TextIO,
     suffix: str,
     name: str | None = None,
-    config: Config[T] = Config(),
-) -> Graph[T]:
-    """Generate Graph structure from a file object based on the file `suffix`."""
-    match suffix:
+    *,
+    reconstruct_dialog: bool = False,
+    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+) -> Graph[A, S, E, G, R, P, N]:
+    """Generate Graph structure from a file object based on the file `suffix` (case-insensitive).
+
+    `reconstruct_dialog` only applies to AIF and xAIF graphs (see `load_aif`).
+
+    Raises:
+        ValueError: If the suffix is none of `.ann`, `.txt`, `.aml`, `.xml`, and `.json`.
+    """
+    match suffix.lower():
         case ".ann":
-            return load_brat(obj, name, config)
+            return load_brat(obj, name, codecs=codecs)
         case ".txt":
-            return load_text(obj, name, config)
+            return load_text(obj, name, codecs=codecs)
         case ".aml":
-            return load_aml(obj, name, config)
+            return load_aml(obj, name, codecs=codecs)
         case ".xml":
-            return load_microtexts(obj, name, config)
+            return load_microtexts(obj, name, codecs=codecs)
+        case ".json":
+            return load_json(
+                obj, name, reconstruct_dialog=reconstruct_dialog, codecs=codecs
+            )
         case _:
-            return load_json(obj, name, config)
+            raise ValueError(f"The suffix '{suffix}' is not supported.")

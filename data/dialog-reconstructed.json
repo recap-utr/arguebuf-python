@@ -1,0 +1,15 @@
+{
+  "nodes": [
+    { "nodeID": "a", "type": "I", "text": "Premise" },
+    { "nodeID": "b", "type": "I", "text": "Claim" },
+    { "nodeID": "c", "type": "I", "text": "Next turn" },
+    { "nodeID": "s", "type": "RA", "text": "Default Inference" },
+    { "nodeID": "r", "type": "MA", "text": "Default Rephrase" }
+  ],
+  "edges": [
+    { "edgeID": "0", "fromID": "a", "toID": "s" },
+    { "edgeID": "1", "fromID": "s", "toID": "b" },
+    { "edgeID": "2", "fromID": "c", "toID": "r" },
+    { "edgeID": "3", "fromID": "r", "toID": "b" }
+  ]
+}

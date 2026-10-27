@@ -1,103 +1,132 @@
 import re
+from dataclasses import dataclass
 from typing import TextIO
 
 from arguebuf.model import Graph
-from arguebuf.model.node import AtomNode
-from arguebuf.model.scheme import Attack, Rephrase, Support
+from arguebuf.model.node import AtomNode, SchemeNode
+from arguebuf.model.scheme import Attack, Rephrase, Scheme, Support
+from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
-from ._config import Config
+from ._helpers import connect, lookup
 
 __all__ = ("load_kialo",)
 
+title_pattern = re.compile(r"Discussion Title: (.*)")
+# Example: 1.1. Pro: Gold is better than silver.
+# Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
+_statement = re.compile(r"^(1\.(?:\d+\.)*) (?:(Con|Pro): )?(.*)")
+_reference = re.compile(r"^-> See ((?:\d+\.)+)")
+# link targets may contain one level of parentheses, e.g. Wikipedia URLs
+_link = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
+_escape = re.compile(r"\\([\[\]\(\)])")
+stance2scheme: dict[str | None, Scheme] = {
+    "Pro": Support.DEFAULT,
+    "Con": Attack.DEFAULT,
+    None: Rephrase.DEFAULT,
+}
 
-def load_kialo[T = str](
+
+@dataclass(slots=True)
+class _Statement:
+    stance: str | None
+    text: str
+
+
+def load_kialo[
+    A = JsonObject,
+    S = JsonObject,
+    E = JsonObject,
+    G = JsonObject,
+    R = JsonObject,
+    P = JsonObject,
+    N = JsonObject,
+](
     obj: TextIO,
     name: str | None = None,
-    config: Config[T] = Config(),
-) -> Graph[T]:
-    """Generate Graph structure from a kialo discussion export."""
-    if name_match := re.search(r"Discussion Title: (.*)", obj.readline()):
-        name = name_match[1]
+    *,
+    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+) -> Graph[A, S, E, G, R, P, N]:
+    """Generate Graph structure from a kialo discussion export.
+
+    The discussion title becomes the name of the graph (overriding `name`)
+    and the first statement its major claim.
+    Statements use their kialo id (e.g. `1.2.`) as atom id and span all lines until the next statement.
+    A statement `-> See 1.3.` refers to the atom of another statement,
+    so it and its children are attached to that atom.
+    Markdown links are replaced by their text and escaped brackets are unescaped.
+    """
+    if name_match := title_pattern.search(obj.readline()):
+        name = name_match[1].strip()
 
     if obj.readline().strip():
         raise ValueError("The title is not followed by an empty line!")
 
-    g = config.graph(name)
+    statements: dict[str, _Statement] = {}
+    current: _Statement | None = None
 
-    # Example: 1.1. Pro: Gold is better than silver.
-    # Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
-    pattern = re.compile(r"^(1\.(?:\d+\.)+) (?:(Con|Pro): )?(.*)")
-    current_line = obj.readline()
-    next_line = obj.readline()
+    for line in obj:
+        match = _statement.search(line)
 
-    mc_match = re.search(r"^((?:\d+\.)+) (.*)", current_line)
+        # only the major claim has the id `1.`, all others are nested below it
+        if not statements:
+            if not match or match[1] != "1.":
+                raise ValueError("The major claim is not present in the third line!")
 
-    if not mc_match:
+            current = statements[match[1]] = _Statement(None, match[3])
+        elif match and match[1] != "1.":
+            if match[1] in statements:
+                raise ValueError(f"The statement '{match[1]}' is not unique!")
+
+            current = statements[match[1]] = _Statement(match[2], match[3])
+        elif current:
+            current.text = f"{current.text}\n{line.strip()}"
+
+    if not statements:
         raise ValueError("The major claim is not present in the third line!")
 
-    mc_id = mc_match[1]
-    mc_text = mc_match[2]
+    g: Graph[A, S, E, G, R, P, N] = Graph(
+        name, userdata=codecs.graph.validate_python({})
+    )
+    references: dict[str, str] = {}
 
-    # See in the following while loop for explanation of this block
-    while next_line and not pattern.search(next_line):
-        mc_text = f"{mc_text}\n{next_line.strip()}"
-        next_line = obj.readline()
+    for id, statement in statements.items():
+        statement.text = statement.text.strip()
 
-    mc = _kialo_atom_node(mc_id, mc_text, config)
-    g.add_node(mc)
-    g.major_claim = mc
+        if reference := _reference.search(statement.text):
+            references[id] = reference[1]
+        else:
+            g.add_node(
+                AtomNode(
+                    _escape.sub(r"\1", _link.sub(r"\1", statement.text)),
+                    userdata=codecs.atom.validate_python({}),
+                    id=id,
+                )
+            )
 
-    current_line = next_line
-    next_line = obj.readline()
+    atoms = g.atom_nodes
 
-    while current_line:
-        if current_match := pattern.search(current_line):
-            source_id = current_match[1]
-            source_id_parts = source_id[:-1].split(".")
-            stance = current_match[2]
-            text = current_match[3]
+    def resolve(id: str, owner: str) -> AtomNode[A] | None:
+        visited: set[str] = set()
 
-            # The text of a node is allowed to span multiple lines.
-            # Thus, we need to look ahead to concatenate the complete text.
-            # As long as the pattern is not found in the next line,
-            # we assume that the text belongs to the previous statement.
-            while next_line and not pattern.search(next_line):
-                text = f"{text}\n{next_line.strip()}"
-                next_line = obj.readline()
+        while id in references and id not in visited:
+            visited.add(id)
+            id = references[id]
 
-            if id_ref_match := re.search(r"^-> See ((?:\d+\.)+)", text):
-                id_ref = id_ref_match[1]
-                source = g.atom_nodes[id_ref]
-            else:
-                source = _kialo_atom_node(source_id, text, config)
-                g.add_node(source)
+        return lookup(atoms, id, "statement", owner)
 
-            match stance:
-                case "Con":
-                    scheme_type = Attack.DEFAULT
-                case "Pro":
-                    scheme_type = Support.DEFAULT
-                case _:
-                    scheme_type = Rephrase.DEFAULT
+    g.major_claim = resolve("1.", "the major claim")
 
-            scheme = config.SchemeNodeClass(scheme_type, id=f"{source_id}scheme")
-            target_id = ".".join([*source_id_parts[:-1], ""])
-            target = g.atom_nodes[target_id]
-            g.add_edge(config.EdgeClass(source, scheme, id=f"{source.id}->{scheme.id}"))
-            g.add_edge(config.EdgeClass(scheme, target, id=f"{scheme.id}->{target.id}"))
+    for id, statement in list(statements.items())[1:]:
+        parent_id = id[: id.rindex(".", 0, -1) + 1]
+        owner = f"statement '{id}'"
 
-        # lines not matching the pattern would otherwise be processed forever
-        current_line = next_line
-        next_line = obj.readline()
+        if (source := resolve(id, owner)) and (target := resolve(parent_id, owner)):
+            scheme = SchemeNode(
+                stance2scheme[statement.stance],
+                userdata=codecs.scheme.validate_python({}),
+                id=f"{id}scheme",
+            )
+            g.add_node(scheme)
+            connect(g, codecs, [source.id], scheme.id, target.id)
 
     return g
-
-
-def _kialo_atom_node[T](id: str, text: str, config: Config[T]) -> AtomNode[T]:
-    # Remove backslashes before parentheses/brackets
-    text = re.sub(r"\\([\[\]\(\)])", r"\1", text)
-
-    # Remove markdown links
-    text = re.sub(r"\[(.*?)\]\(.*?\)", r"\1", text)
-
-    return config.AtomNodeClass(config.parse(text), id=id)

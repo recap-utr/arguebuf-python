@@ -1,13 +1,13 @@
 from arguebuf.dt import to_format
 from arguebuf.model import AbstractNode, AtomNode, Edge, Graph, SchemeNode
 from arguebuf.model.node import NO_SCHEME_LABEL
-from arguebuf.model.scheme import scheme2aif, scheme2aif_default
+from arguebuf.model.scheme import is_default_scheme, scheme2aif, scheme2aif_default
 from arguebuf.schemas import aif
 
 __all__ = ("dump_aif", "dump_edge", "dump_node")
 
 
-def dump_aif[T](obj: Graph[T]) -> aif.Graph:
+def dump_aif[A, S, E, G, R, P, N](obj: Graph[A, S, E, G, R, P, N]) -> aif.Graph:
     """Export structure of Graph instance to AIF argument graph format."""
     return {
         "nodes": [dump_node(node, timestamp=True) for node in obj.nodes.values()],
@@ -24,14 +24,14 @@ def dump_node(obj: AbstractNode, timestamp: bool) -> aif.Node:
 
     match obj:
         case AtomNode():
-            node = {"nodeID": obj.id, "text": obj.plain_text, "type": "I"}
+            node = {"nodeID": obj.id, "text": obj.text, "type": "I"}
         case SchemeNode(scheme=None):
             node = {"nodeID": obj.id, "text": NO_SCHEME_LABEL, "type": ""}
         case SchemeNode(scheme=scheme) if scheme is not None:
             node = {
                 "nodeID": obj.id,
                 "text": scheme2aif_default[type(scheme)]
-                if scheme is type(scheme).DEFAULT
+                if is_default_scheme(scheme)
                 else scheme.value,
                 "type": scheme2aif[type(scheme)],
             }
@@ -44,6 +44,6 @@ def dump_node(obj: AbstractNode, timestamp: bool) -> aif.Node:
     return node
 
 
-def dump_edge(obj: Edge) -> aif.Edge:
+def dump_edge[E](obj: Edge[E]) -> aif.Edge:
     """Export an edge to an AIF edge."""
     return {"edgeID": obj.id, "fromID": obj.source.id, "toID": obj.target.id}

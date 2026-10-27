@@ -1,120 +1,110 @@
-from dataclasses import dataclass
 from typing import IO
-
-from lxml import etree
+from xml.etree import ElementTree as Tree
 
 from arguebuf.model import Graph
-from arguebuf.model.scheme import Attack, Support
+from arguebuf.model.node import AtomNode, SchemeNode
+from arguebuf.model.scheme import Attack, Scheme, Support
+from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 from arguebuf.schemas.microtexts import EdgeType
 
-from ._config import Config
+from ._helpers import add_edge, connect, lookup
 
 __all__ = ("load_microtexts",)
 
-edge2scheme: dict[EdgeType, Support | Attack] = {
+edge2scheme: dict[EdgeType, Scheme] = {
     EdgeType.SUPPORT_DEFAULT: Support.DEFAULT,
     EdgeType.SUPPORT_EXAMPLE: Support.EXAMPLE,
     EdgeType.ATTACK_ATOM: Attack.DEFAULT,
+    EdgeType.ATTACK_SCHEME: Attack.DEFAULT,
 }
 
 
-@dataclass(slots=True, frozen=True)
-class _Edge:
-    source: str
-    target: str
-    type: EdgeType
+def load_microtexts[
+    A = JsonObject,
+    S = JsonObject,
+    E = JsonObject,
+    G = JsonObject,
+    R = JsonObject,
+    P = JsonObject,
+    N = JsonObject,
+](
+    obj: IO[str],
+    name: str | None = None,
+    *,
+    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+) -> Graph[A, S, E, G, R, P, N]:
+    """Generate Graph structure from a microtexts (arggraph) XML file.
 
-
-def _elements(root: etree._Element, query: str) -> list[etree._Element]:
-    result = root.xpath(query)
-    assert isinstance(result, list)
-
-    return [elem for elem in result if isinstance(elem, etree._Element)]
-
-
-def _edges(root: etree._Element, *edge_types: EdgeType) -> dict[str, _Edge]:
-    condition = " or ".join(f"@type='{edge_type}'" for edge_type in edge_types)
-
-    return {
-        str(elem.attrib["id"]): _Edge(
-            str(elem.attrib["src"]),
-            str(elem.attrib["trg"]),
-            EdgeType(str(elem.attrib["type"])),
-        )
-        for elem in _elements(root, f"//edge[{condition}]")
-    }
-
-
-def load_microtexts[T = str](
-    obj: IO[str], name: str | None = None, config: Config[T] = Config()
-) -> Graph[T]:
-    """Generate Graph structure from a microtexts (arggraph) XML file."""
-    root = etree.parse(obj).getroot()
-    g = config.graph(name or root.get("id"))
-    g.userdata = {"stance": root.get("stance"), "topic": root.get("topic_id")}
-
-    source_tags = {
-        str(elem.attrib["id"]): elem for elem in _elements(root, "//edu | //joint")
-    }
-    adu2source = {
-        edge.target: edge.source
-        for edge in _edges(root, EdgeType.SEGMENTATION).values()
-    }
-
-    for adu in _elements(root, "//adu"):
-        if not (adu_id := adu.get("id")):
-            continue
-
-        source = source_tags[adu2source[adu_id]]
-
-        if source.text is None:
-            continue
-
-        atom = config.AtomNodeClass(config.parse(source.text), id=adu_id)
-
-        if adu_type := adu.get("type"):
-            atom.userdata["type"] = adu_type
-
-        g.add_node(atom)
-
-        if source.get("implicit"):
-            g.major_claim = atom
-
-    atom_edges = _edges(
-        root,
-        EdgeType.SUPPORT_DEFAULT,
-        EdgeType.SUPPORT_EXAMPLE,
-        EdgeType.ATTACK_ATOM,
+    ADUs become atoms with the text of their segment, joints concatenate their EDUs with spaces.
+    Support (sup, exa) and attack (reb, und) edges become scheme nodes with the edge id,
+    undercutters (und) target the scheme node of another edge,
+    and additional sources (add) are linked to the scheme node of their target edge
+    by an edge with their own id.
+    The single atom without outgoing edges is the major claim.
+    """
+    root = Tree.parse(obj).getroot()
+    g: Graph[A, S, E, G, R, P, N] = Graph(
+        name or root.get("id"),
+        userdata=codecs.graph.validate_python(
+            {"stance": root.get("stance"), "topic": root.get("topic_id")}
+        ),
+    )
+    edges = [
+        (elem.get("id", ""), elem.get("src", ""), elem.get("trg", ""), elem.get("type"))
+        for elem in root.iter("edge")
+    ]
+    texts = {edu.get("id", ""): edu.text or "" for edu in root.iter("edu")}
+    # dict as an ordered set for fast membership tests
+    segments = dict.fromkeys(
+        (source, target)
+        for _, source, target, type in edges
+        if type == EdgeType.SEGMENTATION
     )
 
-    for edge_id, edge in atom_edges.items():
-        if (source_atom := g.atom_nodes.get(edge.source)) and (
-            target_atom := g.atom_nodes.get(edge.target)
-        ):
-            config.connect(
-                g,
-                source_atom,
-                config.SchemeNodeClass(edge2scheme[edge.type], id=edge_id),
-                target_atom,
+    for joint in root.iter("joint"):
+        joint_id = joint.get("id", "")
+        # EDUs keep their document order
+        texts[joint_id] = " ".join(
+            text for edu_id, text in texts.items() if (edu_id, joint_id) in segments
+        )
+
+    adu2segment = {target: source for source, target in segments}
+
+    for adu in root.iter("adu"):
+        adu_id = adu.get("id", "")
+
+        if (
+            text := lookup(texts, adu2segment.get(adu_id), "segment", f"adu '{adu_id}'")
+        ) is None:
+            continue
+
+        g.add_node(
+            AtomNode(
+                text,
+                userdata=codecs.atom.validate_python({"type": adu.get("type")}),
+                id=adu_id,
+            )
+        )
+
+    # all scheme nodes are added first since undercutters may target later edges
+    for id, _, _, type in edges:
+        if type in edge2scheme:
+            g.add_node(
+                SchemeNode(
+                    edge2scheme[EdgeType(type)],
+                    userdata=codecs.scheme.validate_python({}),
+                    id=id,
+                )
             )
 
-    # undercutters attack the scheme node of another edge
-    for edge_id, edge in _edges(root, EdgeType.ATTACK_SCHEME).items():
-        if (target_scheme := g.scheme_nodes.get(edge.target)) and (
-            atom_node := g.atom_nodes.get(edge.source)
-        ):
-            config.connect(
-                g,
-                atom_node,
-                config.SchemeNodeClass(Attack.DEFAULT, id=edge_id),
-                target_scheme,
-            )
+    schemes = g.scheme_nodes
 
-    # additional premises are linked to an existing scheme node
-    for edge in _edges(root, EdgeType.ADDITIONAL_SOURCE).values():
-        if (scheme_node := g.scheme_nodes.get(edge.target)) and (
-            atom_node := g.atom_nodes.get(edge.source)
-        ):
-            g.add_edge(config.EdgeClass(atom_node, scheme_node))
+    for id, source, target, type in edges:
+        if id in schemes:
+            connect(g, codecs, [source], id, target)
+        elif type == EdgeType.ADDITIONAL_SOURCE:
+            add_edge(g, codecs, source, target, id)
+
+    g.major_claim = g.root_node
 
     return g

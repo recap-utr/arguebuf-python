@@ -1,12 +1,13 @@
 import json
 from dataclasses import dataclass, field
+from typing import override
 
 __all__ = ("D2Edge", "D2Graph", "D2Node", "D2Style")
 
 
 def _quote(value: str) -> str:
-    # d2 double-quoted strings use the same escapes as json
-    return json.dumps(value, ensure_ascii=False)
+    # d2 double-quoted strings use the same escapes as json and substitute `${...}`
+    return json.dumps(value, ensure_ascii=False).replace("$", "\\$")
 
 
 @dataclass(slots=True, frozen=True)
@@ -17,6 +18,7 @@ class D2Style:
     stroke_width: int
     fill: str
 
+    @override
     def __str__(self) -> str:
         return (
             "{\n"
@@ -36,6 +38,7 @@ class D2Node:
     shape: str
     style: D2Style
 
+    @override
     def __str__(self) -> str:
         return (
             f"{_quote(self.id)}: {{\n"
@@ -51,6 +54,7 @@ class D2Edge:
     from_id: str
     to_id: str
 
+    @override
     def __str__(self) -> str:
         return f"{_quote(self.from_id)} -> {_quote(self.to_id)}\n"
 
@@ -60,5 +64,6 @@ class D2Graph:
     nodes: list[D2Node] = field(default_factory=list)
     edges: list[D2Edge] = field(default_factory=list)
 
+    @override
     def __str__(self) -> str:
         return "".join(map(str, [*self.nodes, *self.edges]))

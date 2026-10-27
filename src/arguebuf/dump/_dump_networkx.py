@@ -1,5 +1,4 @@
 from collections.abc import Callable, Mapping
-from typing import Any
 
 import networkx as nx
 
@@ -13,12 +12,13 @@ __all__ = ("dump_networkx",)
 type DiGraph = nx.DiGraph[str]
 
 
-def dump_networkx[T](
-    graph: Graph[T],
-    graph_attrs: Mapping[str, Callable[[Graph[T]], Any]] | None = None,
-    atom_attrs: Mapping[str, Callable[[AtomNode[T]], Any]] | None = None,
-    scheme_attrs: Mapping[str, Callable[[SchemeNode], Any]] | None = None,
-    edge_attrs: Mapping[str, Callable[[Edge], Any]] | None = None,
+def dump_networkx[A, S, E, G, R, P, N](
+    graph: Graph[A, S, E, G, R, P, N],
+    graph_attrs: Mapping[str, Callable[[Graph[A, S, E, G, R, P, N]], object]]
+    | None = None,
+    atom_attrs: Mapping[str, Callable[[AtomNode[A]], object]] | None = None,
+    scheme_attrs: Mapping[str, Callable[[SchemeNode[S]], object]] | None = None,
+    edge_attrs: Mapping[str, Callable[[Edge[E]], object]] | None = None,
 ) -> DiGraph:
     """Transform the argument graph for use with the library `NetworkX`
 
@@ -29,7 +29,7 @@ def dump_networkx[T](
     It is possible to add arbitrary attributes to the resulting graph and its elements.
     For this, you need to pass a dictionary with the desired name of the attribute and a function that is used to compute the attribute's value.
     The function will be passed the corresponding element as its only parameter.
-    For instance, you could pass `atom_attrs={"text": lambda node: node.plain_text}` to set a `text` attribute for atom nodes.
+    For instance, you could pass `atom_attrs={"text": lambda node: node.text}` to set a `text` attribute for atom nodes.
     All nodes have a `label` attribute unless it is overridden.
 
     Args:
@@ -45,32 +45,39 @@ def dump_networkx[T](
     Examples:
         >>> from arguebuf import AtomNode, Edge, Graph
         >>> g = Graph("Test")
-        >>> g.add_edge(Edge(AtomNode("Node1"), AtomNode("Node2")))
+        >>> n1, n2 = AtomNode("Node1"), AtomNode("Node2")
+        >>> g.add_node(n1)
+        >>> g.add_node(n2)
+        >>> g.add_edge(Edge(n1, n2))
         >>> gnx = dump_networkx(g)
         >>> gnx.number_of_nodes()
         2
     """
-    g: DiGraph = nx.DiGraph(None, **_attrs(graph, graph_attrs))
+    g: DiGraph = nx.DiGraph()
+    g.graph.update(_attrs(graph, graph_attrs))
 
     for atom in graph.atom_nodes.values():
-        g.add_node(atom.id, **_node_attrs(atom, atom_attrs))
+        g.add_node(atom.id)
+        g.nodes[atom.id].update(_node_attrs(atom, atom_attrs))
 
     for scheme in graph.scheme_nodes.values():
-        g.add_node(scheme.id, **_node_attrs(scheme, scheme_attrs))
+        g.add_node(scheme.id)
+        g.nodes[scheme.id].update(_node_attrs(scheme, scheme_attrs))
 
     for edge in graph.edges.values():
-        g.add_edge(edge.source.id, edge.target.id, **_attrs(edge, edge_attrs))
+        g.add_edge(edge.source.id, edge.target.id)
+        g.edges[edge.source.id, edge.target.id].update(_attrs(edge, edge_attrs))
 
     return g
 
 
-def _attrs[E](
-    element: E, attrs: Mapping[str, Callable[[E], Any]] | None
-) -> dict[str, Any]:
+def _attrs[T](
+    element: T, attrs: Mapping[str, Callable[[T], object]] | None
+) -> dict[str, object]:
     return {key: func(element) for key, func in (attrs or {}).items()}
 
 
-def _node_attrs[N: AbstractNode](
-    node: N, attrs: Mapping[str, Callable[[N], Any]] | None
-) -> dict[str, Any]:
+def _node_attrs[T: AbstractNode](
+    node: T, attrs: Mapping[str, Callable[[T], object]] | None
+) -> dict[str, object]:
     return {"label": node.label, **_attrs(node, attrs)}

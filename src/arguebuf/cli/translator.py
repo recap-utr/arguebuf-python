@@ -1,5 +1,6 @@
+import copy
 from collections.abc import Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 from deepl import DeepLClient, TextResult
 
@@ -42,7 +43,7 @@ class Translator:
 
         for resource, translation in zip(
             resources,
-            self.translate_texts(resource.plain_text for resource in resources),
+            self.translate_texts(resource.text for resource in resources),
             strict=True,
         ):
             resource.text = translation
@@ -55,15 +56,15 @@ class Translator:
 
         for (atom, reference), translation in zip(
             references,
-            self.translate_texts(reference.plain_text for _, reference in references),
+            self.translate_texts(reference.text for _, reference in references),
             strict=True,
         ):
-            atom.reference = replace(reference, text=translation)
+            atom.reference = copy.replace(reference, text=translation)
 
         atoms = list(graph.atom_nodes.values())
 
         for atom, translation in zip(
-            atoms, self.translate_texts(atom.plain_text for atom in atoms), strict=True
+            atoms, self.translate_texts(atom.text for atom in atoms), strict=True
         ):
             atom.text = translation
 

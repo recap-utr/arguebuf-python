@@ -16,4 +16,4 @@ def graphviz(
     The output format is derived from the suffix of `path`.
     """
     graph.graph_attr["dpi"] = str(dpi)
-    graph.draw(path=str(path), prog=prog)
+    graph.draw(path=path, prog=prog)
