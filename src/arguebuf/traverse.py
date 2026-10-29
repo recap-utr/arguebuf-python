@@ -79,8 +79,8 @@ def node_distance[N: AbstractNode](
         >>> n3 = AtomNode("Claim")
         >>> for node in (n1, n2, n3):
         ...     g.add_node(node)
-        >>> g.add_edge(Edge(n1, n2))
-        >>> g.add_edge(Edge(n2, n3))
+        >>> g.add_edge(Edge(n1.id, n2.id))
+        >>> g.add_edge(Edge(n2.id, n3.id))
         >>> node_distance(n1, n3, g.outgoing_nodes)
         2
         >>> node_distance(n3, n1, g.outgoing_nodes)

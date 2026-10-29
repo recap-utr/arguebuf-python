@@ -1,6 +1,9 @@
+import dataclasses
+
 from arguebuf.dt import from_format
 from arguebuf.model import Graph
 from arguebuf.model.analyst import Analyst
+from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.reference import Reference
@@ -10,7 +13,15 @@ from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
 from arguebuf.model.utils import uuid
 from arguebuf.schemas import aif, ova
 
-from ._helpers import add_edge, lookup, new_participant, stringify_id
+from ._helpers import (
+    Context,
+    add_edge,
+    add_node,
+    lookup,
+    new_participant,
+    relocate,
+    stringify_id,
+)
 from ._html import parse_html
 
 __all__ = ("load_ova",)
@@ -29,6 +40,8 @@ def load_ova[
     name: str | None = None,
     *,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Generate Graph structure from OVA argument graph file.
 
@@ -43,6 +56,7 @@ def load_ova[
         name, userdata=codecs.graph.validate_python({})
     )
     analysis = obj["analysis"]
+    ctx = Context(codecs, on_issue, strict)
     text, spans = parse_html(analysis.get("txt") or "")
     resource: Resource[R] | None = None
 
@@ -76,25 +90,36 @@ def load_ova[
     for ova_node in obj["nodes"]:
         if ova_node["type"] == "I":
             atom = atom_from_ova(ova_node, codecs.atom)
-            atom.participant = lookup(
-                g.participants,
-                ova_node.get("participantID"),
-                "participant",
-                f"atom node '{atom.id}'",
-            )
-
-            if resource and (span := spans.get(f"node{atom.id}")):
-                atom.reference = Reference(
-                    span.text, resource=resource, offset=span.offset
+            span = spans.get(f"node{atom.id}")
+            atom = dataclasses.replace(
+                atom,
+                participant=None
+                if (
+                    participant := lookup(
+                        ctx,
+                        g.participants,
+                        ova_node.get("participantID"),
+                        "participant",
+                        f"atom node '{atom.id}'",
+                    )
                 )
+                is None
+                else participant.id,
+                reference=Reference(span.text, resource=resource.id, offset=span.offset)
+                if resource and span
+                else atom.reference,
+            )
+            add_node(g, ctx, atom)
 
-            g.add_node(atom)
-
-            if ova_node.get("majorClaim") and g.major_claim is None:
+            if (
+                ova_node.get("majorClaim")
+                and g.major_claim is None
+                and g.atom_nodes.get(atom.id) is atom
+            ):
                 g.major_claim = atom
 
         elif scheme := scheme_from_ova(ova_node, codecs.scheme):
-            g.add_node(scheme)
+            add_node(g, ctx, scheme)
 
     # edges of dialog nodes are expected to be missing, unlike dangling ones
     dialog = {
@@ -106,13 +131,15 @@ def load_ova[
     for ova_edge in obj["edges"]:
         add_edge(
             g,
-            codecs,
+            ctx,
             stringify_id(ova_edge["from"]["id"]),
             stringify_id(ova_edge["to"]["id"]),
             uuid(),
             metadata=_metadata(ova_edge),
             ignore=dialog,
         )
+
+    relocate(g, ctx)
 
     return g
 

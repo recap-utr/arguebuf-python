@@ -3,11 +3,12 @@ from dataclasses import dataclass
 from typing import TextIO
 
 from arguebuf.model import Graph
+from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.scheme import Attack, Rephrase, Scheme, Support
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
-from ._helpers import connect, lookup
+from ._helpers import Context, connect, lookup
 
 __all__ = ("load_kialo",)
 
@@ -45,6 +46,8 @@ def load_kialo[
     name: str | None = None,
     *,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Generate Graph structure from a kialo discussion export.
 
@@ -84,6 +87,7 @@ def load_kialo[
     if not statements:
         raise ValueError("The major claim is not present in the third line!")
 
+    ctx = Context(codecs, on_issue, strict)
     g: Graph[A, S, E, G, R, P, N] = Graph(
         name, userdata=codecs.graph.validate_python({})
     )
@@ -112,7 +116,7 @@ def load_kialo[
             visited.add(id)
             id = references[id]
 
-        return lookup(atoms, id, "statement", owner)
+        return lookup(ctx, atoms, id, "statement", owner)
 
     g.major_claim = resolve("1.", "the major claim")
 
@@ -127,6 +131,6 @@ def load_kialo[
                 id=f"{id}scheme",
             )
             g.add_node(scheme)
-            connect(g, codecs, [source.id], scheme.id, target.id)
+            connect(g, ctx, [source.id], scheme.id, target.id)
 
     return g

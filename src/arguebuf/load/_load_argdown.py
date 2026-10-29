@@ -2,13 +2,14 @@ import json
 from collections.abc import Mapping, Sequence
 
 from arguebuf.model import Graph
-from arguebuf.model.edge import Edge
+from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, AtomOrSchemeNode, SchemeNode
 from arguebuf.model.scheme import Attack, Scheme, Support
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject, JsonValue
+from arguebuf.model.utils import uuid
 from arguebuf.schemas import argdown
 
-from ._helpers import compact, connect, log, lookup
+from ._helpers import Context, add_edge, compact, connect, lookup
 
 __all__ = ("load_argdown",)
 
@@ -92,6 +93,8 @@ def load_argdown[
     name: str | None = None,
     *,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Generate a graph from the Argdown JSON export (https://argdown.org).
 
@@ -105,6 +108,7 @@ def load_argdown[
     g: Graph[A, S, E, G, R, P, N] = Graph(
         name, userdata=codecs.graph.validate_python(obj.get("frontMatter") or {})
     )
+    ctx = Context(codecs, on_issue, strict)
     # inference scheme nodes by argument title and conclusion index
     inferences: dict[str, dict[int, SchemeNode[S]]] = {}
 
@@ -152,18 +156,14 @@ def load_argdown[
 
             for premise in _premises(argument, index):
                 if node := lookup(
-                    statements, premise.get("title"), "equivalence-class", owner
+                    ctx, statements, premise.get("title"), "equivalence-class", owner
                 ):
-                    g.add_edge(
-                        Edge(node, scheme, userdata=codecs.edge.validate_python({}))
-                    )
+                    add_edge(g, ctx, node.id, scheme.id, uuid())
 
             if conclusion := lookup(
-                statements, statement.get("title"), "equivalence-class", owner
+                ctx, statements, statement.get("title"), "equivalence-class", owner
             ):
-                g.add_edge(
-                    Edge(scheme, conclusion, userdata=codecs.edge.validate_python({}))
-                )
+                add_edge(g, ctx, scheme.id, conclusion.id, uuid())
 
             inferences.setdefault(title, {})[index] = scheme
             main = scheme
@@ -183,16 +183,15 @@ def load_argdown[
         title: str, type: argdown.MemberType, index: int | None, owner: str
     ) -> AtomOrSchemeNode[A, S] | None:
         if type != "inference":
-            return lookup(members.get(type, {}), title, type, owner)
+            return lookup(ctx, members.get(type, {}), title, type, owner)
 
         nodes = inferences.get(title, {})
 
         if index is None or (node := nodes.get(index)) is None:
-            log.warning(
-                "Skipping unknown inference %s of argument '%s' referenced by %s.",
-                index,
-                title,
-                owner,
+            ctx.report(
+                "unknown-element",
+                f"Skipping unknown inference {index} of argument '{title}' referenced by {owner}.",
+                [title],
             )
 
             return None
@@ -204,7 +203,9 @@ def load_argdown[
         owner = f"{relation_type} relation"
 
         if (
-            mapping := lookup(relation2scheme, relation_type, "relation type", owner)
+            mapping := lookup(
+                ctx, relation2scheme, relation_type, "relation type", owner
+            )
         ) is None:
             continue
 
@@ -230,6 +231,6 @@ def load_argdown[
                 ),
             )
             g.add_node(scheme_node)
-            connect(g, codecs, [start.id], scheme_node.id, end.id)
+            connect(g, ctx, [start.id], scheme_node.id, end.id)
 
     return g

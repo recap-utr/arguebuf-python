@@ -6,15 +6,25 @@ from google.protobuf import proto_json
 from arguebuf.dt import from_protobuf
 from arguebuf.model import Graph
 from arguebuf.model.analyst import Analyst
+from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, SchemeNode
-from arguebuf.model.participant import AbstractParticipant, Participant
+from arguebuf.model.participant import Participant
 from arguebuf.model.reference import Reference
-from arguebuf.model.resource import AbstractResource, Resource
+from arguebuf.model.resource import Resource
 from arguebuf.model.scheme import Scheme, protobuf2scheme
 from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
+from arguebuf.model.utils import Entity
 
-from ._helpers import add_edge, lookup, new_reference
+from ._helpers import (
+    Context,
+    Reporting,
+    add_edge,
+    add_node,
+    lookup,
+    new_reference,
+    relocate,
+)
 
 __all__ = ("load_protobuf",)
 
@@ -32,12 +42,15 @@ def load_protobuf[
     name: str | None = None,
     *,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Generate Graph structure from a protobuf message.
 
     Edges, references, and the major claim pointing to unknown elements
     are skipped with a warning, unknown scheme values raise a `ValueError`.
     """
+    ctx = Context(codecs, on_issue, strict)
     g: Graph[A, S, E, G, R, P, N] = Graph(
         name,
         metadata=metadata_from_protobuf(obj.metadata),
@@ -65,20 +78,22 @@ def load_protobuf[
     for node_id, node in obj.nodes.items():
         match node.WhichOneof("type"):
             case "atom":
-                g.add_node(
+                add_node(
+                    g,
+                    ctx,
                     atom_from_protobuf(
-                        node_id, node, g.resources, g.participants, codecs.atom
-                    )
+                        node_id, node, g.resources, g.participants, ctx, codecs.atom
+                    ),
                 )
             case "scheme":
-                g.add_node(scheme_from_protobuf(node_id, node, codecs.scheme))
+                add_node(g, ctx, scheme_from_protobuf(node_id, node, codecs.scheme))
             case _:
                 raise ValueError(f"Node '{node_id}' is neither an atom nor a scheme.")
 
     for edge_id, edge in obj.edges.items():
         add_edge(
             g,
-            codecs,
+            ctx,
             edge.source,
             edge.target,
             edge_id,
@@ -86,8 +101,12 @@ def load_protobuf[
             userdata=_userdata(edge),
         )
 
-    if major_claim := lookup(g.atom_nodes, obj.major_claim, "major claim", "the graph"):
+    if major_claim := lookup(
+        ctx, g.atom_nodes, obj.major_claim, "major claim", "the graph"
+    ):
         g.major_claim = major_claim
+
+    relocate(g, ctx)
 
     return g
 
@@ -138,8 +157,9 @@ def participant_from_protobuf[P](
 def atom_from_protobuf[A](
     id: str,
     obj: graph_pb2.Node,
-    resources: Mapping[str, AbstractResource],
-    participants: Mapping[str, AbstractParticipant],
+    resources: Mapping[str, Entity],
+    participants: Mapping[str, Entity],
+    ctx: Reporting,
     codec: Codec[A],
 ) -> AtomNode[A]:
     """Generate AtomNode object from protobuf Node object."""
@@ -147,10 +167,12 @@ def atom_from_protobuf[A](
 
     return AtomNode(
         obj.atom.text,
-        reference=reference_from_protobuf(obj.atom.reference, resources, owner)
+        reference=reference_from_protobuf(ctx, obj.atom.reference, resources, owner)
         if obj.atom.HasField("reference")
         else None,
-        participant=lookup(participants, obj.atom.participant, "participant", owner),
+        participant=obj.atom.participant
+        if lookup(ctx, participants, obj.atom.participant, "participant", owner)
+        else None,
         metadata=metadata_from_protobuf(obj.metadata),
         userdata=codec.validate_python(_userdata(obj)),
         id=id,
@@ -189,10 +211,14 @@ def metadata_from_protobuf(obj: graph_pb2.Metadata) -> Metadata:
 
 
 def reference_from_protobuf(
-    obj: graph_pb2.Reference, resources: Mapping[str, AbstractResource], owner: str
+    ctx: Reporting,
+    obj: graph_pb2.Reference,
+    resources: Mapping[str, Entity],
+    owner: str,
 ) -> Reference:
     """Generate Reference object, see `new_reference` for unknown resources."""
     return new_reference(
+        ctx,
         obj.text,
         obj.resource,
         obj.offset if obj.HasField("offset") else None,

@@ -1,3 +1,4 @@
+import dataclasses
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
@@ -5,15 +6,22 @@ from typing import Self
 
 from arguebuf.dt import from_format
 from arguebuf.model import Graph
+from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, SchemeNode
-from arguebuf.model.participant import Participant
 from arguebuf.model.reference import Reference
 from arguebuf.model.scheme import Rephrase, aif2scheme, resolve_aif_scheme
 from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
 from arguebuf.schemas import aif
 
-from ._helpers import add_edge, connect, new_participant, stringify_id
+from ._helpers import (
+    Context,
+    add_edge,
+    add_node,
+    connect,
+    new_participant,
+    stringify_id,
+)
 
 __all__ = ("load_aif",)
 
@@ -32,6 +40,8 @@ def load_aif[
     *,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Generate Graph structure from AIF argument graph file.
 
@@ -50,6 +60,7 @@ def load_aif[
         name, userdata=codecs.graph.validate_python({})
     )
     index = _Index.from_aif(obj)
+    ctx = Context(codecs, on_issue, strict)
 
     for participant in obj.get("participants") or []:
         g.add_participant(
@@ -62,7 +73,7 @@ def load_aif[
         )
 
     # a locution node may be listed several times with different speakers
-    speakers: defaultdict[str, dict[Participant[P], None]] = defaultdict(dict)
+    speakers: defaultdict[str, dict[str, None]] = defaultdict(dict)
 
     for locution in obj.get("locutions") or []:
         person = stringify_id(locution["personID"])
@@ -70,7 +81,7 @@ def load_aif[
         if person not in g.participants:
             g.add_participant(new_participant(codecs.participant, person))
 
-        speakers[stringify_id(locution["nodeID"])][g.participants[person]] = None
+        speakers[stringify_id(locution["nodeID"])][person] = None
 
     for aif_node in obj["nodes"]:
         node = node_from_aif(aif_node, codecs.atom, codecs.scheme)
@@ -87,13 +98,16 @@ def load_aif[
             )
 
             if len(participants) == 1:
-                (node.participant,) = participants
+                (participant,) = participants
+                node = dataclasses.replace(node, participant=participant)
 
             if len(locutions) == 1:
                 (locution,) = locutions
-                node.reference = Reference(index.nodes[locution]["text"])
+                node = dataclasses.replace(
+                    node, reference=Reference(index.nodes[locution]["text"])
+                )
 
-        g.add_node(node)
+        add_node(g, ctx, node)
 
     # edges of dialog nodes are expected to be missing, unlike dangling ones
     dialog = {
@@ -101,10 +115,10 @@ def load_aif[
     }
 
     for edge_id, source, target in index.edges:
-        add_edge(g, codecs, source, target, edge_id, ignore=dialog)
+        add_edge(g, ctx, source, target, edge_id, ignore=dialog)
 
     if reconstruct_dialog:
-        _reconstruct_dialog(g, codecs, index)
+        _reconstruct_dialog(g, ctx, index)
 
     return g
 
@@ -190,7 +204,7 @@ class _Index:
 
 
 def _reconstruct_dialog[A, S, E, G, R, P, N](
-    g: Graph[A, S, E, G, R, P, N], codecs: Codecs[A, S, E, G, R, P, N], index: _Index
+    g: Graph[A, S, E, G, R, P, N], ctx: Context[A, S, E, G, R, P, N], index: _Index
 ) -> None:
     """Connect isolated atoms to the atoms of adjacent turns via rephrase nodes.
 
@@ -220,7 +234,7 @@ def _reconstruct_dialog[A, S, E, G, R, P, N](
                     connected.add(pair)
                     scheme = SchemeNode(
                         Rephrase.DEFAULT,
-                        userdata=codecs.scheme.validate_python({}),
+                        userdata=ctx.codecs.scheme.validate_python({}),
                     )
                     g.add_node(scheme)
-                    connect(g, codecs, [atom.id], scheme.id, target)
+                    connect(g, ctx, [atom.id], scheme.id, target)

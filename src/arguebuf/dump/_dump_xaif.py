@@ -1,7 +1,7 @@
 import html
 
 from arguebuf.model import Graph
-from arguebuf.model.participant import AbstractParticipant
+from arguebuf.model.participant import Participant
 from arguebuf.schemas import aif, xaif
 
 from ._dump_aif import dump_edge, dump_node
@@ -35,7 +35,7 @@ def dump_xaif[A, S, E, G, R, P, N](obj: Graph[A, S, E, G, R, P, N]) -> xaif.Grap
     }
 
 
-def dump_participant(obj: AbstractParticipant) -> aif.Participant:
+def dump_participant[P](obj: Participant[P]) -> aif.Participant:
     """Export a participant, its name is split at the first space into first name and surname."""
     firstname, _, surname = (obj.name or "").partition(" ")
 

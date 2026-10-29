@@ -1,3 +1,4 @@
+import copy
 import logging
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
@@ -6,16 +7,16 @@ import pytest
 from arg_services.graph.v1 import graph_pb2
 
 import arguebuf as ag
-from arguebuf.load._helpers import new_reference
+from arguebuf.load._helpers import Context, new_reference
 from arguebuf.model.utils import Entity
 
 from .conftest import new_graph
 
 
 def _sample() -> tuple[ag.Graph, ag.AtomNode, ag.Participant, ag.Resource]:
-    p, r = ag.Participant("p"), ag.Resource("r")
+    p, r = ag.Participant("p"), ag.Resource("a")
     a = ag.AtomNode(
-        "a", participant=p, reference=ag.Reference("a", resource=r, offset=0)
+        "a", participant=p.id, reference=ag.Reference("a", resource=r.id, offset=0)
     )
     g = ag.Graph()
     g.add_participant(p)
@@ -25,30 +26,59 @@ def _sample() -> tuple[ag.Graph, ag.AtomNode, ag.Participant, ag.Resource]:
     return g, a, p, r
 
 
-def test_parallel_edges():
-    a, s = ag.AtomNode("a"), ag.SchemeNode()
-    g = new_graph(a, s)
-    e1, e2 = ag.Edge(a, s), ag.Edge(a, s)
-    g.add_edge(e1)
-    g.add_edge(e2)
-    g.remove_edge(e1)
+def test_strict_edges():
+    a, b, s = ag.AtomNode("a"), ag.AtomNode("b"), ag.SchemeNode()
+    g = new_graph(a, b, s)
+    e = ag.Edge(a.id, s.id)
+    g.add_edge(e)
 
-    assert g.outgoing_nodes(a) == {s}
+    for edge, code in (
+        (ag.Edge(a.id, s.id), "parallel-edge"),
+        (ag.Edge(s.id, s.id), "self-loop"),
+        (ag.Edge(a.id, b.id), "atom-edge"),
+        (e, "duplicate-id"),
+    ):
+        with pytest.raises(ag.GraphError) as error:
+            g.add_edge(edge)
 
-    g.remove_edge(e2.id)
+        assert error.value.issue.code == code
+
+    g.remove_edge(e.id)
 
     assert g.outgoing_nodes(a) == set()
 
 
+def test_updates_validate_and_keep_edges():
+    g, a, _, r = _sample()
+    s = ag.SchemeNode()
+    g.add_node(s)
+    g.add_edge(ag.Edge(a.id, s.id, id="e"))
+    g.update_atom(a, text="b")
+    g.update_edge("e", userdata={"weight": 1})
+
+    assert g.atom_nodes[a.id].text == "b"
+    assert g.outgoing_edges(a) == {g.edges["e"]}
+    assert g.edges["e"].userdata == {"weight": 1}
+
+    with pytest.raises(ag.GraphError):
+        g.update_atom(a, participant="missing")
+
+    with pytest.raises(ag.GraphError):
+        g.update_atom(s.id, text="scheme")
+
+    g.update_resource(r, text="xa")
+
+    assert g.atom_nodes[a.id].reference == ag.Reference("a", resource=r.id, offset=1)
+
+
 def test_remove_node_cascades():
-    a, s = ag.AtomNode("a"), ag.SchemeNode(premise_descriptors=[])
+    a, s = ag.AtomNode("a", id="a"), ag.SchemeNode(premise_descriptors=["a"])
     g = new_graph(a, s)
-    s.premise_descriptors.append(a.id)
     g.major_claim = a
     g.remove_node(a.id)
 
     assert g.major_claim is None
-    assert s.premise_descriptors == []
+    assert g.scheme_nodes[s.id].premise_descriptors == ()
 
 
 def test_remove_cascades_to_atoms():
@@ -56,9 +86,44 @@ def test_remove_cascades_to_atoms():
     g.remove_participant(p)
     g.remove_resource(r.id)
 
-    assert a.participant is None
-    assert a.reference == ag.Reference("a")
+    assert g.atom_nodes[a.id].participant is None
+    assert g.atom_nodes[a.id].reference == ag.Reference("a")
+    assert a.participant == p.id
     assert g.name is None
+
+
+def test_copies_never_leak_writes():
+    g, a, p, r = _sample()
+    s, c = ag.SchemeNode(id="s"), ag.AtomNode("c", id="c")
+    g.add_node(s)
+    g.add_node(c)
+    g.connect([a.id], s, c)
+    gc = copy.copy(g)
+
+    def snapshot(graph: ag.Graph) -> object:
+        return (
+            list(graph.nodes),
+            list(graph.edges),
+            list(graph.resources),
+            list(graph.participants),
+            [
+                (list(graph.incoming_edges(n)), list(graph.outgoing_edges(n)))
+                for n in graph.nodes
+            ],
+        )
+
+    before = snapshot(g)
+    gc.remove_edge(next(iter(gc.incoming_edges(c.id))))
+    gc.add_edge(ag.Edge(s.id, c.id, id="e"))
+    gc.remove_participant(p)
+    assert snapshot(g) == before
+
+    copied = snapshot(gc)
+    g.remove_node(s)
+    g.remove_resource(r)
+    g.add_node(ag.AtomNode("x", id="x"))
+    assert snapshot(gc) == copied
+    assert {n.id for n in gc.incoming_nodes(s.id)} == {a.id}
 
 
 def test_strict_references():
@@ -66,11 +131,11 @@ def test_strict_references():
     g = new_graph(a)
 
     with pytest.raises(ValueError):
-        g.add_edge(ag.Edge(ag.AtomNode("copy", id="x"), a))
+        g.add_edge(ag.Edge("missing", a.id))
 
     with pytest.raises(ValueError):
         g.add_node(
-            ag.AtomNode("b", reference=ag.Reference("b", resource=ag.Resource("r")))
+            ag.AtomNode("b", reference=ag.Reference("b", resource=ag.Resource("r").id))
         )
 
 
@@ -97,17 +162,17 @@ def test_entity_equality():
     (
         ag.AtomNode("a", id="atom"),
         ag.SchemeNode(id="scheme"),
-        ag.Edge(ag.AtomNode("a"), ag.AtomNode("b"), id="edge"),
+        ag.Edge("a", "b", id="edge"),
         ag.Resource("r", id="resource"),
         ag.Participant("p", id="participant"),
         ag.Analyst("n", id="analyst"),
     ),
 )
-def test_entity_id_is_read_only(entity: Entity) -> None:
+def test_entities_are_frozen(entity: Entity) -> None:
     original_id = entity.id
 
     with pytest.raises(AttributeError):
-        object.__setattr__(entity, "id", "changed")
+        setattr(entity, "id", "changed")  # noqa: B010
 
     with pytest.raises(AttributeError):
         delattr(entity, "id")
@@ -125,8 +190,8 @@ def test_networkx_attribute_names() -> None:
         atom_attrs={"node_for_adding": lambda node: node.id},
         scheme_attrs={"node_for_adding": lambda node: node.id},
         edge_attrs={
-            "u_of_edge": lambda edge: edge.source.id,
-            "v_of_edge": lambda edge: edge.target.id,
+            "u_of_edge": lambda edge: edge.source,
+            "v_of_edge": lambda edge: edge.target,
         },
     )
 
@@ -158,11 +223,11 @@ def test_protobuf_roundtrip():
     loaded = ag.load.protobuf(proto)
 
     assert proto.library_version.startswith("arguebuf-python:")
-    assert loaded.major_claim == a
-    assert loaded.atom_nodes[a.id].participant == p
-    assert loaded.atom_nodes[a.id].reference == ag.Reference("a", resource=r, offset=0)
+    assert loaded.major_claim == a.id
+    assert loaded.atom_nodes[a.id].participant == p.id
+    assert loaded.atom_nodes[a.id].reference == ag.Reference("a", resource=r.id, offset=0)
     assert loaded.atom_nodes[a.id].metadata == a.metadata
-    assert ag.copy(g).atom_nodes[a.id].userdata == {"count": 1}
+    assert copy.deepcopy(g).atom_nodes[a.id].userdata == {"count": 1}
 
 
 def test_protobuf_dangling(caplog: pytest.LogCaptureFixture):
@@ -196,11 +261,26 @@ def test_reference_offsets(caplog: pytest.LogCaptureFixture):
     resources = {"r": ag.Resource("text", id="r")}
 
     with caplog.at_level(logging.WARNING):
-        known = new_reference("a", "r", 1, resources, "atom")
-        missing = new_reference("a", "", 1, resources, "atom")
-        unknown = new_reference("a", "x", 1, resources, "atom")
+        ctx = Context(ag.Codecs())
+        known = new_reference(ctx, "a", "r", 1, resources, "atom")
+        missing = new_reference(ctx, "a", "", 1, resources, "atom")
+        unknown = new_reference(ctx, "a", "x", 1, resources, "atom")
 
-    assert known == ag.Reference("a", resource=resources["r"], offset=1)
+    assert known == ag.Reference("a", resource="r", offset=1)
     assert missing == ag.Reference("a", offset=1)
     assert unknown == ag.Reference("a")
     assert len(caplog.records) == 1
+
+
+def test_removed_adjacency_does_not_accumulate() -> None:
+    graph = ag.Graph()
+    graph.add_node(ag.AtomNode("", id="a"))
+    graph.remove_node("a")
+    baseline = len(graph._store._owned)
+
+    for _ in range(1000):
+        graph.add_node(ag.AtomNode("", id="a"))
+        graph.remove_node("a")
+
+    assert not graph.nodes
+    assert len(graph._store._owned) == baseline

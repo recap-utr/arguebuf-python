@@ -19,6 +19,7 @@ def dump_networkx[A, S, E, G, R, P, N](
     atom_attrs: Mapping[str, Callable[[AtomNode[A]], object]] | None = None,
     scheme_attrs: Mapping[str, Callable[[SchemeNode[S]], object]] | None = None,
     edge_attrs: Mapping[str, Callable[[Edge[E]], object]] | None = None,
+    scheme_nodes: bool = True,
 ) -> DiGraph:
     """Transform the argument graph for use with the library `NetworkX`
 
@@ -38,20 +39,23 @@ def dump_networkx[A, S, E, G, R, P, N](
         atom_attrs: Attribute functions for the atom nodes.
         scheme_attrs: Attribute functions for the scheme nodes.
         edge_attrs: Attribute functions for the edges.
+        scheme_nodes: Include the scheme nodes, otherwise atom nodes are connected directly
+            (see `Graph.atom_relations`) by edges whose attribute `scheme` is the id
+            of the scheme node between them.
 
     Returns:
         Instance of the *directed* `NetworkX` graph.
 
     Examples:
-        >>> from arguebuf import AtomNode, Edge, Graph
+        >>> from arguebuf import AtomNode, Graph, SchemeNode
         >>> g = Graph("Test")
-        >>> n1, n2 = AtomNode("Node1"), AtomNode("Node2")
-        >>> g.add_node(n1)
-        >>> g.add_node(n2)
-        >>> g.add_edge(Edge(n1, n2))
-        >>> gnx = dump_networkx(g)
-        >>> gnx.number_of_nodes()
-        2
+        >>> for node in (AtomNode("P", id="p"), SchemeNode(id="s"), AtomNode("C", id="c")):
+        ...     g.add_node(node)
+        >>> g.connect(["p"], "s", "c")
+        >>> dump_networkx(g).number_of_nodes()
+        3
+        >>> dump_networkx(g, scheme_nodes=False).edges["p", "c"]
+        {'scheme': 's'}
     """
     g: DiGraph = nx.DiGraph()
     g.graph.update(_attrs(graph, graph_attrs))
@@ -60,13 +64,19 @@ def dump_networkx[A, S, E, G, R, P, N](
         g.add_node(atom.id)
         g.nodes[atom.id].update(_node_attrs(atom, atom_attrs))
 
+    if not scheme_nodes:
+        for relation in graph.atom_relations():
+            g.add_edge(relation.source.id, relation.target.id, scheme=relation.scheme.id)
+
+        return g
+
     for scheme in graph.scheme_nodes.values():
         g.add_node(scheme.id)
         g.nodes[scheme.id].update(_node_attrs(scheme, scheme_attrs))
 
     for edge in graph.edges.values():
-        g.add_edge(edge.source.id, edge.target.id)
-        g.edges[edge.source.id, edge.target.id].update(_attrs(edge, edge_attrs))
+        g.add_edge(edge.source, edge.target)
+        g.edges[edge.source, edge.target].update(_attrs(edge, edge_attrs))
 
     return g
 

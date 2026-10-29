@@ -2,6 +2,7 @@ from . import (
     analyst,
     edge,
     graph,
+    issue,
     metadata,
     node,
     participant,
@@ -12,7 +13,26 @@ from . import (
 )
 from .analyst import Analyst
 from .edge import Edge
-from .graph import Graph
+from .graph import (
+    AnalystChanges,
+    AtomChanges,
+    AtomRelation,
+    EdgeChanges,
+    Graph,
+    ParticipantChanges,
+    ResourceChanges,
+    SchemeChanges,
+)
+from .issue import (
+    ISSUE_CODES,
+    GraphError,
+    Issue,
+    IssueCode,
+    Reporter,
+    Severity,
+    has_errors,
+    is_issue_code,
+)
 from .metadata import Metadata
 from .node import (
     NO_SCHEME_LABEL,
@@ -22,10 +42,10 @@ from .node import (
     Color,
     SchemeNode,
 )
-from .participant import AbstractParticipant, Participant
+from .participant import Participant
 from .reference import Reference
-from .resource import AbstractResource, Resource
-from .scheme import Attack, Preference, Rephrase, Scheme, Support
+from .resource import Resource
+from .scheme import Attack, Preference, Rephrase, Scheme, SchemeType, Support
 from .userdata import (
     DEFAULT_CODECS,
     Codec,
@@ -38,34 +58,49 @@ from .utils import uuid
 
 __all__ = (
     "DEFAULT_CODECS",
+    "ISSUE_CODES",
     "NO_SCHEME_LABEL",
     "AbstractNode",
-    "AbstractParticipant",
-    "AbstractResource",
     "Analyst",
+    "AnalystChanges",
+    "AtomChanges",
     "AtomNode",
     "AtomOrSchemeNode",
+    "AtomRelation",
     "Attack",
     "Codec",
     "Codecs",
     "Color",
     "Edge",
+    "EdgeChanges",
     "Graph",
+    "GraphError",
+    "Issue",
+    "IssueCode",
     "JsonCodec",
     "JsonObject",
     "JsonValue",
     "Metadata",
     "Participant",
+    "ParticipantChanges",
     "Preference",
     "Reference",
     "Rephrase",
+    "Reporter",
     "Resource",
+    "ResourceChanges",
     "Scheme",
+    "SchemeChanges",
     "SchemeNode",
+    "SchemeType",
+    "Severity",
     "Support",
     "analyst",
     "edge",
     "graph",
+    "has_errors",
+    "is_issue_code",
+    "issue",
     "metadata",
     "node",
     "participant",

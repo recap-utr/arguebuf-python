@@ -2,10 +2,11 @@ from datetime import UTC, datetime
 from xml.etree import ElementTree as ET
 
 import arguebuf as ag
+from arguebuf.load._helpers import Context
 from arguebuf.load._load_aif import node_from_aif
 from arguebuf.load._load_aml import atom_from_aml, scheme_from_aml
 from arguebuf.load._load_sadface import atom_from_sadface, scheme_from_sadface
-from arguebuf.model.userdata import JSON_CODEC
+from arguebuf.model.userdata import JSON_CODEC, Codecs
 
 
 def test_aml_atom() -> None:
@@ -22,7 +23,7 @@ def test_aml_atom() -> None:
 
 def test_sadface_atom() -> None:
     node = atom_from_sadface(
-        {"id": "a", "text": "Claim", "type": "atom"}, {}, JSON_CODEC
+        {"id": "a", "text": "Claim", "type": "atom"}, {}, Context(Codecs()), JSON_CODEC
     )
 
     assert node.id == "a"

@@ -14,6 +14,6 @@ def new_graph(
         g.add_node(node)
 
     for source, target in edges:
-        g.add_edge(ag.Edge(source, target))
+        g.add_edge(ag.Edge(source.id, target.id))
 
     return g

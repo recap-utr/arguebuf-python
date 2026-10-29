@@ -15,5 +15,5 @@ def test_argdown_samples(path: Path) -> None:
     assert graph.nodes
 
     for edge in graph.edges.values():
-        assert graph.nodes[edge.source.id] is edge.source
-        assert graph.nodes[edge.target.id] is edge.target
+        assert edge.source in graph.nodes
+        assert edge.target in graph.nodes

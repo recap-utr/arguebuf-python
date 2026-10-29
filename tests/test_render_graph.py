@@ -15,7 +15,7 @@ def graph() -> ag.Graph:
     scheme = ag.SchemeNode(ag.Support.DEFAULT)
     g.add_node(atom)
     g.add_node(scheme)
-    g.add_edge(ag.Edge(atom, scheme))
+    g.add_edge(ag.Edge(atom.id, scheme.id))
 
     return g
 

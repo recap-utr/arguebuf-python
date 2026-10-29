@@ -78,7 +78,7 @@ def test_dialog_xaif():
     for id, name, text in (("1", "Bob Smith", "Hello"), ("4", None, "Hi")):
         atom = graph.atom_nodes[id]
 
-        assert atom.participant and atom.participant.name == name
+        assert atom.participant and graph.participants[atom.participant].name == name
         assert atom.reference and atom.reference.text == text
 
     graph = ag.load.dict(obj, reconstruct_dialog=True)
@@ -99,8 +99,8 @@ def test_roundtrip(format: ag.dump.Format):
         premise = ag.AtomNode(scheme.value)
         graph.add_node(premise)
         graph.add_node(node := ag.SchemeNode(scheme))
-        graph.add_edge(ag.Edge(premise, node))
-        graph.add_edge(ag.Edge(node, claim))
+        graph.add_edge(ag.Edge(premise.id, node.id))
+        graph.add_edge(ag.Edge(node.id, claim.id))
 
     loaded = ag.load.dict(json.loads(json.dumps(ag.dump.dict(graph, format=format))))
 
@@ -135,7 +135,7 @@ def test_ambiguous_locutions():
     graph = ag.load.dict(obj)
 
     assert graph.atom_nodes["0"].participant is None
-    assert graph.atom_nodes["3"].participant == graph.participants["a"]
+    assert graph.atom_nodes["3"].participant == "a"
     assert graph.atom_nodes["0"].reference is None
     assert graph.atom_nodes["3"].reference is None
 

@@ -1,3 +1,4 @@
+import copy
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Literal, assert_type
@@ -6,6 +7,7 @@ import pytest
 
 import arguebuf as ag
 from arguebuf import JsonObject
+from arguebuf.load._helpers import Context, add_edge
 
 
 @dataclass(slots=True)
@@ -94,7 +96,7 @@ def test_codec_roundtrip():
     assert_type(loaded.atom_nodes["a"].userdata, AtomData)
     assert loaded.atom_nodes["a"].userdata == AtomData("claim")
     # copies keep the internal data that the codec does not dump
-    assert ag.copy(g).atom_nodes["a"].userdata == data
+    assert copy.deepcopy(g).atom_nodes["a"].userdata == data
 
     with pytest.raises(TypeError, match="Invalid label"):
         ag.load.dict(
@@ -123,3 +125,21 @@ def test_default_roundtrip():
     assert loaded.userdata == {"topic": "t"}
     assert loaded.atom_nodes["a"].userdata == {"n": [1, None]}
     assert ag.AtomNode("x").userdata is not ag.AtomNode("y").userdata
+
+
+def test_repaired_edges_keep_required_userdata_and_metadata() -> None:
+    graph: ag.Graph[JsonObject, JsonObject, AtomData] = ag.Graph()
+    graph.add_node(ag.AtomNode("A", id="a"))
+    graph.add_node(ag.AtomNode("B", id="b"))
+    metadata = ag.Metadata()
+    issues: list[ag.Issue] = []
+    context = Context(ag.Codecs(edge=AtomCodec()), on_issue=issues.append)
+    add_edge(graph, context, "a", "b", "e", metadata, {"label": "required"})
+
+    assert [issue.code for issue in issues] == ["atom-edge"]
+    assert len(graph.edges) == 2
+    assert graph.edges["e"].source == "a"
+
+    for edge in graph.edges.values():
+        assert edge.userdata == AtomData("required")
+        assert edge.metadata is metadata

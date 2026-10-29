@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from arguebuf.model import Graph
+from arguebuf.model.issue import Reporter
 from arguebuf.model.resource import Resource
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
@@ -23,6 +24,8 @@ def load_file[
     *,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Load a graph from a file.
 
@@ -46,7 +49,7 @@ def load_file[
             file.suffix,
             file.stem,
             reconstruct_dialog=reconstruct_dialog,
-            codecs=codecs,
+            codecs=codecs, on_issue=on_issue, strict=strict,
         )
 
     if text_file != file and text_file.exists():
@@ -73,6 +76,8 @@ def load_folder[
     *,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> dict[Path, Graph[A, S, E, G, R, P, N]]:
     """Load all graphs matching the specified `pattern` in `folder`.
 
@@ -102,7 +107,7 @@ def load_folder[
             if text_folder
             else None,
             reconstruct_dialog=reconstruct_dialog,
-            codecs=codecs,
+            codecs=codecs, on_issue=on_issue, strict=strict,
         )
         for file in sorted(folder.glob(pattern))
     }

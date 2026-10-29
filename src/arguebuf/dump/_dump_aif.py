@@ -46,4 +46,4 @@ def dump_node(obj: AbstractNode, timestamp: bool) -> aif.Node:
 
 def dump_edge[E](obj: Edge[E]) -> aif.Edge:
     """Export an edge to an AIF edge."""
-    return {"edgeID": obj.id, "fromID": obj.source.id, "toID": obj.target.id}
+    return {"edgeID": obj.id, "fromID": obj.source, "toID": obj.target}

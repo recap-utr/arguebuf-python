@@ -28,14 +28,14 @@ continued\x20\x20
 
 
 def _edges(g: ag.Graph) -> set[tuple[str, str]]:
-    return {(edge.source.id, edge.target.id) for edge in g.edges.values()}
+    return {(edge.source, edge.target) for edge in g.edges.values()}
 
 
 def test_kialo():
     g = ag.load.kialo(io.StringIO(KIALO))
 
     assert g.name == "Title"
-    assert g.major_claim and g.major_claim.id == "1."
+    assert g.major_claim == "1."
     assert g.atom_nodes.keys() == {"1.", "1.2.", "1.2.1.1.", "1.3."}
     assert g.atom_nodes["1.2."].text == "Second\ncontinued"
     assert g.atom_nodes["1.3."].text == "Link (c)"
@@ -78,7 +78,7 @@ def test_brat(caplog: pytest.LogCaptureFixture):
     with caplog.at_level(logging.WARNING):
         g = ag.load.io(io.StringIO(ann), ".ANN")
 
-    assert g.major_claim and g.major_claim.text == '"first"'
+    assert g.major_claim and g.atom_nodes[g.major_claim].text == '"first"'
     assert {node.id: node.label for node in g.scheme_nodes.values()} == {
         "T2scheme": "Rephrase",
         "A1": "Attack",
@@ -117,11 +117,11 @@ def test_microtexts():
     </arggraph>"""
     g = ag.load.microtexts(io.StringIO(xml))
 
-    assert g.major_claim and g.major_claim.id == "a1"
+    assert g.major_claim == "a1"
     assert g.atom_nodes["a2"].text == "Premise one and two"
     # the undercutter precedes its target edge
     assert {("a3", "c8"), ("c8", "c5"), ("a4", "c5")} <= _edges(g)
-    assert g.edges["c9"].source.id == "a4"
+    assert g.edges["c9"].source == "a4"
 
 
 def test_aml():
@@ -135,7 +135,7 @@ def test_aml():
     </AU></ARG>"""
     g = ag.load.aml(io.StringIO(xml))
 
-    assert g.major_claim and g.major_claim.id == "A"
+    assert g.major_claim == "A"
     assert [node.label for node in g.scheme_nodes.values()] == ["Support: Sign"]
     assert _edges(g) == {("B", "Bscheme"), ("C", "Bscheme"), ("Bscheme", "A")}
 
@@ -167,7 +167,7 @@ def test_sadface():
         "s": "Attack",
     }
     assert g.atom_nodes["a"].reference == ag.Reference(
-        "A", resource=g.resources["r"], offset=5
+        "A", resource="r", offset=5
     )
     assert g.userdata == {"sadfaceVersion": "0.5"}
     assert not g.analysts
@@ -242,16 +242,16 @@ def test_ova(caplog: pytest.LogCaptureFixture) -> None:
         assert (reference := atom.reference) and reference.offset is not None
         assert resource.text[reference.offset :].startswith(reference.text)
 
-    assert g.major_claim and g.major_claim.id == "1"
-    assert g.atom_nodes["1"].participant is g.participants["7"]
+    assert g.major_claim == "1"
+    assert g.atom_nodes["1"].participant == "7"
     assert g.atom_nodes["1"].reference == ag.Reference(
-        "A & B", resource=resource, offset=3
+        "A & B", resource=resource.id, offset=3
     )
     assert g.atom_nodes["2"].participant is None
     assert g.atom_nodes["1"].metadata.created == datetime(
         2019, 3, 23, 15, 57, 30, tzinfo=UTC
     )
-    assert g.scheme_nodes["3"].premise_descriptors == ["2"]
+    assert g.scheme_nodes["3"].premise_descriptors == ("2",)
     assert g.scheme_nodes["3"].label == "Support: Expert Opinion"
     assert len(g.edges) == 2
     assert not g.analysts
@@ -350,7 +350,7 @@ def test_dump_networkx():
     atom, scheme = ag.AtomNode("a"), ag.SchemeNode(ag.Support.DEFAULT)
     g.add_node(atom)
     g.add_node(scheme)
-    g.add_edge(ag.Edge(atom, scheme))
+    g.add_edge(ag.Edge(atom.id, scheme.id))
     gnx = ag.dump.networkx(g, scheme_attrs={"kind": lambda node: node.label})
 
     assert gnx.nodes[scheme.id] == {"label": "Support", "kind": "Support"}

@@ -26,9 +26,12 @@ def dump_graphviz[A, S, E, G, R, P, N](
     edge_style: EdgeStyle = EdgeStyle.STEP,
     max_nodes: int = 1000,
     monochrome: bool = False,
+    scheme_nodes: bool = True,
 ) -> AGraph | None:
     """Transform a graph into a directed GraphViz graph, returns `None` if it is too large.
 
+    Without `scheme_nodes`, atom nodes are connected directly (see `Graph.atom_relations`)
+    by edges colored like the scheme node between them.
     Atom labels are wrapped at whitespace after `wrap_col` characters.
     Backslashes and double quotes in labels are escaped,
     so they are rendered literally instead of being interpreted by GraphViz.
@@ -66,7 +69,7 @@ def dump_graphviz[A, S, E, G, R, P, N](
     )
 
     for node in graph.atom_nodes.values():
-        major_claim = graph.major_claim == node
+        major_claim = graph.major_claim == node.id
         color = node.color(major_claim, monochrome)
         label = atom_label(node) if atom_label else node.label
         gv_graph.add_node(
@@ -80,6 +83,16 @@ def dump_graphviz[A, S, E, G, R, P, N](
             root=str(major_claim).lower(),
         )
 
+    if not scheme_nodes:
+        for relation in graph.atom_relations():
+            gv_graph.add_edge(
+                relation.source.id,
+                relation.target.id,
+                color=relation.scheme.color(False, monochrome).bg,
+            )
+
+        return gv_graph
+
     for node in graph.scheme_nodes.values():
         color = node.color(False, monochrome)
         gv_graph.add_node(
@@ -91,7 +104,7 @@ def dump_graphviz[A, S, E, G, R, P, N](
         )
 
     for edge in graph.edges.values():
-        gv_graph.add_edge(edge.source.id, edge.target.id)
+        gv_graph.add_edge(edge.source, edge.target)
 
     return gv_graph
 

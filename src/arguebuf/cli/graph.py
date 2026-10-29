@@ -17,6 +17,13 @@ OutputFormat = Annotated[
 ]
 
 
+def _report_repairs(path: Path) -> ag.Reporter:
+    def report(issue: ag.Issue) -> None:
+        typer.echo(f"{path}: {issue.message}", err=True)
+
+    return report
+
+
 @cli.command()
 def translate(
     input_folder: model.InputFolder,
@@ -30,14 +37,21 @@ def translate(
     overwrite: model.Overwrite = False,
     start: model.Start = 1,
 ) -> None:
-    """Translate the texts of atom nodes, references, and resources with DeepL."""
+    """Translate the texts of atom nodes, references, and resources with DeepL.
+
+    References are re-anchored in the translated resources, repairs are printed to stderr.
+    """
     translator = Translator(DeepLClient(auth_key), source_lang, target_lang)
 
     for path_pair in model.pending_pairs(
         input_folder, output_folder, input_glob, ".json", clean, overwrite, start
     ):
-        graph = ag.load.file(path_pair.source)
-        translator.translate_graph(graph)
+        report = _report_repairs(path_pair.source)
+        graph = ag.load.file(path_pair.source, on_issue=report)
+
+        for issue in translator.translate_graph(graph):
+            report(issue)
+
         ag.dump.file(graph, path_pair.target, format=output_format)
 
 
@@ -69,7 +83,10 @@ def render(
     ] = ".pdf",
     remove_scheme_nodes: Annotated[
         bool,
-        typer.Option(help="Remove scheme nodes and connect their atoms directly."),
+        typer.Option(
+            help="Omit scheme nodes and connect their atoms directly"
+            " by edges colored like the schemes."
+        ),
     ] = False,
     strip_node_labels: Annotated[
         bool,
@@ -127,10 +144,6 @@ def render(
         input_folder, output_folder, input_glob, output_format, clean, overwrite, start
     ):
         g = ag.load.file(path_pair.source)
-
-        if remove_scheme_nodes:
-            g.remove_scheme_nodes()
-
         gv = ag.dump.graphviz(
             g,
             nodesep=nodesep,
@@ -144,6 +157,7 @@ def render(
             edge_style=edge_style,
             max_nodes=max_nodes,
             monochrome=monochrome,
+            scheme_nodes=not remove_scheme_nodes,
         )
 
         # graphs exceeding `max_nodes` are skipped
@@ -195,6 +209,7 @@ def convert(
             path_pair.source,
             text_file=text_file,
             reconstruct_dialog=reconstruct_dialog,
+            on_issue=_report_repairs(path_pair.source),
         )
         ag.dump.file(graph, path_pair.target, format=output_format)
 

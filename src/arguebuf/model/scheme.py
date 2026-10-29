@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import Literal
 
 from arg_services.graph.v1 import graph_pb2
 
@@ -9,12 +10,15 @@ __all__ = (
     "Preference",
     "Rephrase",
     "Scheme",
+    "SchemeType",
     "Support",
     "aif2scheme",
+    "name2scheme_type",
     "resolve_aif_scheme",
     "resolve_scheme",
     "scheme2aif",
     "scheme2aif_default",
+    "scheme_type2name",
 )
 
 
@@ -112,18 +116,34 @@ class Rephrase(StrEnum):
 
 type Scheme = Support | Attack | Rephrase | Preference
 
+type SchemeType = Literal["support", "attack", "rephrase", "preference"]
+"""Name of a scheme type, identical to the field of the protobuf `Scheme.type` oneof."""
+
+name2scheme_type: dict[SchemeType, type[Scheme]] = {
+    "support": Support,
+    "attack": Attack,
+    "rephrase": Rephrase,
+    "preference": Preference,
+}
+scheme_type2name: dict[type[Scheme], SchemeType] = {
+    scheme_type: name for name, scheme_type in name2scheme_type.items()
+}
+
 # field of the protobuf `Scheme.type` oneof and enum value of each scheme,
 # keyed by type since members of different scheme types are equal strings
 scheme2protobuf: dict[type[Scheme], tuple[str, dict[Scheme, int]]] = {
     scheme_type: (
-        field,
-        {item: enum.Value(f"{field.upper()}_{item.name}") for item in scheme_type},
+        scheme_type2name[scheme_type],
+        {
+            item: enum.Value(f"{scheme_type2name[scheme_type].upper()}_{item.name}")
+            for item in scheme_type
+        },
     )
-    for scheme_type, field, enum in (
-        (Support, "support", graph_pb2.Support),
-        (Attack, "attack", graph_pb2.Attack),
-        (Rephrase, "rephrase", graph_pb2.Rephrase),
-        (Preference, "preference", graph_pb2.Preference),
+    for scheme_type, enum in (
+        (Support, graph_pb2.Support),
+        (Attack, graph_pb2.Attack),
+        (Rephrase, graph_pb2.Rephrase),
+        (Preference, graph_pb2.Preference),
     )
 }
 # schemes by the field of the protobuf `Scheme.type` oneof and their enum value

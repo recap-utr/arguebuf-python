@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Self, overload, override
+from typing import Self, TypedDict, overload, override
 
 from arguebuf.model.metadata import Metadata
-from arguebuf.model.participant import AbstractParticipant
 from arguebuf.model.reference import Reference
 from arguebuf.model.scheme import (
     Attack,
@@ -21,9 +21,11 @@ NO_SCHEME_LABEL = "Unknown"
 __all__ = (
     "NO_SCHEME_LABEL",
     "AbstractNode",
+    "AtomChanges",
     "AtomNode",
     "AtomOrSchemeNode",
     "Color",
+    "SchemeChanges",
     "SchemeNode",
 )
 
@@ -51,16 +53,17 @@ scheme2color: dict[type[Scheme], Color] = {
 }
 
 
-@dataclass(slots=True, eq=False)
+@dataclass(slots=True, frozen=True, eq=False)
 class AbstractNode(Entity, ABC):
     """Node of an argument graph, its subclasses add the userdata."""
 
     metadata: Metadata = field(repr=False)
-    _id: str
+    id: str
 
     def __init__(self, *, metadata: Metadata | None, id: str | None) -> None:
-        self.metadata = metadata or Metadata()
-        self._id = uuid() if id is None else id
+        # frozen dataclasses can only be initialized via object.__setattr__
+        object.__setattr__(self, "metadata", metadata or Metadata())
+        object.__setattr__(self, "id", uuid() if id is None else id)
 
     @property
     @abstractmethod
@@ -76,19 +79,18 @@ class AbstractNode(Entity, ABC):
 type _AtomNode[T] = AtomNode[T]
 
 
-@dataclass(slots=True, eq=False)
+@dataclass(slots=True, frozen=True, eq=False)
 class AtomNode[A = JsonObject](AbstractNode):
     """Node containing a claim or premise of an argument.
 
-    The participant and the resource of the reference must be registered
-    in the graph before the node is added to it or they are assigned to it.
-    Their userdata is typed when they are accessed via the graph,
-    e.g. `graph.participants[node.participant.id]`.
+    The participant and the resource of the reference are stored by their id,
+    they must be part of the graph before the node is added to it,
+    e.g. `graph.participants[node.participant]`.
     """
 
     text: str
     reference: Reference | None
-    participant: AbstractParticipant | None
+    participant: str | None
     userdata: A = field(repr=False)
 
     @overload
@@ -97,7 +99,7 @@ class AtomNode[A = JsonObject](AbstractNode):
         text: str,
         *,
         reference: Reference | None = None,
-        participant: AbstractParticipant | None = None,
+        participant: str | None = None,
         metadata: Metadata | None = None,
         userdata: JsonObject = ...,
         id: str | None = None,
@@ -109,7 +111,7 @@ class AtomNode[A = JsonObject](AbstractNode):
         text: str,
         *,
         reference: Reference | None = None,
-        participant: AbstractParticipant | None = None,
+        participant: str | None = None,
         metadata: Metadata | None = None,
         userdata: A,
         id: str | None = None,
@@ -120,16 +122,16 @@ class AtomNode[A = JsonObject](AbstractNode):
         text: str,
         *,
         reference: Reference | None = None,
-        participant: AbstractParticipant | None = None,
+        participant: str | None = None,
         metadata: Metadata | None = None,
         userdata: object = JSON_OBJECT,
         id: str | None = None,
     ) -> None:
         AbstractNode.__init__(self, metadata=metadata, id=id)
-        self.text = text
-        self.reference = reference
-        self.participant = participant
-        self.userdata = own(userdata)
+        object.__setattr__(self, "text", text)
+        object.__setattr__(self, "reference", reference)
+        object.__setattr__(self, "participant", participant)
+        object.__setattr__(self, "userdata", own(userdata))
 
     @property
     @override
@@ -148,12 +150,12 @@ class AtomNode[A = JsonObject](AbstractNode):
 type _SchemeNode[T] = SchemeNode[T]
 
 
-@dataclass(slots=True, eq=False)
+@dataclass(slots=True, frozen=True, eq=False)
 class SchemeNode[S = JsonObject](AbstractNode):
     """Node describing the relation between atom nodes."""
 
     scheme: Scheme | None
-    premise_descriptors: list[str]
+    premise_descriptors: tuple[str, ...]
     userdata: S = field(repr=False)
 
     @overload
@@ -161,7 +163,7 @@ class SchemeNode[S = JsonObject](AbstractNode):
         self: _SchemeNode[JsonObject],
         scheme: Scheme | None = None,
         *,
-        premise_descriptors: list[str] | None = None,
+        premise_descriptors: Iterable[str] = (),
         metadata: Metadata | None = None,
         userdata: JsonObject = ...,
         id: str | None = None,
@@ -172,7 +174,7 @@ class SchemeNode[S = JsonObject](AbstractNode):
         self,
         scheme: Scheme | None = None,
         *,
-        premise_descriptors: list[str] | None = None,
+        premise_descriptors: Iterable[str] = (),
         metadata: Metadata | None = None,
         userdata: S,
         id: str | None = None,
@@ -182,17 +184,15 @@ class SchemeNode[S = JsonObject](AbstractNode):
         self: _SchemeNode[object],
         scheme: Scheme | None = None,
         *,
-        premise_descriptors: list[str] | None = None,
+        premise_descriptors: Iterable[str] = (),
         metadata: Metadata | None = None,
         userdata: object = JSON_OBJECT,
         id: str | None = None,
     ) -> None:
         AbstractNode.__init__(self, metadata=metadata, id=id)
-        self.scheme = scheme
-        self.premise_descriptors = (
-            [] if premise_descriptors is None else premise_descriptors
-        )
-        self.userdata = own(userdata)
+        object.__setattr__(self, "scheme", scheme)
+        object.__setattr__(self, "premise_descriptors", tuple(premise_descriptors))
+        object.__setattr__(self, "userdata", own(userdata))
 
     @property
     @override
@@ -219,3 +219,22 @@ class SchemeNode[S = JsonObject](AbstractNode):
 
 
 type AtomOrSchemeNode[A = JsonObject, S = JsonObject] = AtomNode[A] | SchemeNode[S]
+
+
+class AtomChanges[A](TypedDict, total=False):
+    """Fields of an atom node that `Graph.update_atom` changes."""
+
+    text: str
+    reference: Reference | None
+    participant: str | None
+    metadata: Metadata
+    userdata: A
+
+
+class SchemeChanges[S](TypedDict, total=False):
+    """Fields of a scheme node that `Graph.update_scheme` changes."""
+
+    scheme: Scheme | None
+    premise_descriptors: Iterable[str]
+    metadata: Metadata
+    userdata: S

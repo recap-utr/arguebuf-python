@@ -2,11 +2,12 @@ from collections.abc import Iterable
 from typing import TextIO
 
 from arguebuf.model import Graph
+from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.scheme import Attack, Rephrase, Scheme, Support
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
-from ._helpers import connect, log, lookup
+from ._helpers import Context, connect, lookup
 
 __all__ = ("load_brat",)
 
@@ -33,6 +34,8 @@ def load_brat[
     name: str | None = None,
     *,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Generate Graph structure from BRAT argument graph file (reference: https://brat.nlplab.org/).
 
@@ -48,6 +51,7 @@ def load_brat[
     g: Graph[A, S, E, G, R, P, N] = Graph(
         name, userdata=codecs.graph.validate_python({})
     )
+    ctx = Context(codecs, on_issue, strict)
     rows = [line.rstrip("\r\n").split("\t") for line in obj if line.strip()]
 
     for row in rows:
@@ -67,7 +71,7 @@ def load_brat[
                                 id=f"{id}scheme",
                             )
                         )
-                        connect(g, codecs, [id], f"{id}scheme", g.major_claim.id)
+                        connect(g, ctx, [id], f"{id}scheme", g.major_claim)
 
     atoms = g.atom_nodes
 
@@ -80,19 +84,23 @@ def load_brat[
 
         match id[:1], annotation:
             case "A", ["Stance", source_id, stance]:
-                scheme = lookup(stance2scheme, stance, "stance", owner)
-                source = lookup(atoms, source_id, "atom", owner)
-                target = g.major_claim
+                scheme = lookup(ctx, stance2scheme, stance, "stance", owner)
+                source = lookup(ctx, atoms, source_id, "atom", owner)
+                target = None if g.major_claim is None else g.atom_nodes[g.major_claim]
 
                 if target is None:
-                    log.warning("Skipping stance '%s' without a major claim.", id)
+                    ctx.report(
+                        "unknown-element",
+                        f"Skipping stance '{id}' without a major claim.",
+                        [id],
+                    )
 
             case "R", [relation, *arguments] if {"Arg1", "Arg2"} <= (
                 roles := _roles(arguments)
             ).keys():
-                scheme = lookup(relation2scheme, relation, "relation type", owner)
-                source = lookup(atoms, roles["Arg1"], "atom", owner)
-                target = lookup(atoms, roles["Arg2"], "atom", owner)
+                scheme = lookup(ctx, relation2scheme, relation, "relation type", owner)
+                source = lookup(ctx, atoms, roles["Arg1"], "atom", owner)
+                target = lookup(ctx, atoms, roles["Arg2"], "atom", owner)
 
             case _:
                 continue
@@ -101,7 +109,7 @@ def load_brat[
             g.add_node(
                 SchemeNode(scheme, userdata=codecs.scheme.validate_python({}), id=id)
             )
-            connect(g, codecs, [source.id], id, target.id)
+            connect(g, ctx, [source.id], id, target.id)
 
     return g
 

@@ -1,10 +1,13 @@
 from dataclasses import dataclass, field
-from typing import overload
+from typing import TypedDict, overload
 
 from arguebuf.model.userdata import JSON_OBJECT, JsonObject, own
 from arguebuf.model.utils import Entity, uuid
 
-__all__ = ("Analyst",)
+__all__ = (
+    "Analyst",
+    "AnalystChanges",
+)
 
 
 # lazily evaluated, so the overloads below can specialize the class they belong to
@@ -18,7 +21,7 @@ class Analyst[N = JsonObject](Entity):
     name: str | None
     email: str | None
     userdata: N = field(repr=False)
-    _id: str
+    id: str
 
     @overload
     def __init__(
@@ -52,4 +55,12 @@ class Analyst[N = JsonObject](Entity):
         object.__setattr__(self, "name", name)
         object.__setattr__(self, "email", email)
         object.__setattr__(self, "userdata", own(userdata))
-        object.__setattr__(self, "_id", uuid() if id is None else id)
+        object.__setattr__(self, "id", uuid() if id is None else id)
+
+
+class AnalystChanges[N](TypedDict, total=False):
+    """Fields of an analyst that `Graph.update_analyst` changes."""
+
+    name: str | None
+    email: str | None
+    userdata: N

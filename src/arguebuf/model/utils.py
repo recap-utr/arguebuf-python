@@ -2,7 +2,7 @@ from abc import ABC
 from typing import override
 from uuid import uuid1
 
-__all__ = ("Entity", "uuid")
+__all__ = ("Entity", "id_of", "uuid")
 
 
 def uuid() -> str:
@@ -14,12 +14,8 @@ class Entity(ABC):
 
     __slots__ = ()
 
-    _id: str
-
-    @property
-    def id(self) -> str:
-        """Stable identifier used by graph collections and references."""
-        return self._id
+    id: str
+    """Stable identifier used by graph collections and references."""
 
     @override
     def __eq__(self, other: object) -> bool:
@@ -36,3 +32,9 @@ class Entity(ABC):
     @override
     def __str__(self) -> str:
         return self.id
+
+
+
+def id_of(element: str | Entity) -> str:
+    """Id of an element that is given by itself or its id."""
+    return element if isinstance(element, str) else element.id

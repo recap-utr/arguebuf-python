@@ -2,35 +2,41 @@ from collections.abc import Mapping
 
 from arguebuf.dt import from_isoformat
 from arguebuf.model import Graph
+from arguebuf.model import scheme as scheme_model
 from arguebuf.model.analyst import Analyst
+from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.reference import Reference
-from arguebuf.model.resource import AbstractResource, Resource
+from arguebuf.model.resource import Resource
 from arguebuf.model.scheme import (
     Attack,
-    Preference,
-    Rephrase,
     Scheme,
     Support,
     normalize_scheme_label,
     resolve_scheme,
 )
 from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
+from arguebuf.model.utils import Entity
 from arguebuf.schemas import sadface
 
-from ._helpers import add_edge, compact, log, new_reference
+from ._helpers import (
+    Context,
+    Reporting,
+    add_edge,
+    add_node,
+    compact,
+    new_reference,
+    relocate,
+)
 
 __all__ = ("load_sadface",)
 
 # normalized names of generic `scheme` nodes that denote a scheme type instead of a specific scheme
 name2scheme_type: dict[str, type[Scheme]] = {
-    "support": Support,
+    **scheme_model.name2scheme_type,
     "inference": Support,
-    "attack": Attack,
     "conflict": Attack,
-    "rephrase": Rephrase,
-    "preference": Preference,
 }
 
 
@@ -47,6 +53,8 @@ def load_sadface[
     name: str | None = None,
     *,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Generate Graph structure from SADFace argument graph file.
 
@@ -56,6 +64,7 @@ def load_sadface[
     Nodes of unknown types are skipped with a warning.
     """
     core = obj["metadata"]["core"]
+    ctx = Context(codecs, on_issue, strict)
     edited = from_isoformat(core.get("edited"))
     g: Graph[A, S, E, G, R, P, N] = Graph(
         name,
@@ -95,24 +104,31 @@ def load_sadface[
     for sadface_node in obj["nodes"]:
         match sadface_node["type"]:
             case "atom":
-                g.add_node(atom_from_sadface(sadface_node, g.resources, codecs.atom))
+                add_node(
+                    g, ctx, atom_from_sadface(sadface_node, g.resources, ctx, codecs.atom)
+                )
             case "scheme" | "inference" | "conflict":
-                g.add_node(scheme_from_sadface(sadface_node, codecs.scheme))
+                add_node(g, ctx, scheme_from_sadface(sadface_node, codecs.scheme))
             case node_type:
-                log.warning(
-                    "Skipping node '%s' of unknown type '%s'.",
-                    sadface_node["id"],
-                    node_type,
+                ctx.report(
+                    "unknown-element",
+                    f"Skipping node '{sadface_node['id']}' of unknown type '{node_type}'.",
+                    [sadface_node["id"]],
                 )
 
     for edge in obj["edges"]:
-        add_edge(g, codecs, edge["source_id"], edge["target_id"], edge["id"])
+        add_edge(g, ctx, edge["source_id"], edge["target_id"], edge["id"])
+
+    relocate(g, ctx)
 
     return g
 
 
 def atom_from_sadface[A](
-    obj: sadface.Node, resources: Mapping[str, AbstractResource], codec: Codec[A]
+    obj: sadface.Node,
+    resources: Mapping[str, Entity],
+    ctx: Reporting,
+    codec: Codec[A],
 ) -> AtomNode[A]:
     """Generate AtomNode object from SADFace Node object."""
     reference: Reference | None = None
@@ -120,6 +136,7 @@ def atom_from_sadface[A](
     if sources := obj.get("sources"):
         source = sources[0]
         reference = new_reference(
+            ctx,
             source["text"],
             source["resource_id"],
             source.get("offset"),

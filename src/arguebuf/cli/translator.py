@@ -38,36 +38,42 @@ class Translator:
 
         return [result.text for result in results]
 
-    def translate_graph(self, graph: ag.Graph) -> None:
-        resources = list(graph.resources.values())
+    def translate_graph(self, graph: ag.Graph) -> list[ag.Issue]:
+        """Translate the texts of a graph and re-anchor the translated references.
 
+        Returns:
+            The warnings of re-anchoring the references in the translated resources.
+        """
+        atoms = list(graph.atom_nodes.values())
+        references = iter(
+            self.translate_texts(
+                atom.reference.text for atom in atoms if atom.reference is not None
+            )
+        )
+
+        for atom, translation in zip(
+            atoms, self.translate_texts(atom.text for atom in atoms), strict=True
+        ):
+            graph.update_atom(
+                atom,
+                text=translation,
+                reference=None
+                if atom.reference is None
+                else copy.replace(atom.reference, text=next(references), offset=None),
+            )
+
+        resources = list(graph.resources.values())
+        issues: list[ag.Issue] = []
+
+        # translating a resource re-anchors the already translated references to it
         for resource, translation in zip(
             resources,
             self.translate_texts(resource.text for resource in resources),
             strict=True,
         ):
-            resource.text = translation
+            issues.extend(graph.update_resource(resource, text=translation))
 
-        references = [
-            (atom, atom.reference)
-            for atom in graph.atom_nodes.values()
-            if atom.reference is not None
-        ]
+        return issues
 
-        for (atom, reference), translation in zip(
-            references,
-            self.translate_texts(reference.text for _, reference in references),
-            strict=True,
-        ):
-            atom.reference = copy.replace(reference, text=translation)
-
-        atoms = list(graph.atom_nodes.values())
-
-        for atom, translation in zip(
-            atoms, self.translate_texts(atom.text for atom in atoms), strict=True
-        ):
-            atom.text = translation
-
-    def translate_graphs(self, graphs: Iterable[ag.Graph]) -> None:
-        for graph in graphs:
-            self.translate_graph(graph)
+    def translate_graphs(self, graphs: Iterable[ag.Graph]) -> list[ag.Issue]:
+        return [issue for graph in graphs for issue in self.translate_graph(graph)]

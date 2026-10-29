@@ -2,12 +2,13 @@ from typing import IO
 from xml.etree import ElementTree as Tree
 
 from arguebuf.model import Graph
+from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.scheme import Attack, Scheme, Support
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 from arguebuf.schemas.microtexts import EdgeType
 
-from ._helpers import add_edge, connect, lookup
+from ._helpers import Context, add_edge, connect, lookup
 
 __all__ = ("load_microtexts",)
 
@@ -32,6 +33,8 @@ def load_microtexts[
     name: str | None = None,
     *,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> Graph[A, S, E, G, R, P, N]:
     """Generate Graph structure from a microtexts (arggraph) XML file.
 
@@ -43,6 +46,7 @@ def load_microtexts[
     The single atom without outgoing edges is the major claim.
     """
     root = Tree.parse(obj).getroot()
+    ctx = Context(codecs, on_issue, strict)
     g: Graph[A, S, E, G, R, P, N] = Graph(
         name or root.get("id"),
         userdata=codecs.graph.validate_python(
@@ -74,7 +78,9 @@ def load_microtexts[
         adu_id = adu.get("id", "")
 
         if (
-            text := lookup(texts, adu2segment.get(adu_id), "segment", f"adu '{adu_id}'")
+            text := lookup(
+                ctx, texts, adu2segment.get(adu_id), "segment", f"adu '{adu_id}'"
+            )
         ) is None:
             continue
 
@@ -101,9 +107,9 @@ def load_microtexts[
 
     for id, source, target, type in edges:
         if id in schemes:
-            connect(g, codecs, [source], id, target)
+            connect(g, ctx, [source], id, target)
         elif type == EdgeType.ADDITIONAL_SOURCE:
-            add_edge(g, codecs, source, target, id)
+            add_edge(g, ctx, source, target, id)
 
     g.major_claim = g.root_node
 

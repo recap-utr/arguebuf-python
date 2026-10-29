@@ -1,29 +1,87 @@
-"""Shared helpers for loaders that skip dangling data with a warning."""
+"""Shared helpers for loaders that repair or skip malformed data and report it."""
 
-import logging
-from collections.abc import Iterable, Mapping
+import copy
+from collections.abc import Callable, Iterable, Mapping
 from collections.abc import Set as AbstractSet
+from dataclasses import dataclass
+from typing import Protocol
 
 from arguebuf.model import Graph
 from arguebuf.model.edge import Edge
+from arguebuf.model.issue import (
+    GraphError,
+    Issue,
+    IssueCode,
+    Reporter,
+    catch_graph_error,
+    issue,
+    warn,
+)
 from arguebuf.model.metadata import Metadata
+from arguebuf.model.node import AtomOrSchemeNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.reference import Reference
-from arguebuf.model.resource import AbstractResource
 from arguebuf.model.userdata import Codec, Codecs, JsonObject
-
-log = logging.getLogger("arguebuf.load")
+from arguebuf.model.utils import Entity
 
 __all__ = (
+    "Context",
     "add_edge",
+    "add_node",
     "compact",
     "connect",
-    "log",
     "lookup",
     "new_participant",
     "new_reference",
+    "relocate",
     "stringify_id",
 )
+
+
+class Reporting(Protocol):
+    """Reports a repaired or skipped element as warning."""
+
+    def report(
+        self, code: IssueCode, message: str, elements: Iterable[str] = ()
+    ) -> None:
+        """Report the issue to the reporter of the loader."""
+        ...
+
+
+@dataclass(slots=True, frozen=True)
+class Context[A, S, E, G, R, P, N]:
+    """Codecs and reporting options of a loader.
+
+    Attributes:
+        codecs: Codecs loading the userdata.
+        on_issue: Receives the repairs and skipped elements as warnings,
+            defaults to logging them.
+        strict: Raise a `GraphError` instead of repairing or skipping malformed data.
+    """
+
+    codecs: Codecs[A, S, E, G, R, P, N]
+    on_issue: Reporter | None = None
+    strict: bool = False
+
+    def report(
+        self, code: IssueCode, message: str, elements: Iterable[str] = ()
+    ) -> None:
+        """Report a repaired or skipped element as warning."""
+        item = issue(code, message, elements, "warning")
+
+        if self.strict:
+            raise GraphError(copy.replace(item, severity="error"))
+
+        (self.on_issue or warn)(item)
+
+    def attempt(
+        self, action: Callable[[], object], consequence: Callable[[Issue], str]
+    ) -> Issue | None:
+        """Run the action and report its `GraphError` together with the consequence of skipping it."""
+        if (error := catch_graph_error(action)) is not None:
+            self.report(error.code, f"{error.message} {consequence(error)}", error.elements)
+
+        return error
 
 
 def stringify_id(value: str | float) -> str:
@@ -59,7 +117,7 @@ def new_participant[P](codec: Codec[P], id: str, *names: str) -> Participant[P]:
 
 
 def lookup[K, V](
-    elements: Mapping[K, V], id: K | None, kind: str, owner: str
+    ctx: Reporting, elements: Mapping[K, V], id: K | None, kind: str, owner: str
 ) -> V | None:
     """Get the element referenced by `owner`, warning if the id is unknown.
 
@@ -69,34 +127,46 @@ def lookup[K, V](
         return None
 
     if (element := elements.get(id)) is None:
-        log.warning("Skipping unknown %s '%s' referenced by %s.", kind, id, owner)
+        ctx.report(
+            "unknown-element", f"Skipping unknown {kind} '{id}' referenced by {owner}.", [str(id)]
+        )
 
     return element
 
 
 def new_reference(
+    ctx: Reporting,
     text: str,
     resource_id: str | None,
     offset: int | None,
-    resources: Mapping[str, AbstractResource],
+    resources: Mapping[str, Entity],
     owner: str,
 ) -> Reference:
     """Create a reference, an unknown resource is skipped with a warning together with the offset.
 
     A missing resource id (None or empty) keeps the offset.
     """
-    resource = lookup(resources, resource_id, "resource", owner)
+    resource = lookup(ctx, resources, resource_id, "resource", owner)
 
     return Reference(
         text,
-        resource=resource,
+        resource=resource_id if resource is not None else None,
         offset=None if resource_id and resource is None else offset,
     )
 
 
+def add_node[A, S, E, G, R, P, N](
+    g: Graph[A, S, E, G, R, P, N],
+    ctx: Context[A, S, E, G, R, P, N],
+    node: AtomOrSchemeNode[A, S],
+) -> None:
+    """Add a node, skipping it with a warning if it is invalid, e.g. if its id is taken."""
+    ctx.attempt(lambda: g.add_node(node), lambda _: "The node was skipped.")
+
+
 def add_edge[A, S, E, G, R, P, N](
     g: Graph[A, S, E, G, R, P, N],
-    codecs: Codecs[A, S, E, G, R, P, N],
+    ctx: Context[A, S, E, G, R, P, N],
     source_id: str,
     target_id: str,
     id: str,
@@ -104,38 +174,44 @@ def add_edge[A, S, E, G, R, P, N](
     userdata: JsonObject | None = None,
     ignore: AbstractSet[str] = frozenset(),
 ) -> None:
-    """Connect two nodes by their ids, skipping the edge with a warning if one is missing.
+    """Connect two nodes by their ids, repairing or skipping the edge with a warning if it is invalid.
 
+    An edge between two atom nodes is replaced by an untyped scheme,
+    other invalid edges are skipped.
     Edges of the intentionally skipped nodes in `ignore` are skipped silently.
-    The edge codec only loads the userdata of edges that are added.
     """
     if source_id in ignore or target_id in ignore:
         return
 
-    if source_id not in g.nodes or target_id not in g.nodes:
-        log.warning(
-            "Skipping edge '%s': Source '%s' or target '%s' not found.",
-            id,
-            source_id,
-            target_id,
-        )
-
-        return
-
-    g.add_edge(
-        Edge(
-            g.nodes[source_id],
-            g.nodes[target_id],
-            metadata=metadata,
-            userdata=codecs.edge.validate_python(userdata or {}),
-            id=id,
-        )
+    edge = Edge(
+        source_id,
+        target_id,
+        metadata=metadata,
+        userdata=ctx.codecs.edge.validate_python(userdata or {}),
+        id=id,
     )
+
+    error = ctx.attempt(
+        lambda: g.add_edge(edge),
+        lambda error: "An untyped scheme was inserted."
+        if error.code == "atom-edge"
+        else "The edge was skipped.",
+    )
+
+    if error is not None and error.code == "atom-edge":
+        scheme = SchemeNode(userdata=ctx.codecs.scheme.validate_python({}))
+        g.add_node(scheme)
+        g.add_edge(
+            Edge(source_id, scheme.id, id=edge.id, metadata=edge.metadata, userdata=edge.userdata)
+        )
+        g.add_edge(
+            Edge(scheme.id, target_id, metadata=edge.metadata, userdata=edge.userdata)
+        )
 
 
 def connect[A, S, E, G, R, P, N](
     g: Graph[A, S, E, G, R, P, N],
-    codecs: Codecs[A, S, E, G, R, P, N],
+    ctx: Context[A, S, E, G, R, P, N],
     source_ids: Iterable[str],
     scheme_id: str,
     target_id: str,
@@ -144,12 +220,20 @@ def connect[A, S, E, G, R, P, N](
 
     The scheme node must already be part of the graph.
     Edge ids are derived from the node ids as `source->target`,
-    edges of missing nodes are skipped with a warning.
+    invalid edges are skipped with a warning.
     """
     for source_id in source_ids:
-        add_edge(g, codecs, source_id, scheme_id, f"{source_id}->{scheme_id}")
+        add_edge(g, ctx, source_id, scheme_id, f"{source_id}->{scheme_id}")
 
-    add_edge(g, codecs, scheme_id, target_id, f"{scheme_id}->{target_id}")
+    add_edge(g, ctx, scheme_id, target_id, f"{scheme_id}->{target_id}")
+
+
+def relocate[A, S, E, G, R, P, N](
+    g: Graph[A, S, E, G, R, P, N], ctx: Context[A, S, E, G, R, P, N]
+) -> None:
+    """Re-anchor references that do not match their resource, see `Graph.relocate_references`."""
+    for item in g.relocate_references():
+        ctx.report(item.code, item.message, item.elements)
 
 
 def compact[V](fields: Mapping[str, V | None]) -> dict[str, V]:

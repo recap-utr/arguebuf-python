@@ -54,7 +54,7 @@ def dump_protobuf[
         library_version=LIBRARY_VERSION,
         metadata=metadata_to_protobuf(obj.metadata),
         userdata=_struct(codecs.graph, obj.userdata),
-        major_claim=obj.major_claim.id if obj.major_claim else None,
+        major_claim=obj.major_claim,
         nodes={
             node_id: atom_to_protobuf(node, codecs.atom)
             if isinstance(node, AtomNode)
@@ -86,7 +86,7 @@ def atom_to_protobuf[A](obj: AtomNode[A], codec: Codec[A]) -> graph_pb2.Node:
         atom=graph_pb2.Atom(
             text=obj.text,
             reference=reference_to_protobuf(obj.reference) if obj.reference else None,
-            participant=obj.participant.id if obj.participant else None,
+            participant=obj.participant,
         ),
         metadata=metadata_to_protobuf(obj.metadata),
         userdata=_struct(codec, obj.userdata),
@@ -120,8 +120,8 @@ def analyst_to_protobuf[N](obj: Analyst[N], codec: Codec[N]) -> graph_pb2.Analys
 def edge_to_protobuf[E](obj: Edge[E], codec: Codec[E]) -> graph_pb2.Edge:
     """Export Edge object into protobuf Edge format."""
     return graph_pb2.Edge(
-        source=obj.source.id,
-        target=obj.target.id,
+        source=obj.source,
+        target=obj.target,
         metadata=metadata_to_protobuf(obj.metadata),
         userdata=_struct(codec, obj.userdata),
     )
@@ -154,7 +154,7 @@ def reference_to_protobuf(obj: Reference) -> graph_pb2.Reference:
     """Export Reference object into protobuf format."""
     return graph_pb2.Reference(
         text=obj.text,
-        resource=obj.resource.id if obj.resource else None,
+        resource=obj.resource,
         offset=obj.offset,
     )
 

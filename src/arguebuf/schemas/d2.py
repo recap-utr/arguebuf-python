@@ -53,10 +53,16 @@ class D2Node:
 class D2Edge:
     from_id: str
     to_id: str
+    stroke: str | None = None
 
     @override
     def __str__(self) -> str:
-        return f"{_quote(self.from_id)} -> {_quote(self.to_id)}\n"
+        edge = f"{_quote(self.from_id)} -> {_quote(self.to_id)}"
+
+        if self.stroke is None:
+            return f"{edge}\n"
+
+        return f"{edge}: {{style.stroke: {_quote(self.stroke)}}}\n"
 
 
 @dataclass(slots=True)

@@ -7,6 +7,7 @@ from typing import Self
 from arg_services.cbr.v1beta.model_pb2 import CasebaseFilter as CasebaseFilterProto
 
 from arguebuf.model import Graph
+from arguebuf.model.issue import Reporter
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
 from ._load_path import load_file
@@ -140,6 +141,8 @@ def load_casebase[
     *,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    on_issue: Reporter | None = None,
+    strict: bool = False,
 ) -> dict[Path, Graph[A, S, E, G, R, P, N]]:
     """Load all cases selected by `include` and not selected by `exclude`.
 
@@ -196,7 +199,7 @@ def load_casebase[
                 and file.is_file()
             ):
                 graphs[file] = load_file(
-                    file, reconstruct_dialog=reconstruct_dialog, codecs=codecs
+                    file, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict
                 )
 
     return graphs
