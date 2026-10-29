@@ -1,4 +1,6 @@
+import json
 from collections.abc import Callable
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
@@ -15,6 +17,16 @@ cli = typer.Typer(no_args_is_help=True)
 OutputFormat = Annotated[
     ag.dump.Format, typer.Option(help="Format of the exported graphs.")
 ]
+
+
+class ReportFormat(StrEnum):
+    TEXT = "text"
+    JSON = "json"
+
+
+class FailOn(StrEnum):
+    ERROR = "error"
+    WARNING = "warning"
 
 
 def _report_repairs(path: Path) -> ag.Reporter:
@@ -212,6 +224,81 @@ def convert(
             on_issue=_report_repairs(path_pair.source),
         )
         ag.dump.file(graph, path_pair.target, format=output_format)
+
+
+@cli.command()
+def check(
+    input_folder: model.InputFolder,
+    input_glob: model.InputGlob,
+    output_format: Annotated[
+        ReportFormat, typer.Option("--format", help="Format of the report.")
+    ] = ReportFormat.TEXT,
+    fail_on: Annotated[
+        FailOn,
+        typer.Option(help="Lowest severity of issues that cause a non-zero exit code."),
+    ] = FailOn.ERROR,
+    ignore: Annotated[
+        list[str] | None,
+        typer.Option(help="Code of issues to skip, can be given multiple times."),
+    ] = None,
+    reconstruct_dialog: Annotated[
+        bool,
+        typer.Option(
+            help="Connect AIF and xAIF atoms only linked through dialog nodes"
+            " to the atoms of adjacent turns, otherwise they become isolated."
+        ),
+    ] = False,
+) -> None:
+    """Report the repairs applied while loading graphs and the problems found in them."""
+    paths = (
+        [input_folder]
+        if input_folder.is_file()
+        else sorted(path for path in input_folder.glob(input_glob) if path.is_file())
+    )
+    if unknown := set(ignore or ()) - set(ag.ISSUE_CODES):
+        raise typer.BadParameter(
+            f"Unknown issue codes: {', '.join(sorted(unknown))}.", param_hint="--ignore"
+        )
+
+    ignored: list[ag.IssueCode] = [
+        code for code in ignore or () if ag.is_issue_code(code)
+    ]
+    report: dict[str, list[ag.Issue]] = {}
+
+    for path in paths:
+        issues: list[ag.Issue] = []
+
+        def collect(item: ag.Issue, issues: list[ag.Issue] = issues) -> None:
+            if item.code not in ignored:
+                issues.append(item)
+
+        graph = ag.load.file(
+            path, reconstruct_dialog=reconstruct_dialog, on_issue=collect
+        )
+        issues.extend(ag.check(graph, ignore=ignored))
+        report[str(path)] = issues
+
+    if output_format == ReportFormat.JSON:
+        typer.echo(
+            json.dumps(
+                {
+                    path: [item.to_dict() for item in issues]
+                    for path, issues in report.items()
+                },
+                indent=2,
+            )
+        )
+    else:
+        for path, issues in report.items():
+            for item in issues:
+                typer.echo(f"{path}: {item.severity}: {item.message}")
+
+    severities = {"error"} if fail_on == FailOn.ERROR else {"error", "warning"}
+
+    if any(
+        item.severity in severities for issues in report.values() for item in issues
+    ):
+        raise typer.Exit(1)
 
 
 @cli.command()

@@ -1,0 +1,18 @@
+{
+  "nodes": [
+    { "nodeID": "1", "text": "Cats are the best pets", "type": "I" },
+    { "nodeID": "2", "text": "Cats are independent", "type": "I" },
+    { "nodeID": "3", "text": "Default Inference", "type": "RA" },
+    { "nodeID": "4", "text": "Cats are clean", "type": "I" },
+    { "nodeID": "1", "text": "Duplicate", "type": "I" },
+    { "nodeID": "5", "text": "Default Conflict", "type": "CA" }
+  ],
+  "edges": [
+    { "edgeID": "e1", "fromID": "2", "toID": "3" },
+    { "edgeID": "e2", "fromID": "3", "toID": "1" },
+    { "edgeID": "e3", "fromID": "2", "toID": "3" },
+    { "edgeID": "e4", "fromID": "5", "toID": "5" },
+    { "edgeID": "e5", "fromID": "4", "toID": "1" },
+    { "edgeID": "e6", "fromID": "5", "toID": "9" }
+  ]
+}

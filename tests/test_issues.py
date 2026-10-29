@@ -1,0 +1,277 @@
+import json
+from collections.abc import Mapping
+from pathlib import Path
+
+import pytest
+
+import arguebuf as ag
+
+SOURCE = "Cats 🐈 are the best pets. They are “independent”, and they are clean."
+MALFORMED = json.loads(Path("data/malformed.json").read_text(encoding="utf-8"))
+
+
+def codes(issues: list[ag.Issue]) -> list[str]:
+    return [issue.code for issue in issues]
+
+
+def test_locate() -> None:
+    assert ag.locate(SOURCE, "are the best pets") == ag.Match(7, "are the best pets", 1)
+    assert ag.locate(SOURCE, 'They are "independent".') == ag.Match(
+        26, "They are “independent", 1
+    )
+
+    match = ag.locate(SOURCE, "they  are clen")
+
+    assert match is not None
+    assert (match.offset, match.text) == (54, "they are clean")
+    assert (located := ag.locate(SOURCE, "they are", near=50)) is not None
+    assert located.offset == 54
+    assert ag.locate(SOURCE, "dogs bark loudly") is None
+
+
+def test_load_repairs() -> None:
+    issues: list[ag.Issue] = []
+    graph = ag.load.dict(MALFORMED, on_issue=issues.append)
+
+    assert codes(issues) == [
+        "duplicate-id",
+        "parallel-edge",
+        "self-loop",
+        "atom-edge",
+        "unknown-element",
+    ]
+    assert all(issue.severity == "warning" for issue in issues)
+    assert graph.outgoing_atom_nodes("4") == {graph.nodes["1"]}
+    assert codes(ag.check(graph)) == [
+        "scheme-without-premise",
+        "scheme-without-conclusion",
+        "untyped-scheme",
+        "no-major-claim",
+    ]
+
+    with pytest.raises(ag.GraphError):
+        ag.load.dict(MALFORMED, strict=True)
+
+
+def test_check() -> None:
+    resource = ag.Resource(SOURCE, id="r")
+    g = ag.Graph()
+    g.add_resource(resource)
+    nodes = (
+        ag.AtomNode("Cats are the best pets", id="mc"),
+        ag.AtomNode(
+            "x", reference=ag.Reference("pets", resource="r", offset=1), id="a"
+        ),
+        ag.AtomNode("y", id="b"),
+        ag.AtomNode("z", reference=ag.Reference("dogs", resource="r"), id="o"),
+        ag.SchemeNode(ag.Support.DEFAULT, id="s1"),
+        ag.SchemeNode(id="s2"),
+        ag.SchemeNode(ag.Attack.DEFAULT, id="s3"),
+    )
+
+    for node in nodes:
+        g.add_node(node)
+
+    for source, target in (("a", "s1"), ("s1", "mc"), ("s1", "b"), ("s2", "s3")):
+        g.add_edge(ag.Edge(source, target))
+
+    g.major_claim = "mc"
+
+    assert [(issue.code, issue.elements[0]) for issue in ag.check(g)] == [
+        ("reference-mismatch", "a"),
+        ("reference-unresolved", "o"),
+        ("scheme-multiple-conclusions", "s1"),
+        ("untyped-scheme", "s2"),
+        ("scheme-without-premise", "s2"),
+        ("scheme-without-premise", "s3"),
+        ("scheme-without-conclusion", "s3"),
+        ("orphaned-atom", "o"),
+        ("disconnected", "mc"),
+        ("unreachable-major-claim", "b"),
+    ]
+    assert ag.check(ag.Graph()) == []
+
+
+def test_apply_patch() -> None:
+    empty = ag.Graph()
+    result = ag.apply_patch(
+        empty,
+        {
+            "resources": [{"id": "r", "text": SOURCE}],
+            "atoms": [
+                {"id": "mc", "text": "Cats are the best pets."},
+                {"id": "p", "text": "they are independant"},
+                {"id": "u", "text": "Cats scratch furniture"},
+                {"id": "c", "text": "they are clean"},
+            ],
+            "schemes": [
+                {
+                    "id": "s",
+                    "type": "support",
+                    "scheme": "Expert Opinion",
+                    "premises": ["p"],
+                    "conclusion": "mc",
+                },
+                {"id": "x", "type": "attack", "premises": ["u"], "conclusion": "s"},
+                {"id": "y", "type": "support", "premises": ["c"], "conclusion": "mc"},
+            ],
+            "majorClaim": "mc",
+        },
+    )
+    graph = result.graph
+
+    assert not empty.nodes
+    assert [(issue.code, issue.path) for issue in result.issues] == [
+        ("reference-mismatch", ("atoms", 1)),
+        ("reference-unresolved", ("atoms", 2)),
+    ]
+    assert result.created == ("mc", "p", "u", "c", "s", "x", "y", "r")
+    assert graph.atom_nodes["mc"].reference == ag.Reference(
+        "Cats 🐈 are the best pets", resource="r", offset=0
+    )
+    assert ag.check(graph) == []
+    assert ag.outline(graph)["schemes"] == [
+        {
+            "id": "s",
+            "type": "support",
+            "scheme": "Expert Opinion",
+            "premises": ["p"],
+            "conclusion": "mc",
+        },
+        {"id": "x", "type": "attack", "premises": ["u"], "conclusion": "s"},
+        {"id": "y", "type": "support", "premises": ["c"], "conclusion": "mc"},
+    ]
+
+    failed = ag.apply_patch(
+        graph,
+        {
+            "remove": ["c"],
+            "atoms": [{"id": "s", "text": "Wrong kind"}, {"id": "n"}],
+            "schemes": [
+                {
+                    "id": "z",
+                    "type": "support",
+                    "premises": ["missing"],
+                    "conclusion": "mc",
+                }
+            ],
+        },
+    )
+
+    assert failed.graph is graph
+    assert failed.created == failed.updated == failed.removed == ()
+    assert [(issue.code, issue.path) for issue in failed.issues] == [
+        ("invalid-patch", ("atoms", 0)),
+        ("invalid-patch", ("atoms", 1)),
+        ("unknown-element", ("schemes", 0)),
+    ]
+
+    edited = ag.apply_patch(
+        graph,
+        {
+            # the scheme of p is already removed together with p
+            "remove": ["p", "s"],
+            "atoms": [{"id": "c", "text": "They are clean"}],
+            "schemes": [
+                {
+                    "id": "y",
+                    "type": "attack",
+                    "scheme": "Unknown Label",
+                    "premises": ["c", "u"],
+                }
+            ],
+            "majorClaim": None,
+        },
+    )
+
+    # unknown scheme labels fall back to the default
+    assert [(issue.code, issue.path) for issue in edited.issues] == [
+        ("unknown-scheme", ("schemes", 0))
+    ]
+    # the scheme without premise and its undercutter are removed
+    assert list(edited.graph.nodes) == ["mc", "u", "c", "y"]
+    assert (edited.created, edited.updated, edited.removed) == ((), ("c", "y"), ("p", "s", "x"))
+    assert ag.outline(edited.graph)["schemes"] == [
+        {"id": "y", "type": "attack", "premises": ["c", "u"], "conclusion": "mc"}
+    ]
+    assert edited.graph.major_claim is None
+    assert "p" in graph.nodes
+
+
+def test_parse_patch() -> None:
+    assert [(issue.code, issue.path) for issue in ag.parse_patch([]).issues] == [
+        ("invalid-patch", ())
+    ]
+    parsed = ag.parse_patch(
+        {
+            "atoms": [{"id": "a", "text": 1}, {"text": "b"}],
+            "schemes": [{"id": "s", "type": "rebut", "premises": []}],
+            "majorClaim": None,
+            "extra": True,
+        }
+    )
+
+    assert parsed.patch is None
+    assert len(parsed.issues) == 5
+    assert {(issue.code, issue.path) for issue in parsed.issues} == {
+        ("invalid-patch", ("atoms", 0, "text")),
+        ("invalid-patch", ("atoms", 1)),
+        ("invalid-patch", ("schemes", 0, "type")),
+        ("invalid-patch", ("schemes", 0, "premises")),
+        ("invalid-patch", ()),
+    }
+    assert ag.parse_patch({"remove": ["a"], "majorClaim": None}) == ag.ParsedPatch(
+        {"remove": ["a"], "majorClaim": None}
+    )
+
+    # an extended schema validates additional fields, which are kept
+    properties = ag.PATCH_SCHEMA["properties"]
+    assert isinstance(properties, Mapping)
+    schema = {
+        **ag.PATCH_SCHEMA,
+        "properties": {
+            **properties,
+            "explanations": {"type": "object", "additionalProperties": {"type": "string"}},
+        },
+    }
+
+    assert [item.path for item in ag.parse_patch({"explanations": {"a": 1}}, schema).issues] == [
+        ("explanations", "a")
+    ]
+    assert ag.parse_patch({"explanations": {"a": "Why"}}, schema).patch == {
+        "explanations": {"a": "Why"}
+    }
+
+    extended = {
+        **schema,
+        "properties": {**properties, "confidence": {"type": "number", "minimum": 0, "maximum": 1}},
+    }
+
+    assert ag.parse_patch({"confidence": 2}, extended).patch is None
+    assert ag.parse_patch({"confidence": 0.5}, extended).patch == {"confidence": 0.5}
+
+
+def test_graph_edits() -> None:
+    g = ag.Graph()
+    g.add_resource(ag.Resource("Text", id="r"))
+    g.add_node(ag.AtomNode("P", id="p"))
+    g.add_node(ag.AtomNode("C", id="c"))
+    g.add_node(ag.AtomNode("Q", id="q"))
+    scheme = g.link("p", "c")
+
+    assert scheme is not None and scheme.scheme is None
+    assert g.link("q", scheme) is None
+    assert [node.id for node in g.premise_nodes(scheme)] == ["p", "q"]
+
+    created = g.atom_nodes["p"].metadata
+    g.update_atom("p", text="Premise")
+
+    assert g.atom_nodes["p"].metadata.updated > created.updated
+    g.update_atom("p", metadata=created)
+    assert g.atom_nodes["p"].metadata == created
+
+    # a repeated id was removed by its first occurrence
+    result = ag.apply_patch(g, {"remove": ["r", "r", "c"]})
+
+    assert result.issues == ()
+    assert result.removed == ("c", scheme.id, "r")

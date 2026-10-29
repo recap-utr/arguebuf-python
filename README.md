@@ -72,10 +72,10 @@ scheme2 = ag.SchemeNode(ag.Attack.DEFAULT)
 for node in (premise1, premise2, claim, scheme1, scheme2):
     graph.add_node(node)
 
-graph.add_edge(ag.Edge(premise1, scheme1))
-graph.add_edge(ag.Edge(scheme1, claim))
-graph.add_edge(ag.Edge(premise2, scheme2))
-graph.add_edge(ag.Edge(scheme2, claim))
+graph.add_edge(ag.Edge(premise1.id, scheme1.id))
+graph.add_edge(ag.Edge(scheme1.id, claim.id))
+# shorthand for the edges from the premises to the scheme and from the scheme to the claim
+graph.connect([premise2], scheme2, claim)
 
 graph.major_claim = claim
 ```
@@ -110,20 +110,96 @@ Every loader accepts an optional `name` for the graph, which is `None` by defaul
 Kialo exports set the name to their discussion title.
 Numeric ids of JSON formats must be integers between `-(2**53 - 1)` and `2**53 - 1` and are converted to strings.
 Use strings for larger ids.
-Reference offsets count Unicode code points.
+Reference offsets count Unicode code points like Python string indices and all serialized formats.
+The TypeScript implementation uses UTF-16 indices in memory, as JavaScript strings do, and converts them when loading and dumping.
 AIF and xAIF loaders skip dialog nodes (L, TA, YA), pass `reconstruct_dialog=True` to connect the atoms they link via rephrase nodes instead.
 The loaders `dict`, `json`, `io`, `file`, `folder`, and `casebase` forward this option to them.
 
 ### Strict Model and Lenient Loaders
 
 The graph is strict.
-Element ids are read-only.
-Adding an element raises a `ValueError` if its id is already taken or if it references an element (e.g., the nodes of an edge or the participant of an atom node) that has not been added to the graph before.
+Adding an element raises a `GraphError` (a `ValueError`) if its id is already taken or if it references an element (e.g., the nodes of an edge or the participant of an atom node) that has not been added to the graph before.
+Edges must not be self-loops, connect two atoms, or duplicate an existing connection.
+Elements reference each other by id, e.g. `edge.source`, `node.participant`, and `node.reference.resource` are ids, while the methods of the graph accept elements or ids.
 Removing an element also removes or unsets all references to it, e.g., removing a node also removes its edges.
+Removing a node also removes the scheme nodes that are left without a premise or a conclusion, recursively, so that the graph stays consistent.
+`graph.remove_elements(ids)` removes elements of any kind at once, skipping those already removed by a cascade of the same call.
+`graph.link(source, target)` connects two nodes, two atoms through a new untyped scheme node that it returns.
+
+All elements are frozen and changed via the typed methods `update_atom`, `update_scheme`, `update_edge`, `update_resource`, `update_participant`, and `update_analyst`, which validate the new values like their `add_*` counterparts.
+They set the modification time of the element's metadata to now unless `metadata` is given.
+Changing the text of a resource re-anchors the references to it and returns the resulting warnings (see `graph.relocate_references`).
+Because elements are frozen, `graph.copy()` (or `copy.copy(graph)`) is cheap: the copy shares all elements, userdata, and containers with the original, and each graph clones a container only when it changes it first, so a copy can be changed while the original stays intact.
+Use `copy.deepcopy(graph)` to copy the userdata as well.
+
+```python
+graph.update_atom(claim, text="New text of claim")
+```
+
+Views without scheme nodes are projections that leave the graph unchanged.
+`graph.atom_relations()` lists the pairs of atoms connected via a scheme node, and the Graphviz, D2, and NetworkX dumpers accept `scheme_nodes=False` to connect atoms directly by edges colored like their schemes.
 
 Loaders are lenient.
-Edges, major claims, participants, and resources referencing unknown elements are skipped with a logged warning, while malformed values such as unparsable dates raise an error.
+They repair what they can and skip the rest: an edge between two atoms gets an untyped scheme in between, while self-loops, duplicate connections, duplicate nodes, and elements referencing unknown ones are skipped.
+References whose text is not found at their offset are moved to the most similar span of their resource (see `graph.relocate_references`).
+Each repair is reported as a warning to the `on_issue` callback, which defaults to logging it, and `strict=True` raises a `GraphError` instead.
+Malformed values such as unparsable dates always raise an error.
 Loaders do not copy the objects they read, so the userdata of a graph may share objects with the input.
+
+### Issues
+
+Errors and warnings are `ag.Issue` objects, `issue.to_dict()` converts them to JSON.
+Their `code` is identical in all implementations of arguebuf, their `message` names the affected elements, and their `hint` suggests a remedy.
+A `GraphError` carries the issue that caused it.
+
+The model cannot prevent everything, e.g. a scheme node without premise is valid while the graph is being built.
+`ag.check` reports these remaining problems of a graph, from untyped schemes and references that do not match their resource to atoms that are not connected to the major claim.
+
+```python
+for issue in ag.check(graph, ignore=["no-major-claim"]):
+    print(issue.severity, issue.message, issue.hint)
+```
+
+### References
+
+`ag.locate` finds the span of a text that matches a quote best, its offset counts code points.
+Verbatim matches are preferred, otherwise both texts are reduced to their lowercase words (letters and digits) and minor differences are tolerated up to a `threshold` of similarity.
+
+```python
+ag.locate("Cats are the best pets. They are independent.", "they are independant")
+# Match(offset=24, text='They are independent', similarity=0.95)
+```
+
+### Patches for Agents
+
+`ag.apply_patch` applies a patch to a graph, which references all elements by id and is meant to be written by agents.
+An item creates an element if its id is new and otherwise updates the given fields, `remove` deletes elements.
+Texts of atoms are linked to the most similar spans of the resources.
+A scheme is named by its type and optionally its label (e.g. "Expert Opinion"), unknown labels fall back to the default scheme with an `unknown-scheme` warning.
+The patch is applied all or nothing to a copy of the graph, so the result contains the unchanged input graph if there is an error.
+Otherwise, the result lists the ids of the `created`, `updated`, and `removed` elements, removals include the schemes removed together with a node.
+Every issue points to the item that caused it via its `path`, so that an agent can correct it.
+`ag.parse_patch` validates untrusted input against `ag.PATCH_SCHEMA` and reports every problem as an `invalid-patch` error with its path.
+The schema forbids unknown keys, an application may pass an extension of it to validate additional fields of its own.
+
+```python
+result = ag.apply_patch(
+    graph,
+    {
+        "atoms": [
+            {"id": "claim", "text": "Cats are the best pets"},
+            {"id": "premise", "text": "They are independent"},
+        ],
+        "schemes": [
+            {"id": "support", "type": "support", "premises": ["premise"], "conclusion": "claim"}
+        ],
+        "majorClaim": "claim",
+    },
+)
+```
+
+`ag.outline` returns a graph in the shape of a patch, and `ag.PATCH_SCHEMA` describes patches as JSON Schema for the tools of agents.
+A scheme can be the conclusion of another scheme, e.g. to undercut it.
 
 ### Exporting a Graph
 
@@ -211,9 +287,9 @@ codecs = ag.Codecs(atom=TypeAdapter(AtomData))
 
 Name a combination of userdata types once, e.g. `type MyGraph = ag.Graph[AtomData]`, and annotate graphs you create yourself (`graph: MyGraph = ag.Graph()`).
 Constructors make `userdata` optional (defaulting to `{}`) only for JSON object userdata.
-Likewise, `remove_scheme_nodes` requires a userdata factory for the edges it creates if the edge userdata is customized.
-Nodes reference participants, resources, and their edge endpoints without the userdata type, look them up in the graph to get it (e.g. `graph.participants[node.participant.id]`).
-`ag.copy` deep-copies userdata with `copy.deepcopy` instead of its codec, so in-memory data is kept.
+Likewise, `connect` requires a userdata factory for the edges it creates if the edge userdata is customized, and `ag.apply_patch` requires the codecs to create userdata.
+Nodes reference participants, resources, and their edge endpoints by id, look them up in the graph to get them with their userdata type (e.g. `graph.participants[node.participant]`).
+`copy.deepcopy(graph)` copies userdata without its codec, so in-memory data is kept.
 
 For throwaway data like caches, a side table keyed by element ids avoids custom types altogether:
 
@@ -296,6 +372,9 @@ Afterwards, you can execute it by calling `arguebuf`, for example:
 ```shell
 arguebuf --help
 ```
+
+`arguebuf graph check` reports the repairs applied while loading graphs and the problems found by `ag.check`, its exit code is non-zero if an issue reaches the severity given by `--fail-on`.
+`arguebuf graph render --remove-scheme-nodes` connects atoms directly in the rendered images.
 
 Alternatively, you can use the Docker image available at `ghcr.io/recap-utr/arguebuf-python`.
 To use it, mount a folder to the container and pass the options as the command.

@@ -5,6 +5,7 @@
 import logging
 
 from . import dt, dump, load, model, render, schemas, traverse
+from .check import check
 from .locate import DEFAULT_THRESHOLD, Match, is_anchored, locate
 from .model import (
     DEFAULT_CODECS,
@@ -49,6 +50,20 @@ from .model import (
     is_issue_code,
     uuid,
 )
+from .patch import (
+    PATCH_SCHEMA,
+    AtomPatch,
+    Outline,
+    ParsedPatch,
+    ParticipantPatch,
+    Patch,
+    PatchResult,
+    ResourcePatch,
+    SchemePatch,
+    apply_patch,
+    outline,
+    parse_patch,
+)
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
@@ -57,12 +72,14 @@ __all__ = (
     "DEFAULT_THRESHOLD",
     "ISSUE_CODES",
     "NO_SCHEME_LABEL",
+    "PATCH_SCHEMA",
     "AbstractNode",
     "Analyst",
     "AnalystChanges",
     "AtomChanges",
     "AtomNode",
     "AtomOrSchemeNode",
+    "AtomPatch",
     "AtomRelation",
     "Attack",
     "Codec",
@@ -79,20 +96,29 @@ __all__ = (
     "JsonValue",
     "Match",
     "Metadata",
+    "Outline",
+    "ParsedPatch",
     "Participant",
     "ParticipantChanges",
+    "ParticipantPatch",
+    "Patch",
+    "PatchResult",
     "Preference",
     "Reference",
     "Rephrase",
     "Reporter",
     "Resource",
     "ResourceChanges",
+    "ResourcePatch",
     "Scheme",
     "SchemeChanges",
     "SchemeNode",
+    "SchemePatch",
     "SchemeType",
     "Severity",
     "Support",
+    "apply_patch",
+    "check",
     "dt",
     "dump",
     "has_errors",
@@ -101,6 +127,8 @@ __all__ = (
     "load",
     "locate",
     "model",
+    "outline",
+    "parse_patch",
     "render",
     "schemas",
     "traverse",

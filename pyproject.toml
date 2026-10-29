@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
   "arg-services>=2,<3",
+  "jsonschema>=4,<5",
   "networkx>=3,<4",
   "pygraphviz>=2,<3",
 ]
@@ -37,6 +38,7 @@ cli = ["arg-services[grpcio]>=2,<3", "deepl>=1,<2", "typer>=0.27,<0.28"]
 
 [dependency-groups]
 dev = [
+  "types-jsonschema>=4,<5",
   "types-networkx>=3,<4",
   { include-group = "docs" },
   { include-group = "test" },

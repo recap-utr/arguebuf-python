@@ -32,3 +32,16 @@ def test_convert_text_folder(tmp_path: Path, single_file: bool) -> None:
     loaded = ag.load.file(output if single_file else output / "nested/graph.json")
 
     assert [resource.text for resource in loaded.resources.values()] == ["Source text"]
+
+
+def test_check_exit_code() -> None:
+    typer = pytest.importorskip("typer")
+    pytest.importorskip("deepl")
+
+    from arguebuf.cli.graph import FailOn, check
+
+    # loader repairs and quality problems are warnings, the untyped scheme is an error
+    check(Path("data/malformed.json"), "*", ignore=["untyped-scheme"])
+
+    with pytest.raises(typer.Exit):
+        check(Path("data/malformed.json"), "*", fail_on=FailOn.WARNING)
