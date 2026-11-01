@@ -1,3 +1,4 @@
+import dataclasses
 import re
 from dataclasses import dataclass
 from typing import TextIO
@@ -27,7 +28,7 @@ stance2scheme: dict[str | None, Scheme] = {
 }
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class _Statement:
     stance: str | None
     text: str
@@ -65,7 +66,8 @@ def load_kialo[
         raise ValueError("The title is not followed by an empty line!")
 
     statements: dict[str, _Statement] = {}
-    current: _Statement | None = None
+    # id of the statement that following lines continue
+    current: str | None = None
 
     for line in obj:
         match = _statement.search(line)
@@ -75,14 +77,19 @@ def load_kialo[
             if not match or match[1] != "1.":
                 raise ValueError("The major claim is not present in the third line!")
 
-            current = statements[match[1]] = _Statement(None, match[3])
+            statements[match[1]] = _Statement(None, match[3])
+            current = match[1]
         elif match and match[1] != "1.":
             if match[1] in statements:
                 raise ValueError(f"The statement '{match[1]}' is not unique!")
 
-            current = statements[match[1]] = _Statement(match[2], match[3])
+            statements[match[1]] = _Statement(match[2], match[3])
+            current = match[1]
         elif current:
-            current.text = f"{current.text}\n{line.strip()}"
+            statement = statements[current]
+            statements[current] = dataclasses.replace(
+                statement, text=f"{statement.text}\n{line.strip()}"
+            )
 
     if not statements:
         raise ValueError("The major claim is not present in the third line!")
@@ -94,14 +101,14 @@ def load_kialo[
     references: dict[str, str] = {}
 
     for id, statement in statements.items():
-        statement.text = statement.text.strip()
+        text = statement.text.strip()
 
-        if reference := _reference.search(statement.text):
+        if reference := _reference.search(text):
             references[id] = reference[1]
         else:
             g.add_node(
                 AtomNode(
-                    _escape.sub(r"\1", _link.sub(r"\1", statement.text)),
+                    _escape.sub(r"\1", _link.sub(r"\1", text)),
                     userdata=codecs.atom.validate_python({}),
                     id=id,
                 )

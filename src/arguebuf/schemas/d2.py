@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import override
 
 __all__ = ("D2Edge", "D2Graph", "D2Node", "D2Style")
@@ -65,10 +65,10 @@ class D2Edge:
         return f"{edge}: {{style.stroke: {_quote(self.stroke)}}}\n"
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class D2Graph:
-    nodes: list[D2Node] = field(default_factory=list)
-    edges: list[D2Edge] = field(default_factory=list)
+    nodes: tuple[D2Node, ...] = ()
+    edges: tuple[D2Edge, ...] = ()
 
     @override
     def __str__(self) -> str:

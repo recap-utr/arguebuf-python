@@ -25,7 +25,7 @@ def dump_d2[A, S, E, G, R, P, N](
 
     if not scheme_nodes:
         return D2Graph(
-            nodes=[
+            nodes=tuple(
                 _dump_node(
                     node,
                     atom_label(node) if atom_label else node.label,
@@ -33,19 +33,19 @@ def dump_d2[A, S, E, G, R, P, N](
                     monochrome,
                 )
                 for node in graph.atom_nodes.values()
-            ],
-            edges=[
+            ),
+            edges=tuple(
                 D2Edge(
                     from_id=relation.source.id,
                     to_id=relation.target.id,
                     stroke=relation.scheme.color(False, monochrome).bg,
                 )
                 for relation in graph.atom_relations()
-            ],
+            ),
         )
 
     return D2Graph(
-        nodes=[
+        nodes=(
             *(
                 _dump_node(
                     node,
@@ -64,11 +64,11 @@ def dump_d2[A, S, E, G, R, P, N](
                 )
                 for node in graph.scheme_nodes.values()
             ),
-        ],
-        edges=[
+        ),
+        edges=tuple(
             D2Edge(from_id=edge.source, to_id=edge.target)
             for edge in graph.edges.values()
-        ],
+        ),
     )
 
 
