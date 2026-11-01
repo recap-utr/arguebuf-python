@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
   "arg-services>=2,<3",
+  "fuzzysearch>=0.8,<0.9",
   "jsonschema>=4,<5",
   "networkx>=3,<4",
   "pygraphviz>=2,<3",

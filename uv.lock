@@ -45,6 +45,7 @@ version = "3.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "arg-services" },
+    { name = "fuzzysearch" },
     { name = "jsonschema" },
     { name = "networkx" },
     { name = "pygraphviz" },
@@ -82,6 +83,7 @@ requires-dist = [
     { name = "arg-services", specifier = ">=2,<3" },
     { name = "arg-services", extras = ["grpcio"], marker = "extra == 'cli'", specifier = ">=2,<3" },
     { name = "deepl", marker = "extra == 'cli'", specifier = ">=1,<2" },
+    { name = "fuzzysearch", specifier = ">=0.8,<0.9" },
     { name = "jsonschema", specifier = ">=4,<5" },
     { name = "networkx", specifier = ">=3,<4" },
     { name = "pygraphviz", specifier = ">=2,<3" },
@@ -442,6 +444,15 @@ sdist = { url = "https://files.pythonhosted.org/packages/bf/89/780e11f9588d9e712
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ab/84/02fc1827e8cdded4aa65baef11296a9bbe595c474f0d6d758af082d849fd/execnet-2.1.2-py3-none-any.whl", hash = "sha256:67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec", size = 40708, upload-time = "2025-11-12T09:56:36.333Z" },
 ]
+
+[[package]]
+name = "fuzzysearch"
+version = "0.8.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/b4/d92b429ba4bfe5461faa358f84092eceb5ea8985cd2e448daf38bba17737/fuzzysearch-0.8.1.tar.gz", hash = "sha256:e5f50962c6b1c3dfc6c8cdfd5e2604838c95cb10118e4cab518e5292e9e0b1c6", size = 39510, upload-time = "2025-11-11T08:47:10.321Z" }
 
 [[package]]
 name = "googleapis-common-protos"

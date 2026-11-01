@@ -1,9 +1,11 @@
 """Fuzzy search of quotes in texts."""
 
 import functools
-from collections.abc import Sequence
+import math
 from dataclasses import dataclass
 from typing import Final
+
+from fuzzysearch.levenshtein import find_near_matches_levenshtein
 
 __all__ = ("DEFAULT_THRESHOLD", "Match", "is_anchored", "locate")
 
@@ -58,48 +60,6 @@ def _normalize(text: str) -> tuple[tuple[str, ...], tuple[int, ...]]:
 _normalize_source = functools.lru_cache(maxsize=8)(_normalize)
 
 
-def _distances(
-    text: Sequence[str], pattern: Sequence[str], anchored: bool
-) -> tuple[list[int], int]:
-    """Edit distance of the pattern to the best span ending at each position of the text.
-
-    Uses Myers' bit-parallel algorithm.
-    If `anchored`, spans must start at the beginning of the text.
-    Returns the distances and their minimum, which is the pattern length for an empty text.
-    """
-    width = len(pattern)
-    full = (1 << width) - 1
-    last = 1 << (width - 1)
-    peq: dict[str, int] = {}
-
-    for index, char in enumerate(pattern):
-        peq[char] = peq.get(char, 0) | (1 << index)
-
-    pv, mv, score = full, 0, width
-    scores: list[int] = []
-    minimum = width
-
-    for char in text:
-        eq = peq.get(char, 0)
-        xv = eq | mv
-        xh = (((eq & pv) + pv) ^ pv) | eq
-        ph = mv | (~(xh | pv) & full)
-        mh = pv & xh
-
-        if ph & last:
-            score += 1
-        elif mh & last:
-            score -= 1
-
-        shifted = ((ph << 1) | int(anchored)) & full
-        pv = ((mh << 1) & full) | (~(xv | shifted) & full)
-        mv = shifted & xv
-        scores.append(score)
-        minimum = min(minimum, score)
-
-    return scores, minimum
-
-
 def _exact(source: str, query: str, near: int | None) -> Match | None:
     index = source.find(query)
 
@@ -127,35 +87,35 @@ def _approximate(
         return None
 
     chars, origin = _normalize_source(source)
-    ends, distance = _distances(chars, pattern, False)
-    similarity = 1 - distance / len(pattern)
 
-    # an empty source has no span even if the threshold permits no similarity at all
-    if not ends or similarity < threshold:
+    if not chars or threshold > 1:
         return None
 
-    # consecutive ends of equal distance belong to the same span, its longest version is kept
+    # Use the unconsolidated results so overlapping matches survive the proximity preference.
+    maximum = min(len(pattern) - 1, math.ceil((1 - threshold) * len(pattern)))
     candidates = [
-        index
-        for index, value in enumerate(ends)
-        if value == distance and (index + 1 == len(ends) or ends[index + 1] != distance)
+        match
+        for match in find_near_matches_levenshtein(pattern, chars, maximum)
+        if match.start < match.end and 1 - match.dist / len(pattern) >= threshold
     ]
-    # spans of equal distance are compared by the start they would have without edits
-    end = (
-        candidates[0]
-        if near is None
-        else min(
-            candidates,
-            key=lambda index: abs(origin[max(0, index - len(pattern) + 1)] - near),
-        )
-    )
-    # the shortest span ending at `end` with the same distance,
-    # it is at most `distance` chars longer than the pattern
-    window = chars[max(0, end + 1 - len(pattern) - distance) : end + 1]
-    starts = _distances(window[::-1], pattern[::-1], True)[0]
-    offset = origin[end - starts.index(distance)]
 
-    return Match(offset, source[offset : origin[end] + 1], similarity)
+    if not candidates:
+        return None
+
+    match = min(
+        candidates,
+        key=lambda match: (
+            match.dist,
+            abs(origin[match.start] - near) if near is not None else origin[match.start],
+            origin[match.start],
+            -match.end,
+        ),
+    )
+    offset = origin[match.start]
+
+    return Match(
+        offset, source[offset : origin[match.end - 1] + 1], 1 - match.dist / len(pattern)
+    )
 
 
 def locate(

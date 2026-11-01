@@ -15,6 +15,11 @@ def codes(issues: list[ag.Issue]) -> list[str]:
 
 
 def test_locate() -> None:
+    for near in (0, 1):
+        assert ag.locate("AAAAAA", "aaaaa", near=near) == ag.Match(near, "AAAAA", 1)
+        match = ag.locate("ABXDEABXDE", "abcde", near=near * 5, threshold=0.8)
+        assert match is not None and match.offset == near * 5
+
     assert ag.locate(SOURCE, "are the best pets") == ag.Match(7, "are the best pets", 1)
     assert ag.locate(SOURCE, 'They are "independent".') == ag.Match(
         26, "They are “independent", 1
