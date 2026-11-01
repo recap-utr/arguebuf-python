@@ -1,6 +1,8 @@
 """Userdata of graph elements and the codecs that load and dump it.
 
 Every kind of element has its own userdata type, a JSON object by default.
+JSON userdata is typed read-only (`Mapping` and `Sequence`), so type checkers reject changes in place
+and it can be shared between graphs, changed userdata is set via the `update_*` methods of a draft.
 A `Codec` converts between the persisted JSON object and the in-memory value,
 so the in-memory value may hold anything (e.g., numpy arrays),
 while only the output of `Codec.dump_python` has to be JSON.
@@ -14,6 +16,7 @@ ty rejects these defaults where they are declared, so its rule `invalid-paramete
 """
 
 import copy
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Final, Literal, Protocol
 
@@ -28,16 +31,19 @@ __all__ = (
 )
 
 type JsonValue = (
-    str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
+    str | int | float | bool | None | Sequence[JsonValue] | Mapping[str, JsonValue]
 )
-type JsonObject = dict[str, JsonValue]
+type JsonObject = Mapping[str, JsonValue]
 
 JSON_OBJECT: Final[JsonObject] = {}
 """Default of `userdata` parameters, never stored but copied by `own`."""
 
 
 def own[T](userdata: T) -> T:
-    """Copy the shared `JSON_OBJECT` default so that elements never share it."""
+    """Copy the shared `JSON_OBJECT` default, so that changes ignoring its type never leak.
+
+    A `MappingProxyType` cannot be shared instead, as it can be neither pickled nor deep copied.
+    """
     return copy.copy(userdata) if userdata is JSON_OBJECT else userdata
 
 
