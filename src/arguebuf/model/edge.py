@@ -68,7 +68,7 @@ class Edge[E = JsonObject](Entity):
 
 
 class EdgeChanges[E](TypedDict, total=False):
-    """Fields of an edge that `Graph.update_edge` changes, its nodes are fixed."""
+    """Fields of an edge that `GraphDraft.update_edge` changes, its nodes are fixed."""
 
     metadata: Metadata
     userdata: E

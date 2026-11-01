@@ -1,7 +1,7 @@
 import json
 from collections.abc import Mapping, Sequence
 
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, AtomOrSchemeNode, SchemeNode
 from arguebuf.model.scheme import Attack, Scheme, Support
@@ -105,7 +105,7 @@ def load_argdown[
     Raises:
         ValueError: If an inference `uses` invalid statement numbers.
     """
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name, userdata=codecs.graph.validate_python(obj.get("frontMatter") or {})
     )
     ctx = Context(codecs, on_issue, strict)
@@ -233,4 +233,4 @@ def load_argdown[
             g.add_node(scheme_node)
             connect(g, ctx, [start.id], scheme_node.id, end.id)
 
-    return g
+    return g.freeze()

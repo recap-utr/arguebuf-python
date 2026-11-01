@@ -85,7 +85,7 @@ class Participant[P = JsonObject](Entity):
 
 
 class ParticipantChanges[P](TypedDict, total=False):
-    """Fields of a participant that `Graph.update_participant` changes."""
+    """Fields of a participant that `GraphDraft.update_participant` changes."""
 
     name: str | None
     username: str | None

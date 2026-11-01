@@ -59,7 +59,7 @@ class Analyst[N = JsonObject](Entity):
 
 
 class AnalystChanges[N](TypedDict, total=False):
-    """Fields of an analyst that `Graph.update_analyst` changes."""
+    """Fields of an analyst that `GraphDraft.update_analyst` changes."""
 
     name: str | None
     email: str | None

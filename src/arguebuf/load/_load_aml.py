@@ -1,7 +1,7 @@
 from typing import IO
 from xml.etree import ElementTree as Tree
 
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.scheme import Attack, Scheme, Support, resolve_scheme
@@ -40,7 +40,7 @@ def load_aml[
     """
     root = Tree.parse(obj).getroot()
     ctx = Context(codecs, on_issue, strict)
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
 
@@ -50,12 +50,12 @@ def load_aml[
         g.major_claim = major_claim
         read_au(au, g, ctx, major_claim)
 
-    return g
+    return g.freeze()
 
 
 def read_au[A, S, E, G, R, P, N](
     au: Tree.Element,
-    g: Graph[A, S, E, G, R, P, N],
+    g: GraphDraft[A, S, E, G, R, P, N],
     ctx: Context[A, S, E, G, R, P, N],
     conclusion: AtomNode[A],
 ) -> None:
@@ -75,7 +75,7 @@ def read_au[A, S, E, G, R, P, N](
 def _read_premises[A, S, E, G, R, P, N](
     aus: list[Tree.Element],
     conclusion: AtomNode[A],
-    g: Graph[A, S, E, G, R, P, N],
+    g: GraphDraft[A, S, E, G, R, P, N],
     ctx: Context[A, S, E, G, R, P, N],
     refutation: bool,
 ) -> None:

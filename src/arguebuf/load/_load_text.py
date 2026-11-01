@@ -1,7 +1,7 @@
 from io import StringIO
 from typing import TextIO
 
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
@@ -33,9 +33,9 @@ def load_text[
     if title_pattern.search(text.partition("\n")[0]):
         return load_kialo(StringIO(text), name, codecs=codecs, on_issue=on_issue, strict=strict)
 
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     g.add_node(AtomNode(text, userdata=codecs.atom.validate_python({})))
 
-    return g
+    return g.freeze()

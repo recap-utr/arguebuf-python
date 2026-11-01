@@ -338,20 +338,20 @@ def test_dump_file(tmp_path: Path):
 
 
 def test_dump_d2():
-    g = ag.Graph()
+    g = ag.GraphDraft()
     g.add_node(ag.AtomNode("a\nb $x", id="$"))
 
-    assert (d2 := ag.dump.d2(g)) and d2.nodes[0].label == "a b $x"
+    assert (d2 := ag.dump.d2(g.freeze())) and d2.nodes[0].label == "a b $x"
     assert str(d2).startswith('"\\$": {\nlabel: "a b \\$x"\n')
 
 
 def test_dump_networkx():
-    g = ag.Graph()
+    g = ag.GraphDraft()
     atom, scheme = ag.AtomNode("a"), ag.SchemeNode(ag.Support.DEFAULT)
     g.add_node(atom)
     g.add_node(scheme)
     g.add_edge(ag.Edge(atom.id, scheme.id))
-    gnx = ag.dump.networkx(g, scheme_attrs={"kind": lambda node: node.label})
+    gnx = ag.dump.networkx(g.freeze(), scheme_attrs={"kind": lambda node: node.label})
 
     assert gnx.nodes[scheme.id] == {"label": "Support", "kind": "Support"}
     assert gnx.nodes[atom.id] == {"label": "a"}

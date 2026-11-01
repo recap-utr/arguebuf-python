@@ -76,7 +76,7 @@ class Resource[R = JsonObject](Entity):
 
 
 class ResourceChanges[R](TypedDict, total=False):
-    """Fields of a resource that `Graph.update_resource` changes."""
+    """Fields of a resource that `GraphDraft.update_resource` changes."""
 
     text: str
     title: str | None

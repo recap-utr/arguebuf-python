@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from typing import TextIO
 
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.scheme import Attack, Rephrase, Scheme, Support
@@ -48,7 +48,7 @@ def load_brat[
     Unknown stances, relation types, and atoms are skipped with a warning,
     lines of other shapes are ignored.
     """
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     ctx = Context(codecs, on_issue, strict)
@@ -62,7 +62,7 @@ def load_brat[
 
                 if annotation.split()[:1] == ["MajorClaim"]:
                     if g.major_claim is None:
-                        g.major_claim = atom
+                        g.major_claim = atom.id
                     else:
                         g.add_node(
                             SchemeNode(
@@ -111,7 +111,7 @@ def load_brat[
             )
             connect(g, ctx, [source.id], id, target.id)
 
-    return g
+    return g.freeze()
 
 
 def _roles(arguments: Iterable[str]) -> dict[str, str]:

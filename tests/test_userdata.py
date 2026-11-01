@@ -79,10 +79,10 @@ class TypeAdapterLike[T]:
 
 def _graph() -> tuple[ag.Graph[AtomData], AtomData]:
     data = AtomData("claim", [0.1, 0.2])
-    g: ag.Graph[AtomData] = ag.Graph()
+    g: ag.GraphDraft[AtomData] = ag.GraphDraft()
     g.add_node(ag.AtomNode("Claim", userdata=data, id="a"))
 
-    return g, data
+    return g.freeze(), data
 
 
 def test_codec_roundtrip():
@@ -116,9 +116,9 @@ def test_type_adapter_shape():
 
 
 def test_default_roundtrip():
-    g = ag.Graph(userdata={"topic": "t"})
+    g = ag.GraphDraft(userdata={"topic": "t"})
     g.add_node(ag.AtomNode("Claim", userdata={"n": [1, None]}, id="a"))
-    loaded = ag.load.dict(ag.dump.dict(g))
+    loaded = ag.load.dict(ag.dump.dict(g.freeze()))
 
     assert_type(loaded, ag.Graph)
     assert_type(loaded.atom_nodes["a"].userdata, JsonObject)
@@ -128,7 +128,7 @@ def test_default_roundtrip():
 
 
 def test_repaired_edges_keep_required_userdata_and_metadata() -> None:
-    graph: ag.Graph[JsonObject, JsonObject, AtomData] = ag.Graph()
+    graph: ag.GraphDraft[JsonObject, JsonObject, AtomData] = ag.GraphDraft()
     graph.add_node(ag.AtomNode("A", id="a"))
     graph.add_node(ag.AtomNode("B", id="b"))
     metadata = ag.Metadata()

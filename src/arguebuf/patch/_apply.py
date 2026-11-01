@@ -4,7 +4,7 @@ from collections.abc import Set as AbstractSet
 from dataclasses import dataclass, field
 
 from arguebuf.locate import DEFAULT_THRESHOLD
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.edge import Edge
 from arguebuf.model.issue import Issue, catch_graph_error, fail, has_errors
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
@@ -49,7 +49,7 @@ class PatchResult[A, S, E, G, R, P, N]:
 
 @dataclass(slots=True)
 class _Editor[A, S, E, G, R, P, N]:
-    graph: Graph[A, S, E, G, R, P, N]
+    graph: GraphDraft[A, S, E, G, R, P, N]
     codecs: Codecs[A, S, E, G, R, P, N]
     threshold: float
     # ids of the nodes, resources, and participants of the input,
@@ -346,13 +346,13 @@ def apply_patch[A, S, E, G, R, P, N](
 ) -> PatchResult[A, S, E, G, R, P, N]:
     """Apply a patch to a graph, all or nothing.
 
-    The patch is applied to a structural copy (see `copy.copy`),
-    so the input is not modified and shares its unchanged elements with the result.
+    The patch is applied to a draft of the graph (see `Graph.draft`),
+    so the result shares the unchanged elements with the input.
     Texts of atoms are linked to the most similar spans of the resources (see `locate`).
     Validate untrusted input with `parse_patch` first.
 
     Args:
-        graph: Graph to change.
+        graph: Graph to apply the patch to.
         patch: Changes referencing elements by id.
         codecs: Codecs creating the userdata of new elements.
         threshold: Minimal similarity of the spans linked to atoms.
@@ -366,7 +366,7 @@ def apply_patch[A, S, E, G, R, P, N](
         >>> result.graph.major_claim, result.issues, result.created
         ('a', (), ('a',))
     """
-    draft = graph.copy()
+    draft = graph.draft()
     initial = graph.nodes.keys() | graph.resources.keys() | graph.participants.keys()
     editor = _Editor(draft, codecs, threshold, initial)
     editor.apply(patch)
@@ -386,7 +386,7 @@ def apply_patch[A, S, E, G, R, P, N](
     }
 
     return PatchResult(
-        draft,
+        draft.freeze(),
         tuple(editor.issues),
         created=tuple(id for before, after in stores for id in after if id not in before),
         updated=tuple(

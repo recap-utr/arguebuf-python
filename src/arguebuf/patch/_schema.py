@@ -80,7 +80,7 @@ An item creates the element if its id is new and otherwise updates the given fie
 None clears a field.
 The changes are applied in the order of the fields.
 `remove` takes ids of nodes, resources, or participants,
-schemes left without premise or conclusion are removed as well (see `Graph.remove_node`).
+schemes left without premise or conclusion are removed as well (see `GraphDraft.remove_node`).
 """
 
 Outline = TypedDict(

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Self
 
 from arguebuf.dt import from_format
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, SchemeNode
@@ -56,7 +56,7 @@ def load_aif[
     are connected to the atoms of adjacent turns via rephrase nodes,
     otherwise they become isolated.
     """
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     index = _Index.from_aif(obj)
@@ -120,7 +120,7 @@ def load_aif[
     if reconstruct_dialog:
         _reconstruct_dialog(g, ctx, index)
 
-    return g
+    return g.freeze()
 
 
 def node_from_aif[A, S](
@@ -204,7 +204,7 @@ class _Index:
 
 
 def _reconstruct_dialog[A, S, E, G, R, P, N](
-    g: Graph[A, S, E, G, R, P, N], ctx: Context[A, S, E, G, R, P, N], index: _Index
+    g: GraphDraft[A, S, E, G, R, P, N], ctx: Context[A, S, E, G, R, P, N], index: _Index
 ) -> None:
     """Connect isolated atoms to the atoms of adjacent turns via rephrase nodes.
 

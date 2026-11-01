@@ -3,12 +3,12 @@ from collections.abc import Iterable
 import arguebuf as ag
 
 
-def new_graph(
+def new_draft(
     *nodes: ag.AtomOrSchemeNode,
     edges: Iterable[tuple[ag.AbstractNode, ag.AbstractNode]] = (),
-) -> ag.Graph:
-    """Create a graph from nodes and (source, target) pairs."""
-    g = ag.Graph()
+) -> ag.GraphDraft:
+    """Create a draft from nodes and (source, target) pairs."""
+    g = ag.GraphDraft()
 
     for node in nodes:
         g.add_node(node)

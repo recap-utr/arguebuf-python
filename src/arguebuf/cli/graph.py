@@ -59,12 +59,12 @@ def translate(
         input_folder, output_folder, input_glob, ".json", clean, overwrite, start
     ):
         report = _report_repairs(path_pair.source)
-        graph = ag.load.file(path_pair.source, on_issue=report)
+        draft = ag.load.file(path_pair.source, on_issue=report).draft()
 
-        for issue in translator.translate_graph(graph):
+        for issue in translator.translate_graph(draft):
             report(issue)
 
-        ag.dump.file(graph, path_pair.target, format=output_format)
+        ag.dump.file(draft.freeze(), path_pair.target, format=output_format)
 
 
 def node_label_formatter(

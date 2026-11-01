@@ -1,7 +1,7 @@
 import dataclasses
 
 from arguebuf.dt import from_format
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata
@@ -52,7 +52,7 @@ def load_ova[
     Dialog nodes (L, TA, YA) and their edges are skipped.
     Numeric ids are converted to strings.
     """
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     analysis = obj["analysis"]
@@ -141,7 +141,7 @@ def load_ova[
 
     relocate(g, ctx)
 
-    return g
+    return g.freeze()
 
 
 def scheme_from_ova[S](obj: ova.Node, codec: Codec[S]) -> SchemeNode[S] | None:

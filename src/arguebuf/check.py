@@ -27,9 +27,10 @@ def check[A, S, E, G, R, P, N](
         The issues in a stable order.
 
     Examples:
-        >>> g = Graph()
+        >>> from arguebuf import GraphDraft
+        >>> g = GraphDraft()
         >>> g.add_node(AtomNode("Claim"))
-        >>> [item.code for item in check(g)]
+        >>> [item.code for item in check(g.freeze())]
         ['orphaned-atom', 'no-major-claim']
     """
     nodes = list(graph.nodes.values())

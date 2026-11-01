@@ -10,15 +10,15 @@ import arguebuf as ag
 from arguebuf.load._helpers import Context, new_reference
 from arguebuf.model.utils import Entity
 
-from .conftest import new_graph
+from .conftest import new_draft
 
 
-def _sample() -> tuple[ag.Graph, ag.AtomNode, ag.Participant, ag.Resource]:
+def _sample() -> tuple[ag.GraphDraft, ag.AtomNode, ag.Participant, ag.Resource]:
     p, r = ag.Participant("p"), ag.Resource("a")
     a = ag.AtomNode(
         "a", participant=p.id, reference=ag.Reference("a", resource=r.id, offset=0)
     )
-    g = ag.Graph()
+    g = ag.GraphDraft()
     g.add_participant(p)
     g.add_resource(r)
     g.add_node(a)
@@ -28,7 +28,7 @@ def _sample() -> tuple[ag.Graph, ag.AtomNode, ag.Participant, ag.Resource]:
 
 def test_strict_edges():
     a, b, s = ag.AtomNode("a"), ag.AtomNode("b"), ag.SchemeNode()
-    g = new_graph(a, b, s)
+    g = new_draft(a, b, s)
     e = ag.Edge(a.id, s.id)
     g.add_edge(e)
 
@@ -73,7 +73,7 @@ def test_updates_validate_and_keep_edges():
 
 def test_remove_node_cascades():
     a, s = ag.AtomNode("a", id="a"), ag.SchemeNode(premise_descriptors=["a"])
-    g = new_graph(a, s)
+    g = new_draft(a, s)
     g.major_claim = a
     g.remove_node(a.id)
 
@@ -92,16 +92,18 @@ def test_remove_cascades_to_atoms():
     assert g.name is None
 
 
-def test_copies_never_leak_writes():
+def test_drafts_never_leak_writes():
     g, a, p, r = _sample()
     s, c = ag.SchemeNode(id="s"), ag.AtomNode("c", id="c")
     g.add_node(s)
     g.add_node(c)
     g.connect([a.id], s, c)
-    gc = copy.copy(g)
+    frozen = g.freeze()
+    other = frozen.draft()
 
-    def snapshot(graph: ag.Graph) -> object:
+    def snapshot(graph: ag.Graph | ag.GraphDraft) -> object:
         return (
+            graph.major_claim,
             list(graph.nodes),
             list(graph.edges),
             list(graph.resources),
@@ -112,23 +114,29 @@ def test_copies_never_leak_writes():
             ],
         )
 
-    before = snapshot(g)
-    gc.remove_edge(next(iter(gc.incoming_edges(c.id))))
-    gc.add_edge(ag.Edge(s.id, c.id, id="e"))
-    gc.remove_participant(p)
-    assert snapshot(g) == before
-
-    copied = snapshot(gc)
+    before = snapshot(frozen)
+    other.remove_edge(next(iter(other.incoming_edges(c.id))))
+    other.add_edge(ag.Edge(s.id, c.id, id="e"))
+    other.remove_participant(p)
+    other.major_claim = c
+    copied = snapshot(other)
     g.remove_node(s)
     g.remove_resource(r)
     g.add_node(ag.AtomNode("x", id="x"))
-    assert snapshot(gc) == copied
-    assert {n.id for n in gc.incoming_nodes(s.id)} == {a.id}
+
+    assert snapshot(frozen) == before
+    assert snapshot(other) == copied
+    assert snapshot(g.freeze()) == snapshot(g)
+    assert {n.id for n in other.incoming_nodes(s.id)} == {a.id}
+
+    for name in ("name", "major_claim", "_store"):
+        with pytest.raises(AttributeError):
+            setattr(frozen, name, None)
 
 
 def test_strict_references():
     a = ag.AtomNode("a", id="x")
-    g = new_graph(a)
+    g = new_draft(a)
 
     with pytest.raises(ValueError):
         g.add_edge(ag.Edge("missing", a.id))
@@ -146,7 +154,7 @@ def test_cycles_terminate():
         ag.SchemeNode(),
         ag.SchemeNode(),
     )
-    g = new_graph(a1, a2, s1, s2, edges=((a1, s1), (s1, s2), (s2, s1), (a2, s2)))
+    g = new_draft(a1, a2, s1, s2, edges=((a1, s1), (s1, s2), (s2, s1), (a2, s2)))
 
     assert g.outgoing_atom_nodes(a1) == set()
     assert g.sibling_node_distances(a1, max_levels=None) == {s2: 1}
@@ -183,9 +191,9 @@ def test_entities_are_frozen(entity: Entity) -> None:
 
 def test_networkx_attribute_names() -> None:
     atom, scheme = ag.AtomNode("a"), ag.SchemeNode()
-    g = new_graph(atom, scheme, edges=((atom, scheme),))
+    g = new_draft(atom, scheme, edges=((atom, scheme),))
     exported = ag.dump.networkx(
-        g,
+        g.freeze(),
         graph_attrs={"incoming_graph_data": lambda graph: graph.name},
         atom_attrs={"node_for_adding": lambda node: node.id},
         scheme_attrs={"node_for_adding": lambda node: node.id},
@@ -210,7 +218,7 @@ def test_networkx_attribute_names() -> None:
 def test_dump_aif_utc():
     timestamp = datetime(2020, 1, 1, 12, tzinfo=timezone(timedelta(hours=2)))
     a = ag.AtomNode("a", metadata=ag.Metadata(timestamp))
-    aif = ag.dump.aif(new_graph(a))
+    aif = ag.dump.aif(new_draft(a).freeze())
 
     assert aif["nodes"][0].get("timestamp") == "2020-01-01 10:00:00"
 
@@ -219,7 +227,8 @@ def test_protobuf_roundtrip():
     g, a, p, r = _sample()
     a.userdata["count"] = 1
     g.major_claim = a
-    proto = ag.dump.protobuf(g)
+    graph = g.freeze()
+    proto = ag.dump.protobuf(graph)
     loaded = ag.load.protobuf(proto)
 
     assert proto.library_version.startswith("arguebuf-python:")
@@ -227,7 +236,7 @@ def test_protobuf_roundtrip():
     assert loaded.atom_nodes[a.id].participant == p.id
     assert loaded.atom_nodes[a.id].reference == ag.Reference("a", resource=r.id, offset=0)
     assert loaded.atom_nodes[a.id].metadata == a.metadata
-    assert copy.deepcopy(g).atom_nodes[a.id].userdata == {"count": 1}
+    assert copy.deepcopy(graph).atom_nodes[a.id].userdata == {"count": 1}
 
 
 def test_protobuf_dangling(caplog: pytest.LogCaptureFixture):
@@ -273,7 +282,7 @@ def test_reference_offsets(caplog: pytest.LogCaptureFixture):
 
 
 def test_removed_adjacency_does_not_accumulate() -> None:
-    graph = ag.Graph()
+    graph = ag.GraphDraft()
     graph.add_node(ag.AtomNode("", id="a"))
     graph.remove_node("a")
     baseline = len(graph._store._owned)
@@ -287,7 +296,7 @@ def test_removed_adjacency_does_not_accumulate() -> None:
 
 
 def test_batch_removals_and_links() -> None:
-    g = new_graph(
+    g = new_draft(
         ag.AtomNode("Claim", id="c"),
         ag.AtomNode("Premise", id="p1"),
         ag.SchemeNode(ag.Support.EXPERT_OPINION, premise_descriptors=["p1"], id="s"),
@@ -325,7 +334,7 @@ def test_batch_removals_and_links() -> None:
 
 
 def test_annotations() -> None:
-    g = ag.Graph()
+    g = ag.GraphDraft()
     g.add_resource(ag.Resource("Resource", id="r"))
 
     for id, text, offset in (("a", "our", 3), ("b", "moved", 2), ("c", "Res", 0)):

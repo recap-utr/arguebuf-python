@@ -60,7 +60,7 @@ def test_load_repairs() -> None:
 
 def test_check() -> None:
     resource = ag.Resource(SOURCE, id="r")
-    g = ag.Graph()
+    g = ag.GraphDraft()
     g.add_resource(resource)
     nodes = (
         ag.AtomNode("Cats are the best pets", id="mc"),
@@ -82,7 +82,7 @@ def test_check() -> None:
 
     g.major_claim = "mc"
 
-    assert [(issue.code, issue.elements[0]) for issue in ag.check(g)] == [
+    assert [(issue.code, issue.elements[0]) for issue in ag.check(g.freeze())] == [
         ("reference-mismatch", "a"),
         ("reference-unresolved", "o"),
         ("scheme-multiple-conclusions", "s1"),
@@ -257,7 +257,7 @@ def test_parse_patch() -> None:
 
 
 def test_graph_edits() -> None:
-    g = ag.Graph()
+    g = ag.GraphDraft()
     g.add_resource(ag.Resource("Text", id="r"))
     g.add_node(ag.AtomNode("P", id="p"))
     g.add_node(ag.AtomNode("C", id="c"))
@@ -276,7 +276,7 @@ def test_graph_edits() -> None:
     assert g.atom_nodes["p"].metadata == created
 
     # a repeated id was removed by its first occurrence
-    result = ag.apply_patch(g, {"remove": ["r", "r", "c"]})
+    result = ag.apply_patch(g.freeze(), {"remove": ["r", "r", "c"]})
 
     assert result.issues == ()
     assert result.removed == ("c", scheme.id, "r")

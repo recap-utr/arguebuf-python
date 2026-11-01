@@ -4,7 +4,7 @@ from arg_services.graph.v1 import graph_pb2
 from google.protobuf import proto_json
 
 from arguebuf.dt import from_protobuf
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata
@@ -51,7 +51,7 @@ def load_protobuf[
     are skipped with a warning, unknown scheme values raise a `ValueError`.
     """
     ctx = Context(codecs, on_issue, strict)
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name,
         metadata=metadata_from_protobuf(obj.metadata),
         userdata=codecs.graph.validate_python(_userdata(obj)),
@@ -108,7 +108,7 @@ def load_protobuf[
 
     relocate(g, ctx)
 
-    return g
+    return g.freeze()
 
 
 def _userdata(

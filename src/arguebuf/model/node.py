@@ -225,7 +225,7 @@ type AtomOrSchemeNode[A = JsonObject, S = JsonObject] = AtomNode[A] | SchemeNode
 
 
 class AtomChanges[A](TypedDict, total=False):
-    """Fields of an atom node that `Graph.update_atom` changes."""
+    """Fields of an atom node that `GraphDraft.update_atom` changes."""
 
     text: str
     reference: Reference | None
@@ -235,7 +235,7 @@ class AtomChanges[A](TypedDict, total=False):
 
 
 class SchemeChanges[S](TypedDict, total=False):
-    """Fields of a scheme node that `Graph.update_scheme` changes."""
+    """Fields of a scheme node that `GraphDraft.update_scheme` changes."""
 
     scheme: Scheme | None
     premise_descriptors: Iterable[str]

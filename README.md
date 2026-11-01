@@ -57,10 +57,12 @@ For more details including examples, check out our API documentation.
 
 ### Creating a Graph
 
+Graphs are immutable, so they can be shared freely, e.g. in an undo history.
+They are built and changed via a `GraphDraft`, whose `freeze` returns the graph.
 The following example creates a graph with two premises that are connected to a major claim.
 
 ```python
-graph = ag.Graph()
+draft = ag.GraphDraft()
 
 premise1 = ag.AtomNode("Text of premise 1")
 premise2 = ag.AtomNode("Text of premise 2")
@@ -70,14 +72,15 @@ scheme1 = ag.SchemeNode(ag.Support.DEFAULT)
 scheme2 = ag.SchemeNode(ag.Attack.DEFAULT)
 
 for node in (premise1, premise2, claim, scheme1, scheme2):
-    graph.add_node(node)
+    draft.add_node(node)
 
-graph.add_edge(ag.Edge(premise1.id, scheme1.id))
-graph.add_edge(ag.Edge(scheme1.id, claim.id))
+draft.add_edge(ag.Edge(premise1.id, scheme1.id))
+draft.add_edge(ag.Edge(scheme1.id, claim.id))
 # shorthand for the edges from the premises to the scheme and from the scheme to the claim
-graph.connect([premise2], scheme2, claim)
+draft.connect([premise2], scheme2, claim)
 
-graph.major_claim = claim
+draft.major_claim = claim
+graph = draft.freeze()
 ```
 
 Rendering it with Graphviz (see below) results in the following image.
@@ -117,26 +120,29 @@ The loaders `dict`, `json`, `io`, `file`, `folder`, and `casebase` forward this 
 
 ### Strict Model and Lenient Loaders
 
-The graph is strict.
-Adding an element raises a `GraphError` (a `ValueError`) if its id is already taken or if it references an element (e.g., the nodes of an edge or the participant of an atom node) that has not been added to the graph before.
+The model is strict.
+Adding an element to a draft raises a `GraphError` (a `ValueError`) if its id is already taken or if it references an element (e.g., the nodes of an edge or the participant of an atom node) that has not been added to the graph before.
 Edges must not be self-loops, connect two atoms, or duplicate an existing connection.
-Elements reference each other by id, e.g. `edge.source`, `node.participant`, and `node.reference.resource` are ids, while the methods of the graph accept elements or ids.
+Elements reference each other by id, e.g. `edge.source`, `node.participant`, and `node.reference.resource` are ids, while the methods of graphs and drafts accept elements or ids.
 Removing an element also removes or unsets all references to it, e.g., removing a node also removes its edges.
 Removing a node also removes the scheme nodes that are left without a premise or a conclusion, recursively, so that the graph stays consistent.
-`graph.remove_elements(ids)` removes elements of any kind at once, skipping those already removed by a cascade of the same call.
+`draft.remove_elements(ids)` removes elements of any kind at once, skipping those already removed by a cascade of the same call.
 Like `remove_node` and `remove_branch`, it returns the ids of all removed elements, including those of the cascades.
-`graph.link(source, target, scheme=...)` connects two nodes, two atoms through a new scheme node (untyped by default) that it returns.
+`draft.link(source, target, scheme=...)` connects two nodes, two atoms through a new scheme node (untyped by default) that it returns.
 `graph.check_link(source, target)` returns the issue that prevents such a link without raising, e.g. to validate a connection while it is drawn.
 `graph.annotations(resource)` lists the atoms whose references are anchored in a resource with their spans, sorted by position.
 
-All elements are frozen and changed via the typed methods `update_atom`, `update_scheme`, `update_edge`, `update_resource`, `update_participant`, and `update_analyst`, which validate the new values like their `add_*` counterparts.
+All elements are frozen and changed via the typed methods `update_atom`, `update_scheme`, `update_edge`, `update_resource`, `update_participant`, and `update_analyst` of a draft, which validate the new values like their `add_*` counterparts.
 They set the modification time of the element's metadata to now unless `metadata` is given.
-Changing the text of a resource re-anchors the references to it and returns the resulting warnings (see `graph.relocate_references`).
-Because elements are frozen, `graph.copy()` (or `copy.copy(graph)`) is cheap: the copy shares all elements, userdata, and containers with the original, and each graph clones a container only when it changes it first, so a copy can be changed while the original stays intact.
-Use `copy.deepcopy(graph)` to copy the userdata as well.
+Changing the text of a resource re-anchors the references to it and returns the resulting warnings (see `draft.relocate_references`).
+`graph.draft()` and `draft.freeze()` take constant time: graphs and drafts share all elements, userdata, and containers, and a draft clones a container only when it changes it first.
+A draft stays usable after `freeze`, and the graphs it returned never change.
+Userdata is shared as is, so replace it via `update_*` instead of changing it in place.
 
 ```python
-graph.update_atom(claim, text="New text of claim")
+draft = graph.draft()
+draft.update_atom(claim, text="New text of claim")
+changed = draft.freeze()
 ```
 
 Views without scheme nodes are projections that leave the graph unchanged.
@@ -144,7 +150,7 @@ Views without scheme nodes are projections that leave the graph unchanged.
 
 Loaders are lenient.
 They repair what they can and skip the rest: an edge between two atoms gets an untyped scheme in between, while self-loops, duplicate connections, duplicate nodes, and elements referencing unknown ones are skipped.
-References whose text is not found at their offset are moved to the most similar span of their resource (see `graph.relocate_references`).
+References whose text is not found at their offset are moved to the most similar span of their resource (see `draft.relocate_references`).
 Each repair is reported as a warning to the `on_issue` callback, which defaults to logging it, and `strict=True` raises a `GraphError` instead.
 Malformed values such as unparsable dates always raise an error.
 Loaders do not copy the objects they read, so the userdata of a graph may share objects with the input.
@@ -179,7 +185,7 @@ ag.locate("Cats are the best pets. They are independent.", "they are independant
 An item creates an element if its id is new and otherwise updates the given fields, `remove` deletes elements.
 Texts of atoms are linked to the most similar spans of the resources.
 A scheme is named by its type and optionally its label (e.g. "Expert Opinion"), unknown labels fall back to the default scheme with an `unknown-scheme` warning.
-The patch is applied all or nothing to a copy of the graph, so the result contains the unchanged input graph if there is an error.
+The patch is applied all or nothing to a draft of the graph, so the result contains the unchanged input graph if there is an error.
 Otherwise, the result lists the ids of the `created`, `updated`, and `removed` elements, removals include the schemes removed together with a node.
 Every issue points to the item that caused it via its `path`, so that an agent can correct it.
 `ag.parse_patch` validates untrusted input against `ag.PATCH_SCHEMA` and reports every problem as an `invalid-patch` error with its path.
@@ -270,8 +276,10 @@ class AtomCodec:
 codecs = ag.Codecs(atom=AtomCodec())
 # ag.Graph[AtomData]
 graph = ag.load.file("graph.json", codecs=codecs)
-graph.atom_nodes[id].userdata.embedding = embed(graph.atom_nodes[id].text)
-ag.dump.file(graph, "graph.json", codecs=codecs)
+atom = graph.atom_nodes[id]
+draft = graph.draft()
+draft.update_atom(atom, userdata=AtomData(atom.userdata.label, embed(atom.text)))
+ag.dump.file(draft.freeze(), "graph.json", codecs=codecs)
 ```
 
 The method names match `pydantic.TypeAdapter`, which can be passed directly.
@@ -288,7 +296,7 @@ class AtomData(BaseModel):
 codecs = ag.Codecs(atom=TypeAdapter(AtomData))
 ```
 
-Name a combination of userdata types once, e.g. `type MyGraph = ag.Graph[AtomData]`, and annotate graphs you create yourself (`graph: MyGraph = ag.Graph()`).
+Name a combination of userdata types once, e.g. `type MyGraph = ag.Graph[AtomData]`, and annotate drafts you create yourself (`draft: ag.GraphDraft[AtomData] = ag.GraphDraft()`).
 Constructors make `userdata` optional (defaulting to `{}`) only for JSON object userdata.
 Likewise, `connect` requires a userdata factory for the edges it creates if the edge userdata is customized, and `ag.apply_patch` requires the codecs to create userdata.
 Nodes reference participants, resources, and their edge endpoints by id, look them up in the graph to get them with their userdata type (e.g. `graph.participants[node.participant]`).

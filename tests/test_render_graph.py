@@ -10,14 +10,14 @@ import arguebuf as ag
 
 @pytest.fixture
 def graph() -> ag.Graph:
-    g = ag.Graph("Test")
+    g = ag.GraphDraft("Test")
     atom = ag.AtomNode("Claim")
     scheme = ag.SchemeNode(ag.Support.DEFAULT)
     g.add_node(atom)
     g.add_node(scheme)
     g.add_edge(ag.Edge(atom.id, scheme.id))
 
-    return g
+    return g.freeze()
 
 
 def test_render_graphviz(graph: ag.Graph, tmp_path: Path):
@@ -29,11 +29,11 @@ def test_render_graphviz(graph: ag.Graph, tmp_path: Path):
 
 
 def test_graphviz_escaping():
-    g = ag.Graph()
+    g = ag.GraphDraft()
     atom = ag.AtomNode('x ab-cd\\ "b" \\N')
     g.add_node(atom)
     g.major_claim = atom
-    gv = ag.dump.graphviz(g, wrap_col=6)
+    gv = ag.dump.graphviz(g.freeze(), wrap_col=6)
 
     assert gv is not None
     assert "root=true" in gv.string()

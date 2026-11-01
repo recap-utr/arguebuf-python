@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 
 from arguebuf.dt import from_isoformat
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model import scheme as scheme_model
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.issue import Reporter
@@ -66,7 +66,7 @@ def load_sadface[
     core = obj["metadata"]["core"]
     ctx = Context(codecs, on_issue, strict)
     edited = from_isoformat(core.get("edited"))
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name,
         metadata=Metadata(from_isoformat(core.get("created")) or edited, edited),
         userdata=codecs.graph.validate_python(
@@ -121,7 +121,7 @@ def load_sadface[
 
     relocate(g, ctx)
 
-    return g
+    return g.freeze()
 
 
 def atom_from_sadface[A](

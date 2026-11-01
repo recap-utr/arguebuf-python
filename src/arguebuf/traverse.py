@@ -72,8 +72,8 @@ def node_distance[N: AbstractNode](
         Number of edges on the shortest path or `None` if there is no path.
 
     Examples:
-        >>> from arguebuf import Graph, AtomNode, SchemeNode, Edge
-        >>> g = Graph()
+        >>> from arguebuf import AtomNode, Edge, GraphDraft, SchemeNode
+        >>> g = GraphDraft()
         >>> n1 = AtomNode("Premise")
         >>> n2 = SchemeNode()
         >>> n3 = AtomNode("Claim")

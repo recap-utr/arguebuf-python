@@ -91,16 +91,18 @@ def test_dialog_xaif():
 @pytest.mark.parametrize("format", [ag.dump.Format.AIF, ag.dump.Format.XAIF])
 def test_roundtrip(format: ag.dump.Format):
     timestamp = datetime(2020, 1, 2, 3, 4, 5, tzinfo=UTC)
-    graph = ag.Graph()
+    draft = ag.GraphDraft()
     claim = ag.AtomNode("Claim", metadata=ag.Metadata(timestamp))
-    graph.add_node(claim)
+    draft.add_node(claim)
 
     for scheme in (*Support, Attack.DEFAULT, Rephrase.DEFAULT, Preference.DEFAULT):
         premise = ag.AtomNode(scheme.value)
-        graph.add_node(premise)
-        graph.add_node(node := ag.SchemeNode(scheme))
-        graph.add_edge(ag.Edge(premise.id, node.id))
-        graph.add_edge(ag.Edge(node.id, claim.id))
+        draft.add_node(premise)
+        draft.add_node(node := ag.SchemeNode(scheme))
+        draft.add_edge(ag.Edge(premise.id, node.id))
+        draft.add_edge(ag.Edge(node.id, claim.id))
+
+    graph = draft.freeze()
 
     loaded = ag.load.dict(json.loads(json.dumps(ag.dump.dict(graph, format=format))))
 
@@ -141,9 +143,10 @@ def test_ambiguous_locutions():
 
 
 def test_xaif_resources_and_participants():
-    graph = ag.Graph()
-    graph.add_resource(ag.Resource("a < b &\nc"))
-    graph.add_participant(ag.Participant("Bob van Smith"))
+    draft = ag.GraphDraft()
+    draft.add_resource(ag.Resource("a < b &\nc"))
+    draft.add_participant(ag.Participant("Bob van Smith"))
+    graph = draft.freeze()
     xaif = ag.dump.xaif(graph)
     loaded = ag.load.dict(json.loads(json.dumps(xaif)))
 

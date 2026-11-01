@@ -11,7 +11,7 @@ __all__ = ("relocate_references",)
 def relocate_references[A, S, E, R, P, N](
     store: GraphStore[A, S, E, R, P, N], *, resource: str | None, threshold: float
 ) -> list[Issue]:
-    """See `Graph.relocate_references`."""
+    """See `GraphDraft.relocate_references`."""
     issues: list[Issue] = []
 
     for node in list(store.atom_nodes.values()):

@@ -38,7 +38,7 @@ class Translator:
 
         return [result.text for result in results]
 
-    def translate_graph(self, graph: ag.Graph) -> list[ag.Issue]:
+    def translate_graph(self, graph: ag.GraphDraft) -> list[ag.Issue]:
         """Translate the texts of a graph and re-anchor the translated references.
 
         Returns:
@@ -74,6 +74,3 @@ class Translator:
             issues.extend(graph.update_resource(resource, text=translation))
 
         return issues
-
-    def translate_graphs(self, graphs: Iterable[ag.Graph]) -> list[ag.Issue]:
-        return [issue for graph in graphs for issue in self.translate_graph(graph)]

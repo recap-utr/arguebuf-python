@@ -1,7 +1,7 @@
 from typing import IO
 from xml.etree import ElementTree as Tree
 
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.scheme import Attack, Scheme, Support
@@ -47,7 +47,7 @@ def load_microtexts[
     """
     root = Tree.parse(obj).getroot()
     ctx = Context(codecs, on_issue, strict)
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name or root.get("id"),
         userdata=codecs.graph.validate_python(
             {"stance": root.get("stance"), "topic": root.get("topic_id")}
@@ -113,4 +113,4 @@ def load_microtexts[
 
     g.major_claim = g.root_node
 
-    return g
+    return g.freeze()

@@ -11,18 +11,12 @@ from arguebuf.model._graph_removal import (
     remove_participant,
     remove_resource,
 )
-from arguebuf.model._graph_store import touched
-from arguebuf.model._graph_validation import (
-    edge_issue,
-    get,
-    vacate,
-    validate_edge,
-    validate_node,
-)
+from arguebuf.model._graph_store import GraphStore, touched
+from arguebuf.model._graph_validation import get, vacate, validate_edge, validate_node
 from arguebuf.model._graph_view import Annotation, AtomRelation, GraphView
 from arguebuf.model.analyst import Analyst, AnalystChanges
 from arguebuf.model.edge import Edge, EdgeChanges
-from arguebuf.model.issue import GraphError, Issue
+from arguebuf.model.issue import GraphError, Issue, fail
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import (
     AbstractNode,
@@ -45,6 +39,7 @@ __all__ = (
     "AtomRelation",
     "EdgeChanges",
     "Graph",
+    "GraphDraft",
     "ParticipantChanges",
     "ResourceChanges",
     "SchemeChanges",
@@ -52,12 +47,12 @@ __all__ = (
 
 
 # lazily evaluated, so the overloads below can specialize the class they belong to
-type _JsonGraph = Graph
-type _ObjectGraph = Graph[object, object, object, object, object, object, object]
+type _JsonGraph = _GraphBase
+# lazily evaluated, so `Graph` can reference the class defined after it
+type _Draft[A, S, E, G, R, P, N] = GraphDraft[A, S, E, G, R, P, N]
 
 
-@dataclass(slots=True, eq=False)
-class Graph[
+class _GraphBase[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
@@ -66,26 +61,9 @@ class Graph[
     P = JsonObject,
     N = JsonObject,
 ](GraphView[A, S, E, R, P, N]):
-    """Argument graph consisting of atom nodes, scheme nodes, and edges.
+    """Construction of the fields that `Graph` and `GraphDraft` declare."""
 
-    Its read-only, insertion-ordered collections change only via its methods.
-    Elements reference each other by id.
-    The `add_*` and `update_*` methods reject taken or unknown ids and unknown references,
-    edges must neither be self-loops, connect two atom nodes, nor duplicate a connection.
-    The `remove_*` methods unset or remove all references to the removed element.
-    Violations raise a `GraphError` whose `issue` describes the cause.
-    All elements are frozen, so `copy.copy` copies the structure of a graph cheaply
-    while sharing its elements and userdata.
-    The type parameters are the userdata types of atom nodes, scheme nodes, edges,
-    the graph, resources, participants, and analysts (see `arguebuf.Codecs`).
-
-    Attributes:
-        name: Optional name, used for example as file name by `arguebuf.dump.file`.
-    """
-
-    name: str | None
-    metadata: Metadata = field(repr=False)
-    userdata: G = field(repr=False)
+    __slots__ = ()
 
     # a JSON literal would otherwise infer a narrower userdata type like dict[str, str]
     @overload
@@ -107,43 +85,158 @@ class Graph[
     ) -> None: ...
 
     def __init__(
-        self: _ObjectGraph,
+        self,
         name: str | None = None,
         *,
         metadata: Metadata | None = None,
         userdata: object = JSON_OBJECT,
     ) -> None:
-        self.name = name
-        self.metadata = metadata or Metadata()
-        self.userdata = own(userdata)
-        GraphView.__init__(self)
+        self._assign(name, metadata or Metadata(), own(userdata), GraphStore())
 
-    def copy(self) -> Self:
-        """Copy the structure of the graph, sharing its frozen elements and userdata.
+    @classmethod
+    def _of(
+        cls,
+        name: str | None,
+        metadata: Metadata,
+        userdata: G,
+        store: GraphStore[A, S, E, R, P, N],
+    ) -> Self:
+        """Create a graph from its fields without copying them."""
+        graph = cls.__new__(cls)
+        graph._assign(name, metadata, userdata, store)
 
-        This is cheap, so changes can be made on a copy while the original stays intact.
-        `copy.copy(graph)` does the same, `copy.deepcopy(graph)` copies the userdata as well.
+        return graph
+
+    def _assign(
+        self,
+        name: str | None,
+        metadata: Metadata,
+        userdata: object,
+        store: GraphStore[A, S, E, R, P, N],
+    ) -> None:
+        # frozen dataclasses can only be initialized via object.__setattr__
+        object.__setattr__(self, "name", name)
+        object.__setattr__(self, "metadata", metadata)
+        object.__setattr__(self, "userdata", userdata)
+        object.__setattr__(self, "_store", store)
+
+
+@dataclass(slots=True, frozen=True, eq=False, init=False)
+class Graph[
+    A = JsonObject,
+    S = JsonObject,
+    E = JsonObject,
+    G = JsonObject,
+    R = JsonObject,
+    P = JsonObject,
+    N = JsonObject,
+](_GraphBase[A, S, E, G, R, P, N]):
+    """Immutable argument graph consisting of atom nodes, scheme nodes, and edges.
+
+    A graph never changes, so it can be shared freely, e.g. in an undo history.
+    Changes are made on the `GraphDraft` returned by `draft`, whose `freeze` returns the new graph.
+    Both take constant time, since graphs and drafts share their elements, userdata, and containers,
+    and a draft clones a container only when it changes it first.
+    Userdata is shared as is, so replace it via a draft instead of changing it in place.
+    Elements reference each other by id.
+    The type parameters are the userdata types of atom nodes, scheme nodes, edges,
+    the graph, resources, participants, and analysts (see `arguebuf.Codecs`).
+
+    Attributes:
+        name: Optional name, used for example as file name by `arguebuf.dump.file`.
+        metadata: Creation and modification times of the graph.
+        userdata: Userdata of the graph.
+
+    Examples:
+        >>> empty = Graph("Example")
+        >>> draft = empty.draft()
+        >>> draft.add_node(AtomNode("Claim", id="c"))
+        >>> graph = draft.freeze()
+        >>> len(empty.nodes), len(graph.nodes), graph.name
+        (0, 1, 'Example')
+        >>> graph.name = "Changed"
+        Traceback (most recent call last):
+        dataclasses.FrozenInstanceError: ...
+    """
+
+    name: str | None
+    metadata: Metadata = field(repr=False)
+    userdata: G = field(repr=False)
+    _store: GraphStore[A, S, E, R, P, N] = field(repr=False)
+
+    def draft(self) -> _Draft[A, S, E, G, R, P, N]:
+        """Start changing the graph, it stays unchanged itself."""
+        return GraphDraft[A, S, E, G, R, P, N]._of(
+            self.name, self.metadata, self.userdata, self._store.fork()
+        )
+
+
+@dataclass(slots=True, eq=False, init=False)
+class GraphDraft[
+    A = JsonObject,
+    S = JsonObject,
+    E = JsonObject,
+    G = JsonObject,
+    R = JsonObject,
+    P = JsonObject,
+    N = JsonObject,
+](_GraphBase[A, S, E, G, R, P, N]):
+    """Mutable argument graph that is turned into an immutable `Graph` by `freeze`.
+
+    It is created empty like a `Graph` or from one via `Graph.draft`.
+    Its read-only, insertion-ordered collections change only via its methods.
+    The `add_*` and `update_*` methods reject taken or unknown ids and unknown references,
+    edges must neither be self-loops, connect two atom nodes, nor duplicate a connection.
+    The `remove_*` methods unset or remove all references to the removed element.
+    Violations raise a `GraphError` whose `issue` describes the cause.
+
+    Attributes:
+        name: Optional name, used for example as file name by `arguebuf.dump.file`.
+        metadata: Creation and modification times of the graph.
+        userdata: Userdata of the graph.
+    """
+
+    name: str | None
+    metadata: Metadata = field(repr=False)
+    userdata: G = field(repr=False)
+    _store: GraphStore[A, S, E, R, P, N] = field(repr=False)
+
+    def freeze(self) -> Graph[A, S, E, G, R, P, N]:
+        """The current state as immutable graph, the draft can still be changed afterwards.
 
         Examples:
-            >>> g = Graph()
-            >>> g.add_node(AtomNode("Claim", id="c"))
-            >>> gc = g.copy()
-            >>> gc.update_atom("c", text="Changed")
-            >>> g.nodes["c"].text, gc.nodes["c"].text
+            >>> draft = GraphDraft()
+            >>> draft.add_node(AtomNode("Claim", id="c"))
+            >>> graph = draft.freeze()
+            >>> draft.update_atom("c", text="Changed")
+            >>> graph.nodes["c"].text, draft.freeze().nodes["c"].text
             ('Claim', 'Changed')
         """
-        clone = type(self).__new__(type(self))
-        clone.name = self.name
-        clone.metadata = self.metadata
-        clone.userdata = self.userdata
-        # all containers are shared now, so both graphs clone them before writing
-        clone._store = self._store.fork()
+        store = self._store
+        # the graph takes the containers, so the draft clones them before writing
+        self._store = store.fork()
 
-        return clone
+        return Graph[A, S, E, G, R, P, N]._of(
+            self.name, self.metadata, self.userdata, store
+        )
 
-    def __copy__(self) -> Self:
-        """Copy the structure of the graph, see `Graph.copy`."""
-        return self.copy()
+    @GraphView.major_claim.setter
+    def major_claim(self, value: str | AbstractNode | None) -> None:
+        if value is None:
+            self._store.major_claim = None
+
+            return
+
+        node = self._node(value)
+
+        if not isinstance(node, AtomNode):
+            fail(
+                "invalid-major-claim",
+                f"Only atom nodes can be the major claim, '{node.id}' is a scheme node.",
+                [node.id],
+            )
+
+        self._store.major_claim = node.id
 
     def add_node(self, node: AtomOrSchemeNode[A, S]) -> None:
         """Add a node to the graph.
@@ -154,7 +247,7 @@ class Graph[
                 must already be part of the graph.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> g.add_node(AtomNode("Exemplary node"))
             >>> len(g.nodes)
             1
@@ -184,7 +277,7 @@ class Graph[
             The ids of all removed nodes and edges.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> for n in (AtomNode("P", id="p"), SchemeNode(id="s"), AtomNode("C", id="c")):
             ...     g.add_node(n)
             >>> g.connect(["p"], "s", "c")
@@ -210,7 +303,7 @@ class Graph[
             The ids of all removed elements, including those of the cascades.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> for n in (AtomNode("P", id="p"), SchemeNode(id="s"), AtomNode("C", id="c")):
             ...     g.add_node(n)
             >>> g.connect(["p"], "s", "c")
@@ -232,7 +325,7 @@ class Graph[
         The participant and the resource of the reference must be part of the graph.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> g.add_node(AtomNode("Old", id="a"))
             >>> g.update_atom("a", text="New")
             >>> g.nodes["a"].text
@@ -250,7 +343,7 @@ class Graph[
         """Change fields of a scheme node, keeping its edges.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> g.add_node(SchemeNode(id="s"))
             >>> g.update_scheme("s", userdata={"note": "Checked"})
             >>> g.nodes["s"].userdata
@@ -268,7 +361,7 @@ class Graph[
                 Its source and target must be nodes of the graph.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> n1 = AtomNode("Premise")
             >>> n2 = SchemeNode()
             >>> g.add_node(n1)
@@ -301,7 +394,7 @@ class Graph[
                 it can only be omitted for JSON object userdata.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> for node in (AtomNode("P", id="p"), SchemeNode(id="s"), AtomNode("C", id="c")):
             ...     g.add_node(node)
             >>> g.connect(["p"], "s", "c")
@@ -316,31 +409,6 @@ class Graph[
             link(premise, scheme)
 
         link(scheme, conclusion)
-
-    def check_link(
-        self, source: str | AbstractNode, target: str | AbstractNode
-    ) -> Issue | None:
-        """The issue that prevents `link` from connecting the nodes, if any.
-
-        Unlike `link`, nothing is raised, e.g. to validate a connection while it is drawn.
-
-        Examples:
-            >>> g = Graph()
-            >>> for node in (AtomNode("P", id="p"), AtomNode("C", id="c")):
-            ...     g.add_node(node)
-            >>> g.check_link("p", "c") is None
-            True
-            >>> g.check_link("p", "p").code
-            'self-loop'
-        """
-        source_id, target_id = id_of(source), id_of(target)
-        atoms = self._store.atom_nodes
-
-        # atom nodes are connected through a new scheme node, which only rules out self-loops
-        if source_id in atoms and target_id in atoms and source_id != target_id:
-            return None
-
-        return edge_issue(self._store, source_id, target_id)
 
     def link(
         self,
@@ -370,7 +438,7 @@ class Graph[
 
         Examples:
             >>> from arguebuf import Attack
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> for node in (AtomNode("P", id="p"), AtomNode("C", id="c")):
             ...     g.add_node(node)
             >>> node = g.link("p", "c", scheme=Attack.DEFAULT)
@@ -413,7 +481,7 @@ class Graph[
             edge: Edge object or id that is part of the graph.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> n1, n2 = AtomNode("Node1"), SchemeNode()
             >>> g.add_node(n1)
             >>> g.add_node(n2)
@@ -429,7 +497,7 @@ class Graph[
         """Add a resource.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> g.add_resource(Resource("Resource1"))
             >>> len(g.resources)
             1
@@ -459,7 +527,7 @@ class Graph[
 
         Examples:
             >>> from arguebuf import Reference
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> g.add_resource(Resource("Cats are pets.", id="r"))
             >>> g.add_node(AtomNode("Pets", id="a", reference=Reference("pets", resource="r", offset=9)))
             >>> g.update_resource("r", text="Indeed, cats are pets.")
@@ -481,7 +549,7 @@ class Graph[
         """Remove a resource and unset it in the references of all atom nodes.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> r1 = Resource("Resource1")
             >>> g.add_resource(r1)
             >>> g.remove_resource(r1)
@@ -508,7 +576,7 @@ class Graph[
         """Add a participant.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> g.add_participant(Participant("Participant1"))
             >>> len(g.participants)
             1
@@ -533,7 +601,7 @@ class Graph[
         """Remove a participant and unset it for all its atom nodes.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> p1 = Participant("Participant1")
             >>> g.add_participant(p1)
             >>> g.remove_participant(p1)
@@ -560,7 +628,7 @@ class Graph[
         """Add an analyst.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> g.add_analyst(Analyst("Name"))
             >>> len(g.analysts)
             1
@@ -579,7 +647,7 @@ class Graph[
         """Remove an analyst.
 
         Examples:
-            >>> g = Graph()
+            >>> g = GraphDraft()
             >>> a1 = Analyst("Name")
             >>> g.add_analyst(a1)
             >>> g.remove_analyst(a1)

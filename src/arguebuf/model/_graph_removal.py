@@ -18,7 +18,7 @@ type _Removed = dict[str, None]
 def remove_elements[A, S, E, R, P, N](
     store: GraphStore[A, S, E, R, P, N], ids: Iterable[str]
 ) -> list[str]:
-    """See `Graph.remove_elements`."""
+    """See `GraphDraft.remove_elements`."""
     ids = list(dict.fromkeys(ids))
     kinds: tuple[Mapping[str, object], ...] = (
         store.nodes,
@@ -143,7 +143,7 @@ def remove_participant[A, S, E, R, P, N](
 def remove_branches[A, S, E, R, P, N](
     store: GraphStore[A, S, E, R, P, N], starts: Iterable[AtomOrSchemeNode[A, S]]
 ) -> list[str]:
-    """See `Graph.remove_branch`, the branches of all starts are removed at once."""
+    """See `GraphDraft.remove_branch`, the branches of all starts are removed at once."""
     removed: _Removed = {}
 
     for start in starts:

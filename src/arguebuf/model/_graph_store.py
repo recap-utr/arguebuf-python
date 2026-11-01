@@ -14,18 +14,6 @@ from arguebuf.model.resource import Resource
 
 __all__ = ("GraphStore", "touched")
 
-_CONTAINERS = (
-    "nodes",
-    "atom_nodes",
-    "scheme_nodes",
-    "edges",
-    "incoming",
-    "outgoing",
-    "resources",
-    "participants",
-    "analysts",
-)
-
 
 class _Container[V](dict[str, V]):
     """Container that a store can own without keeping it alive after removing it."""
@@ -41,12 +29,25 @@ def touched(metadata: Metadata) -> Metadata:
 class GraphStore[A, S, E, R, P, N]:
     """Containers of a graph with copy on write.
 
-    The containers are shared with forks until either store writes to them.
+    A fork shares all containers and clones each one before writing to it first.
+    A forked store is not written anymore, since it belongs to an immutable graph.
     The store keeps the adjacency of nodes and edges consistent, but does not validate elements.
     Readers must not change the containers, writers use the methods of the store.
     """
 
-    __slots__ = (*_CONTAINERS, "_owned", "major_claim")
+    __slots__ = (
+        "_owned",
+        "analysts",
+        "atom_nodes",
+        "edges",
+        "incoming",
+        "major_claim",
+        "nodes",
+        "outgoing",
+        "participants",
+        "resources",
+        "scheme_nodes",
+    )
 
     def __init__(self) -> None:
         self.nodes: dict[str, AtomOrSchemeNode[A, S]] = {}
@@ -68,22 +69,15 @@ class GraphStore[A, S, E, R, P, N]:
         )
 
     def fork(self) -> Self:
-        """A store sharing all containers with this one, both clone them before writing."""
+        """A store sharing all containers with this one, which it clones before writing.
+
+        This store is left unchanged and must not be written afterwards,
+        since it still treats the shared containers as its own.
+        """
         fork = copy.copy(self)
         fork._owned = weakref.WeakValueDictionary()
-        self._owned = weakref.WeakValueDictionary()
 
         return fork
-
-    def __deepcopy__(self, memo: dict[int, object]) -> Self:
-        clone = copy.copy(self)
-        # the copied containers are new, so the clone owns none of them yet
-        clone._owned = weakref.WeakValueDictionary()
-
-        for name in _CONTAINERS:
-            setattr(clone, name, copy.deepcopy(getattr(self, name), memo))
-
-        return clone
 
     def _own[V](self, container: dict[str, V]) -> dict[str, V]:
         """The container for writing, cloned first if it is shared with a fork."""

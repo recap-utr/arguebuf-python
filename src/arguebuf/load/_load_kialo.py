@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import TextIO
 
-from arguebuf.model import Graph
+from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.scheme import Attack, Rephrase, Scheme, Support
@@ -88,7 +88,7 @@ def load_kialo[
         raise ValueError("The major claim is not present in the third line!")
 
     ctx = Context(codecs, on_issue, strict)
-    g: Graph[A, S, E, G, R, P, N] = Graph(
+    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     references: dict[str, str] = {}
@@ -133,4 +133,4 @@ def load_kialo[
             g.add_node(scheme)
             connect(g, ctx, [source.id], scheme.id, target.id)
 
-    return g
+    return g.freeze()

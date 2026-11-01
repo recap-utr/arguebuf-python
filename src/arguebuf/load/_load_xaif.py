@@ -39,9 +39,12 @@ def load_xaif[
     if not isinstance(text, str):
         text = text.get("txt") or ""
 
-    if plain_text := parse_html(text)[0]:
-        g.add_resource(
-            Resource(plain_text, userdata=codecs.resource.validate_python({}))
-        )
+    if not (plain_text := parse_html(text)[0]):
+        return g
 
-    return g
+    draft = g.draft()
+    draft.add_resource(
+        Resource(plain_text, userdata=codecs.resource.validate_python({}))
+    )
+
+    return draft.freeze()

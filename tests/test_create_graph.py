@@ -1,14 +1,14 @@
 import arguebuf as ag
 
-from .conftest import new_graph
+from .conftest import new_draft
 
 
-def generate_graph() -> ag.Graph:
+def generate_graph() -> ag.GraphDraft:
     a1, a2, a3, a4 = (ag.AtomNode("", id=f"a{i}") for i in range(1, 5))
     s1, s2, s3 = (ag.SchemeNode(id=f"s{i}") for i in range(1, 4))
 
     # s3 duplicates the path from a1 to a4
-    return new_graph(
+    return new_draft(
         *(a1, a2, a3, a4, s1, s2, s3),
         edges=((a1, s1), (s1, s2), (s2, a4), (a2, s1), (a3, s2), (a1, s3), (s3, a4)),
     )
@@ -19,7 +19,7 @@ def test_atom_relations():
     relations = {(r.source.id, r.target.id, r.scheme.id) for r in g.atom_relations()}
 
     assert relations == {("a1", "a4", "s1"), ("a2", "a4", "s1"), ("a3", "a4", "s2")}
-    assert set(ag.dump.networkx(g, scheme_nodes=False).nodes) == {"a1", "a2", "a3", "a4"}
+    assert set(ag.dump.networkx(g.freeze(), scheme_nodes=False).nodes) == {"a1", "a2", "a3", "a4"}
     assert len(g.nodes) == 7
 
 
@@ -34,7 +34,7 @@ def test_remove_branch():
 def test_sibling_nodes():
     a1, a2, a3, a4, a5, a6 = (ag.AtomNode("", id=f"a{i}") for i in range(1, 7))
     s1, s2, s3, s4, s5 = (ag.SchemeNode(id=f"s{i}") for i in range(1, 6))
-    g = new_graph(
+    g = new_draft(
         *(a1, a2, a3, a4, a5, a6, s1, s2, s3, s4, s5),
         edges=(
             (a1, s1),
@@ -61,7 +61,7 @@ def test_create_graph() -> None:
         ag.SchemeNode(),
         ag.AtomNode("Claim"),
     )
-    graph = new_graph(
+    graph = new_draft(
         premise, scheme, claim, edges=((premise, scheme), (scheme, claim))
     )
 

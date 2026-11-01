@@ -6,7 +6,7 @@ from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from typing import Protocol
 
-from arguebuf.model import Graph
+from arguebuf.model import GraphDraft
 from arguebuf.model.edge import Edge
 from arguebuf.model.issue import (
     GraphError,
@@ -156,7 +156,7 @@ def new_reference(
 
 
 def add_node[A, S, E, G, R, P, N](
-    g: Graph[A, S, E, G, R, P, N],
+    g: GraphDraft[A, S, E, G, R, P, N],
     ctx: Context[A, S, E, G, R, P, N],
     node: AtomOrSchemeNode[A, S],
 ) -> None:
@@ -165,7 +165,7 @@ def add_node[A, S, E, G, R, P, N](
 
 
 def add_edge[A, S, E, G, R, P, N](
-    g: Graph[A, S, E, G, R, P, N],
+    g: GraphDraft[A, S, E, G, R, P, N],
     ctx: Context[A, S, E, G, R, P, N],
     source_id: str,
     target_id: str,
@@ -210,7 +210,7 @@ def add_edge[A, S, E, G, R, P, N](
 
 
 def connect[A, S, E, G, R, P, N](
-    g: Graph[A, S, E, G, R, P, N],
+    g: GraphDraft[A, S, E, G, R, P, N],
     ctx: Context[A, S, E, G, R, P, N],
     source_ids: Iterable[str],
     scheme_id: str,
@@ -229,9 +229,9 @@ def connect[A, S, E, G, R, P, N](
 
 
 def relocate[A, S, E, G, R, P, N](
-    g: Graph[A, S, E, G, R, P, N], ctx: Context[A, S, E, G, R, P, N]
+    g: GraphDraft[A, S, E, G, R, P, N], ctx: Context[A, S, E, G, R, P, N]
 ) -> None:
-    """Re-anchor references that do not match their resource, see `Graph.relocate_references`."""
+    """Re-anchor references that do not match their resource, see `GraphDraft.relocate_references`."""
     for item in g.relocate_references():
         ctx.report(item.code, item.message, item.elements)
 

@@ -47,11 +47,12 @@ def dump_networkx[A, S, E, G, R, P, N](
         Instance of the *directed* `NetworkX` graph.
 
     Examples:
-        >>> from arguebuf import AtomNode, Graph, SchemeNode
-        >>> g = Graph("Test")
+        >>> from arguebuf import AtomNode, GraphDraft, SchemeNode
+        >>> draft = GraphDraft("Test")
         >>> for node in (AtomNode("P", id="p"), SchemeNode(id="s"), AtomNode("C", id="c")):
-        ...     g.add_node(node)
-        >>> g.connect(["p"], "s", "c")
+        ...     draft.add_node(node)
+        >>> draft.connect(["p"], "s", "c")
+        >>> g = draft.freeze()
         >>> dump_networkx(g).number_of_nodes()
         3
         >>> dump_networkx(g, scheme_nodes=False).edges["p", "c"]
