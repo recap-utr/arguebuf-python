@@ -12,6 +12,7 @@ from arguebuf.model.scheme import (
     Scheme,
     Support,
     is_default_scheme,
+    scheme_type2label,
 )
 from arguebuf.model.userdata import JSON_OBJECT, JsonObject, own
 from arguebuf.model.utils import Entity, uuid
@@ -27,6 +28,7 @@ __all__ = (
     "Color",
     "SchemeChanges",
     "SchemeNode",
+    "scheme2color",
 )
 
 
@@ -43,14 +45,15 @@ class Color:
 
 COLOR_MONOCHROME_LIGHT = Color(bg="#ffffff", fg="#000000", border="#000000")
 COLOR_MONOCHROME_DARK = Color(bg="#000000", fg="#ffffff", border="#000000")
-COLOR_SCHEME_FALLBACK = Color.filled("#009688")
+COLOR_SCHEME_FALLBACK = Color.filled("#9E9E9E")
 
 scheme2color: dict[type[Scheme], Color] = {
     Support: Color.filled("#4CAF50"),
     Attack: Color.filled("#F44336"),
     Rephrase: Color.filled("#009688"),
-    Preference: Color.filled("#009688"),
+    Preference: Color.filled("#9C27B0"),
 }
+"""Colors of scheme nodes by the type of their scheme, untyped ones are grey."""
 
 
 @dataclass(slots=True, frozen=True, eq=False)
@@ -200,7 +203,7 @@ class SchemeNode[S = JsonObject](AbstractNode):
         if self.scheme is None:
             return NO_SCHEME_LABEL
 
-        label = type(self.scheme).__name__
+        label = scheme_type2label[type(self.scheme)]
 
         if not is_default_scheme(self.scheme):
             label = f"{label}: {self.scheme.value}"

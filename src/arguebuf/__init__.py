@@ -49,6 +49,8 @@ from .model import (
     Support,
     has_errors,
     is_issue_code,
+    scheme2color,
+    scheme_type2label,
     uuid,
 )
 from .patch import (
@@ -133,6 +135,8 @@ __all__ = (
     "parse_patch",
     "render",
     "schemas",
+    "scheme2color",
+    "scheme_type2label",
     "traverse",
     "uuid",
 )

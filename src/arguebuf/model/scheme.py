@@ -18,6 +18,7 @@ __all__ = (
     "resolve_scheme",
     "scheme2aif",
     "scheme2aif_default",
+    "scheme_type2label",
     "scheme_type2name",
 )
 
@@ -128,6 +129,13 @@ name2scheme_type: dict[SchemeType, type[Scheme]] = {
 scheme_type2name: dict[type[Scheme], SchemeType] = {
     scheme_type: name for name, scheme_type in name2scheme_type.items()
 }
+scheme_type2label: dict[type[Scheme], str] = {
+    Support: "Support",
+    Attack: "Attack",
+    Rephrase: "Rephrase",
+    Preference: "Preference",
+}
+"""Human-readable labels of the scheme types."""
 
 # field of the protobuf `Scheme.type` oneof and enum value of each scheme,
 # keyed by type since members of different scheme types are equal strings

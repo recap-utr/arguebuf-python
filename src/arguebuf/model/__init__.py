@@ -42,11 +42,20 @@ from .node import (
     AtomOrSchemeNode,
     Color,
     SchemeNode,
+    scheme2color,
 )
 from .participant import Participant
 from .reference import Reference
 from .resource import Resource
-from .scheme import Attack, Preference, Rephrase, Scheme, SchemeType, Support
+from .scheme import (
+    Attack,
+    Preference,
+    Rephrase,
+    Scheme,
+    SchemeType,
+    Support,
+    scheme_type2label,
+)
 from .userdata import (
     DEFAULT_CODECS,
     Codec,
@@ -109,6 +118,8 @@ __all__ = (
     "reference",
     "resource",
     "scheme",
+    "scheme2color",
+    "scheme_type2label",
     "userdata",
     "uuid",
 )
