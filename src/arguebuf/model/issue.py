@@ -113,7 +113,7 @@ class Issue:
         """Convert the issue to the JSON object of all arguebuf implementations.
 
         Examples:
-            >>> issue("self-loop", "Edge 'e' connects node 'n' to itself.").to_dict()["hint"]
+            >>> issue("self-loop", "Node 'n' cannot be connected to itself.").to_dict()["hint"]
             'Connect the node to another node.'
         """
         return {

@@ -6,17 +6,23 @@ from typing import Self, Unpack, overload
 from arguebuf.locate import DEFAULT_THRESHOLD
 from arguebuf.model._graph_references import relocate_references
 from arguebuf.model._graph_removal import (
-    remove_branch,
+    remove_branches,
     remove_elements,
     remove_participant,
     remove_resource,
 )
 from arguebuf.model._graph_store import touched
-from arguebuf.model._graph_validation import get, vacate, validate_edge, validate_node
-from arguebuf.model._graph_view import AtomRelation, GraphView
+from arguebuf.model._graph_validation import (
+    edge_issue,
+    get,
+    vacate,
+    validate_edge,
+    validate_node,
+)
+from arguebuf.model._graph_view import Annotation, AtomRelation, GraphView
 from arguebuf.model.analyst import Analyst, AnalystChanges
 from arguebuf.model.edge import Edge, EdgeChanges
-from arguebuf.model.issue import Issue
+from arguebuf.model.issue import GraphError, Issue
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import (
     AbstractNode,
@@ -28,11 +34,13 @@ from arguebuf.model.node import (
 )
 from arguebuf.model.participant import Participant, ParticipantChanges
 from arguebuf.model.resource import Resource, ResourceChanges
+from arguebuf.model.scheme import Scheme
 from arguebuf.model.userdata import JSON_OBJECT, JsonObject, own
 from arguebuf.model.utils import id_of, uuid
 
 __all__ = (
     "AnalystChanges",
+    "Annotation",
     "AtomChanges",
     "AtomRelation",
     "EdgeChanges",
@@ -161,7 +169,7 @@ class Graph[
         vacate(self._store.nodes, node, "Node")
         self._store.insert_node(node)
 
-    def remove_node(self, node: str | AbstractNode) -> None:
+    def remove_node(self, node: str | AbstractNode) -> list[str]:
         """Remove a node together with its edges and all references to it.
 
         The major claim is unset if it is the node
@@ -172,43 +180,53 @@ class Graph[
         Args:
             node: Node object or id that is part of the graph.
 
+        Returns:
+            The ids of all removed nodes and edges.
+
         Examples:
             >>> g = Graph()
             >>> for n in (AtomNode("P", id="p"), SchemeNode(id="s"), AtomNode("C", id="c")):
             ...     g.add_node(n)
             >>> g.connect(["p"], "s", "c")
             >>> g.major_claim = "c"
-            >>> g.remove_node("p")
+            >>> len(g.remove_node("p"))
+            4
             >>> list(g.nodes), len(g.edges), g.major_claim
             (['c'], 0, 'c')
             >>> g.remove_node("p")
             Traceback (most recent call last):
             arguebuf.model.issue.GraphError: ...
         """
-        self.remove_elements([self._node(node).id])
+        return self.remove_elements([self._node(node).id])
 
-    def remove_elements(self, ids: Iterable[str]) -> None:
+    def remove_elements(self, ids: Iterable[str]) -> list[str]:
         """Remove nodes, edges, resources, and participants by their ids at once.
 
         Removing a node cascades like `remove_node`,
         ids removed by such a cascade earlier in the same call are skipped.
         All ids are checked before anything is removed.
 
+        Returns:
+            The ids of all removed elements, including those of the cascades.
+
         Examples:
             >>> g = Graph()
             >>> for n in (AtomNode("P", id="p"), SchemeNode(id="s"), AtomNode("C", id="c")):
             ...     g.add_node(n)
             >>> g.connect(["p"], "s", "c")
-            >>> g.remove_elements(["p", "s"])
+            >>> len(g.remove_elements(["p", "s"]))
+            4
             >>> list(g.nodes)
             ['c']
             >>> g.remove_elements(["c", "unknown"])
             Traceback (most recent call last):
             arguebuf.model.issue.GraphError: ...
         """
-        remove_elements(self._store, ids)
+        return remove_elements(self._store, ids)
 
-    def update_atom(self, node: str | AtomNode[A], /, **changes: Unpack[AtomChanges[A]]) -> None:
+    def update_atom(
+        self, node: str | AtomNode[A], /, **changes: Unpack[AtomChanges[A]]
+    ) -> None:
         """Change fields of an atom node, keeping its edges.
 
         The participant and the resource of the reference must be part of the graph.
@@ -299,19 +317,46 @@ class Graph[
 
         link(scheme, conclusion)
 
+    def check_link(
+        self, source: str | AbstractNode, target: str | AbstractNode
+    ) -> Issue | None:
+        """The issue that prevents `link` from connecting the nodes, if any.
+
+        Unlike `link`, nothing is raised, e.g. to validate a connection while it is drawn.
+
+        Examples:
+            >>> g = Graph()
+            >>> for node in (AtomNode("P", id="p"), AtomNode("C", id="c")):
+            ...     g.add_node(node)
+            >>> g.check_link("p", "c") is None
+            True
+            >>> g.check_link("p", "p").code
+            'self-loop'
+        """
+        source_id, target_id = id_of(source), id_of(target)
+        atoms = self._store.atom_nodes
+
+        # atom nodes are connected through a new scheme node, which only rules out self-loops
+        if source_id in atoms and target_id in atoms and source_id != target_id:
+            return None
+
+        return edge_issue(self._store, source_id, target_id)
+
     def link(
         self,
         source: str | AbstractNode,
         target: str | AbstractNode,
         *,
+        scheme: Scheme | None = None,
         edge_userdata: Callable[[], E] = dict,
         scheme_userdata: Callable[[], S] = dict,
     ) -> SchemeNode[S] | None:
-        """Connect two nodes of the graph, atom nodes through a new untyped scheme node.
+        """Connect two nodes of the graph, atom nodes through a new scheme node.
 
         Args:
             source: Node or id the link starts at.
             target: Node or id the link ends at.
+            scheme: Scheme of the new scheme node, untyped by default.
             edge_userdata: Creates the userdata of each new edge,
                 it can only be omitted for JSON object userdata.
             scheme_userdata: Creates the userdata of the new scheme node,
@@ -320,30 +365,42 @@ class Graph[
         Returns:
             The inserted scheme node or None if the nodes are connected directly.
 
+        Raises:
+            GraphError: The issue returned by `check_link`.
+
         Examples:
+            >>> from arguebuf import Attack
             >>> g = Graph()
             >>> for node in (AtomNode("P", id="p"), AtomNode("C", id="c")):
             ...     g.add_node(node)
-            >>> scheme = g.link("p", "c")
-            >>> scheme is not None and scheme.scheme is None
-            True
+            >>> node = g.link("p", "c", scheme=Attack.DEFAULT)
+            >>> node is not None and node.scheme
+            <Attack.DEFAULT: 'Default'>
             >>> [node.id for node in g.outgoing_atom_nodes("p")]
             ['c']
+            >>> g.link("p", "p")
+            Traceback (most recent call last):
+            arguebuf.model.issue.GraphError: Node 'p' cannot be connected to itself.
         """
         source_id, target_id = id_of(source), id_of(target)
 
-        if source_id in self._store.atom_nodes and target_id in self._store.atom_nodes:
-            scheme = SchemeNode(userdata=scheme_userdata(), id=uuid())
-            self.add_node(scheme)
-            self.connect([source_id], scheme, target_id, edge_userdata)
+        if (found := self.check_link(source_id, target_id)) is not None:
+            raise GraphError(found)
 
-            return scheme
+        if source_id in self._store.atom_nodes and target_id in self._store.atom_nodes:
+            node = SchemeNode(scheme, userdata=scheme_userdata(), id=uuid())
+            self.add_node(node)
+            self.connect([source_id], node, target_id, edge_userdata)
+
+            return node
 
         self.add_edge(Edge(source_id, target_id, userdata=edge_userdata()))
 
         return None
 
-    def update_edge(self, edge: str | Edge[E], /, **changes: Unpack[EdgeChanges[E]]) -> None:
+    def update_edge(
+        self, edge: str | Edge[E], /, **changes: Unpack[EdgeChanges[E]]
+    ) -> None:
         """Change the metadata or userdata of an edge."""
         current = get(self._store.edges, edge, "Edge")
         changes.setdefault("metadata", touched(current.metadata))
@@ -431,7 +488,9 @@ class Graph[
             >>> len(g.resources)
             0
         """
-        remove_resource(self._store, get(self._store.resources, resource, "Resource").id)
+        remove_resource(
+            self._store, get(self._store.resources, resource, "Resource").id
+        )
 
     def clean_resources(self) -> None:
         """Remove resources that are not referenced by any node."""
@@ -458,12 +517,17 @@ class Graph[
         self._store.own_participants()[participant.id] = participant
 
     def update_participant(
-        self, participant: str | Participant[P], /, **changes: Unpack[ParticipantChanges[P]]
+        self,
+        participant: str | Participant[P],
+        /,
+        **changes: Unpack[ParticipantChanges[P]],
     ) -> None:
         """Change fields of a participant."""
         current = get(self._store.participants, participant, "Participant")
         changes.setdefault("metadata", touched(current.metadata))
-        self._store.own_participants()[current.id] = dataclasses.replace(current, **changes)
+        self._store.own_participants()[current.id] = dataclasses.replace(
+            current, **changes
+        )
 
     def remove_participant(self, participant: str | Participant[P]) -> None:
         """Remove a participant and unset it for all its atom nodes.
@@ -482,7 +546,11 @@ class Graph[
 
     def clean_participants(self) -> None:
         """Remove participants that are not assigned to any node."""
-        used = {node.participant for node in self._store.atom_nodes.values() if node.participant}
+        used = {
+            node.participant
+            for node in self._store.atom_nodes.values()
+            if node.participant
+        }
         participants = self._store.own_participants()
 
         for participant_id in participants.keys() - used:
@@ -539,23 +607,28 @@ class Graph[
         """
         return relocate_references(self._store, resource=resource, threshold=threshold)
 
-    def remove_empty_scheme_branches(self) -> None:
-        """Remove scheme nodes without a scheme together with their descendants."""
-        empty_schemes = [
-            node for node in self._store.scheme_nodes.values() if node.scheme is None
-        ]
+    def remove_empty_scheme_branches(self) -> list[str]:
+        """Remove scheme nodes without a scheme together with their descendants.
 
-        for scheme_node in empty_schemes:
-            if scheme_node.id in self._store.scheme_nodes:
-                self.remove_branch(scheme_node)
+        Returns:
+            The ids of all removed nodes and edges.
+        """
+        return remove_branches(
+            self._store,
+            [node for node in self._store.scheme_nodes.values() if node.scheme is None],
+        )
 
-    def remove_branch(self, element: str | AbstractNode | Edge[E]) -> None:
+    def remove_branch(self, element: str | AbstractNode | Edge[E]) -> list[str]:
         """Remove an element and all its descendants from the graph.
 
         If the element is a string, it is interpreted as the id of a node,
         an edge is interpreted as its source node.
         Descendants are the nodes reachable via incoming edges.
+
+        Returns:
+            The ids of all removed nodes and edges.
         """
-        remove_branch(
-            self._store, self._node(element.source if isinstance(element, Edge) else element)
+        return remove_branches(
+            self._store,
+            [self._node(element.source if isinstance(element, Edge) else element)],
         )

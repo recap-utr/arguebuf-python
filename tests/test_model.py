@@ -284,3 +284,54 @@ def test_removed_adjacency_does_not_accumulate() -> None:
 
     assert not graph.nodes
     assert len(graph._store._owned) == baseline
+
+
+def test_batch_removals_and_links() -> None:
+    g = new_graph(
+        ag.AtomNode("Claim", id="c"),
+        ag.AtomNode("Premise", id="p1"),
+        ag.SchemeNode(ag.Support.EXPERT_OPINION, premise_descriptors=["p1"], id="s"),
+    )
+    g.add_resource(ag.Resource("Resource", id="r"))
+    g.add_edge(ag.Edge("p1", "s", id="e1"))
+    g.add_edge(ag.Edge("s", "c", id="e2"))
+
+    with pytest.raises(ag.GraphError):
+        g.remove_elements(["p1", "missing"])
+
+    assert "p1" in g.nodes
+    # the scheme is removed by the cascade before its turn, all removed ids are returned
+    assert sorted(g.remove_elements(["p1", "s", "r"])) == ["e1", "e2", "p1", "r", "s"]
+    assert list(g.nodes) == ["c"]
+    assert not g.resources
+
+    g.add_node(ag.AtomNode("", id="a"))
+
+    assert (issue := g.check_link("a", "a")) is not None and issue.code == "self-loop"
+
+    with pytest.raises(ag.GraphError):
+        g.link("a", "a")
+
+    assert g.check_link("a", "c") is None
+    scheme = g.link("a", "c", scheme=ag.Attack.DEFAULT)
+    assert scheme is not None and scheme.scheme is ag.Attack.DEFAULT
+    assert list(g.outgoing_atom_nodes("a")) == [g.nodes["c"]]
+
+    g.add_node(ag.AtomNode("", id="b"))
+
+    assert (issue := g.check_link("a", scheme)) is not None and issue.code == "parallel-edge"
+    assert g.link("b", scheme) is None
+    assert list(g.premise_nodes(scheme)) == [g.nodes["a"], g.nodes["b"]]
+
+
+def test_annotations() -> None:
+    g = ag.Graph()
+    g.add_resource(ag.Resource("Resource", id="r"))
+
+    for id, text, offset in (("a", "our", 3), ("b", "moved", 2), ("c", "Res", 0)):
+        g.add_node(ag.AtomNode("", reference=ag.Reference(text, resource="r", offset=offset), id=id))
+
+    assert [(item.node.id, item.start, item.end) for item in g.annotations("r")] == [
+        ("c", 0, 3),
+        ("a", 3, 6),
+    ]

@@ -15,6 +15,7 @@ from .analyst import Analyst
 from .edge import Edge
 from .graph import (
     AnalystChanges,
+    Annotation,
     AtomChanges,
     AtomRelation,
     EdgeChanges,
@@ -63,6 +64,7 @@ __all__ = (
     "AbstractNode",
     "Analyst",
     "AnalystChanges",
+    "Annotation",
     "AtomChanges",
     "AtomNode",
     "AtomOrSchemeNode",

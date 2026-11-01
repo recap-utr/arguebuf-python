@@ -124,7 +124,10 @@ Elements reference each other by id, e.g. `edge.source`, `node.participant`, and
 Removing an element also removes or unsets all references to it, e.g., removing a node also removes its edges.
 Removing a node also removes the scheme nodes that are left without a premise or a conclusion, recursively, so that the graph stays consistent.
 `graph.remove_elements(ids)` removes elements of any kind at once, skipping those already removed by a cascade of the same call.
-`graph.link(source, target)` connects two nodes, two atoms through a new untyped scheme node that it returns.
+Like `remove_node` and `remove_branch`, it returns the ids of all removed elements, including those of the cascades.
+`graph.link(source, target, scheme=...)` connects two nodes, two atoms through a new scheme node (untyped by default) that it returns.
+`graph.check_link(source, target)` returns the issue that prevents such a link without raising, e.g. to validate a connection while it is drawn.
+`graph.annotations(resource)` lists the atoms whose references are anchored in a resource with their spans, sorted by position.
 
 All elements are frozen and changed via the typed methods `update_atom`, `update_scheme`, `update_edge`, `update_resource`, `update_participant`, and `update_analyst`, which validate the new values like their `add_*` counterparts.
 They set the modification time of the element's metadata to now unless `metadata` is given.

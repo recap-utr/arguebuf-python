@@ -13,7 +13,7 @@ from arguebuf.model.participant import Participant
 from arguebuf.model.resource import Resource
 from arguebuf.model.userdata import JsonObject
 
-__all__ = ("AtomRelation", "GraphView")
+__all__ = ("Annotation", "AtomRelation", "GraphView")
 
 
 @dataclass(slots=True, frozen=True)
@@ -23,6 +23,21 @@ class AtomRelation[A = JsonObject, S = JsonObject]:
     source: AtomNode[A]
     target: AtomNode[A]
     scheme: SchemeNode[S]
+
+
+@dataclass(slots=True, frozen=True)
+class Annotation[A = JsonObject]:
+    """Atom node whose reference is anchored in a resource, see `Graph.annotations`.
+
+    Attributes:
+        node: Atom node with the reference.
+        start: Index of the first code point of the reference in the resource text.
+        end: Index after the last code point of the reference in the resource text.
+    """
+
+    node: AtomNode[A]
+    start: int
+    end: int
 
 
 def ordered[T](elements: Iterable[T]) -> AbstractSet[T]:
@@ -326,3 +341,32 @@ class GraphView[A, S, E, R, P, N]:
                         relations[key] = AtomRelation(source, target, scheme)
 
         return list(relations.values())
+
+    def annotations(self, resource: str | Resource[R]) -> list[Annotation[A]]:
+        """The atom nodes whose references are anchored in the resource, sorted by their position.
+
+        References whose text is not found at their offset are skipped,
+        see `Graph.relocate_references`.
+
+        Args:
+            resource: Resource or id that is part of the graph.
+
+        Examples:
+            >>> from arguebuf import AtomNode, Graph, Reference, Resource
+            >>> g = Graph()
+            >>> g.add_resource(Resource("Cats are pets.", id="r"))
+            >>> g.add_node(AtomNode("Pets", id="a", reference=Reference("pets", resource="r", offset=9)))
+            >>> g.add_node(AtomNode("Cats", id="b", reference=Reference("Cats", resource="r", offset=0)))
+            >>> [(item.node.id, item.start, item.end) for item in g.annotations("r")]
+            [('b', 0, 4), ('a', 9, 13)]
+        """
+        current = get(self._store.resources, resource, "Resource")
+        annotations = [
+            Annotation(node, *span)
+            for node in self._store.atom_nodes.values()
+            if node.reference
+            and node.reference.resource == current.id
+            and (span := node.reference.span(current.text))
+        ]
+
+        return sorted(annotations, key=lambda item: (item.start, item.end))
