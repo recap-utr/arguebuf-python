@@ -1,12 +1,13 @@
 from abc import ABC
 from typing import override
-from uuid import uuid1
+from uuid import uuid4
 
 __all__ = ("Entity", "id_of", "uuid")
 
 
 def uuid() -> str:
-    return str(uuid1())
+    """A new random id, a UUID of version 4."""
+    return str(uuid4())
 
 
 class Entity(ABC):
