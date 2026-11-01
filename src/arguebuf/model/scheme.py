@@ -1,7 +1,8 @@
-from enum import StrEnum
-from typing import Literal
+from enum import StrEnum, auto
+from typing import Literal, Protocol
 
 from arg_services.graph.v1 import graph_pb2
+from google.protobuf.descriptor import EnumValueDescriptor
 
 from arguebuf.schemas import aif
 
@@ -23,96 +24,122 @@ __all__ = (
 )
 
 
+class _GenerateValue(Protocol):
+    def __call__(
+        self, name: str, start: int, count: int, last_values: list[str]
+    ) -> str: ...
+
+
+def _protobuf_value(enum: str, member: str) -> EnumValueDescriptor:
+    """Value of a protobuf scheme enum, e.g. `SUPPORT_SIGN` for `Support` and `SIGN`."""
+    values = graph_pb2.DESCRIPTOR.enum_types_by_name[enum].values_by_name
+
+    return values[f"{enum.upper()}_{member}"]
+
+
+def _labels(enum: str) -> _GenerateValue:
+    """Generate the values of `auto()` members from the labels of a protobuf enum."""
+
+    def label(name: str, start: int, count: int, last_values: list[str]) -> str:
+        return _protobuf_value(enum, name).GetOptions().Extensions[graph_pb2.label]
+
+    return label
+
+
 class Support(StrEnum):
     """Supporting argumentation schemes according to Walton et al."""
 
-    DEFAULT = "Default"
-    POSITION_TO_KNOW = "Position to Know"
-    EXPERT_OPINION = "Expert Opinion"
-    WITNESS_TESTIMONY = "Witness Testimony"
-    POPULAR_OPINION = "Popular Opinion"
-    POPULAR_PRACTICE = "Popular Practice"
-    EXAMPLE = "Example"
-    ANALOGY = "Analogy"
-    PRACTICAL_REASONING_FROM_ANALOGY = "Practical Reasoning from Analogy"
-    COMPOSITION = "Composition"
-    DIVISION = "Division"
-    OPPOSITIONS = "Oppositions"
-    RHETORICAL_OPPOSITIONS = "Rhetorical Oppositions"
-    ALTERNATIVES = "Alternatives"
-    VERBAL_CLASSIFICATION = "Verbal Classification"
-    VERBAL_CLASSIFICATION_DEFINITION = "Definition to Verbal Classification"
-    VERBAL_CLASSIFICATION_VAGUENESS = "Vagueness of a Verbal Classification"
-    VERBAL_CLASSIFICATION_ARBITRARINESS = "Arbitrariness of a Verbal Classification"
-    INTERACTION_OF_ACT_AND_PERSON = "Interaction of Act and Person"
-    VALUES = "Values"
-    POSITIVE_VALUES = "Positive Values"
-    NEGATIVE_VALUES = "Negative Values"
-    SACRIFICE = "Sacrifice"
-    THE_GROUP_AND_ITS_MEMBERS = "The Group and its Members"
-    PRACTICAL_REASONING = "Practical Reasoning"
-    TWO_PERSON_PRACTICAL_REASONING = "Two-Person Practical Reasoning"
-    WASTE = "Waste"
-    SUNK_COSTS = "Sunk Costs"
-    IGNORANCE = "Ignorance"
-    EPISTEMIC_IGNORANCE = "Epistemic Ignorance"
-    CAUSE_TO_EFFECT = "Cause to Effect"
-    CORRELATION_TO_CAUSE = "Correlation to Cause"
-    SIGN = "Sign"
-    ABDUCTIVE = "Abductive"
-    EVIDENCE_TO_HYPOTHESIS = "Evidence to Hypothesis"
-    CONSEQUENCES = "Consequences"
-    POSITIVE_CONSEQUENCES = "Positive Consequences"
-    NEGATIVE_CONSEQUENCES = "Negative Consequences"
-    PRAGMATIC_ALTERNATIVES = "Pragmatic Alternatives"
-    THREAT = "Threat"
-    FEAR_APPEAL = "Fear Appeal"
-    DANGER_APPEAL = "Danger Appeal"
-    NEED_FOR_HELP = "Need for Help"
-    DISTRESS = "Distress"
-    COMMITMENT = "Commitment"
-    ETHOTIC = "Ethotic"
-    GENERIC_AD_HOMINEM = "Generic ad Hominem"
-    PRAGMATIC_INCONSISTENCY = "Pragmatic Inconsistency"
-    INCONSISTENT_COMMITMENT = "Inconsistent Commitment"
-    CIRCUMSTANTIAL_AD_HOMINEM = "Circumstantial Ad Hominem"
-    BIAS = "Bias"
-    BIAS_AD_HOMINEM = "Bias Ad Hominem"
-    GRADUALISM = "Gradualism"
-    SLIPPERY_SLOPE = "Slippery Slope"
-    PRECEDENT_SLIPPERY_SLOPE = "Precedent Slippery Slope"
-    SORITES_SLIPPERY_SLOPE = "Sorites Slippery Slope"
-    VERBAL_SLIPPERY_SLOPE = "Verbal Slippery Slope"
-    FULL_SLIPPERY_SLOPE = "Full Slippery Slope"
-    CONSTITUTIVE_RULE_CLAIMS = "Constitutive Rule Claims"
-    RULES = "Rules"
-    EXCEPTIONAL_CASE = "Exceptional Case"
-    PRECEDENT = "Precedent"
-    PLEA_FOR_EXCUSE = "Plea for Excuse"
-    PERCEPTION = "Perception"
-    MEMORY = "Memory"
-    # AUTHORITY = "Authority"
-    # DILEMMA = "Dilemma"
-    # MODUS_PONENS = "Modus Ponens"
-    # DEFINITION = "Definition"
+    _generate_next_value_ = staticmethod(_labels("Support"))
+
+    DEFAULT = auto()
+    POSITION_TO_KNOW = auto()
+    EXPERT_OPINION = auto()
+    WITNESS_TESTIMONY = auto()
+    POPULAR_OPINION = auto()
+    POPULAR_PRACTICE = auto()
+    EXAMPLE = auto()
+    ANALOGY = auto()
+    PRACTICAL_REASONING_FROM_ANALOGY = auto()
+    COMPOSITION = auto()
+    DIVISION = auto()
+    OPPOSITIONS = auto()
+    RHETORICAL_OPPOSITIONS = auto()
+    ALTERNATIVES = auto()
+    VERBAL_CLASSIFICATION = auto()
+    VERBAL_CLASSIFICATION_DEFINITION = auto()
+    VERBAL_CLASSIFICATION_VAGUENESS = auto()
+    VERBAL_CLASSIFICATION_ARBITRARINESS = auto()
+    INTERACTION_OF_ACT_AND_PERSON = auto()
+    VALUES = auto()
+    POSITIVE_VALUES = auto()
+    NEGATIVE_VALUES = auto()
+    SACRIFICE = auto()
+    THE_GROUP_AND_ITS_MEMBERS = auto()
+    PRACTICAL_REASONING = auto()
+    TWO_PERSON_PRACTICAL_REASONING = auto()
+    WASTE = auto()
+    SUNK_COSTS = auto()
+    IGNORANCE = auto()
+    EPISTEMIC_IGNORANCE = auto()
+    CAUSE_TO_EFFECT = auto()
+    CORRELATION_TO_CAUSE = auto()
+    SIGN = auto()
+    ABDUCTIVE = auto()
+    EVIDENCE_TO_HYPOTHESIS = auto()
+    CONSEQUENCES = auto()
+    POSITIVE_CONSEQUENCES = auto()
+    NEGATIVE_CONSEQUENCES = auto()
+    PRAGMATIC_ALTERNATIVES = auto()
+    THREAT = auto()
+    FEAR_APPEAL = auto()
+    DANGER_APPEAL = auto()
+    NEED_FOR_HELP = auto()
+    DISTRESS = auto()
+    COMMITMENT = auto()
+    ETHOTIC = auto()
+    GENERIC_AD_HOMINEM = auto()
+    PRAGMATIC_INCONSISTENCY = auto()
+    INCONSISTENT_COMMITMENT = auto()
+    CIRCUMSTANTIAL_AD_HOMINEM = auto()
+    BIAS = auto()
+    BIAS_AD_HOMINEM = auto()
+    GRADUALISM = auto()
+    SLIPPERY_SLOPE = auto()
+    PRECEDENT_SLIPPERY_SLOPE = auto()
+    SORITES_SLIPPERY_SLOPE = auto()
+    VERBAL_SLIPPERY_SLOPE = auto()
+    FULL_SLIPPERY_SLOPE = auto()
+    CONSTITUTIVE_RULE_CLAIMS = auto()
+    RULES = auto()
+    EXCEPTIONAL_CASE = auto()
+    PRECEDENT = auto()
+    PLEA_FOR_EXCUSE = auto()
+    PERCEPTION = auto()
+    MEMORY = auto()
 
 
 class Attack(StrEnum):
     """Attacking argumentation schemes."""
 
-    DEFAULT = "Default"
+    _generate_next_value_ = staticmethod(_labels("Attack"))
+
+    DEFAULT = auto()
 
 
 class Preference(StrEnum):
     """Preference argumentation schemes."""
 
-    DEFAULT = "Default"
+    _generate_next_value_ = staticmethod(_labels("Preference"))
+
+    DEFAULT = auto()
 
 
 class Rephrase(StrEnum):
     """Rephrasing argumentation schemes."""
 
-    DEFAULT = "Default"
+    _generate_next_value_ = staticmethod(_labels("Rephrase"))
+
+    DEFAULT = auto()
 
 
 type Scheme = Support | Attack | Rephrase | Preference
@@ -141,18 +168,13 @@ scheme_type2label: dict[type[Scheme], str] = {
 # keyed by type since members of different scheme types are equal strings
 scheme2protobuf: dict[type[Scheme], tuple[str, dict[Scheme, int]]] = {
     scheme_type: (
-        scheme_type2name[scheme_type],
+        name,
         {
-            item: enum.Value(f"{scheme_type2name[scheme_type].upper()}_{item.name}")
+            item: _protobuf_value(scheme_type.__name__, item.name).number
             for item in scheme_type
         },
     )
-    for scheme_type, enum in (
-        (Support, graph_pb2.Support),
-        (Attack, graph_pb2.Attack),
-        (Rephrase, graph_pb2.Rephrase),
-        (Preference, graph_pb2.Preference),
-    )
+    for scheme_type, name in scheme_type2name.items()
 }
 # schemes by the field of the protobuf `Scheme.type` oneof and their enum value
 protobuf2scheme: dict[str, dict[int, Scheme]] = {
