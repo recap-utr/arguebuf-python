@@ -140,10 +140,19 @@ A draft stays usable after `freeze`, and the graphs it returned never change.
 Userdata is shared as is, so replace it via `update_*` instead of changing it in place.
 
 ```python
-draft = graph.draft()
-draft.update_atom(claim, text="New text of claim")
-changed = draft.freeze()
+changed = graph.edit(lambda draft: draft.update_atom(claim, text="New text of claim"))
+
+
+def promote(draft: ag.GraphDraft) -> None:
+    draft.update_atom(claim, text="New text of claim")
+    draft.major_claim = claim
+
+
+promoted = graph.edit(promote)
 ```
+
+`graph.edit(recipe)` works like `produce` of immer: it runs the recipe on a draft and returns the frozen result, so the draft never escapes, and a recipe that raises changes nothing.
+`graph.draft()` and `draft.freeze()` are the building blocks for edits that span several steps, e.g. a loader that builds a graph piece by piece.
 
 Views without scheme nodes are projections that leave the graph unchanged.
 `graph.atom_relations()` lists the pairs of atoms connected via a scheme node, and the Graphviz, D2, and NetworkX dumpers accept `scheme_nodes=False` to connect atoms directly by edges colored like their schemes.
@@ -277,9 +286,12 @@ codecs = ag.Codecs(atom=AtomCodec())
 # ag.Graph[AtomData]
 graph = ag.load.file("graph.json", codecs=codecs)
 atom = graph.atom_nodes[id]
-draft = graph.draft()
-draft.update_atom(atom, userdata=AtomData(atom.userdata.label, embed(atom.text)))
-ag.dump.file(draft.freeze(), "graph.json", codecs=codecs)
+graph = graph.edit(
+    lambda draft: draft.update_atom(
+        atom, userdata=AtomData(atom.userdata.label, embed(atom.text))
+    )
+)
+ag.dump.file(graph, "graph.json", codecs=codecs)
 ```
 
 The method names match `pydantic.TypeAdapter`, which can be passed directly.

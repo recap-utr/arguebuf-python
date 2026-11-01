@@ -1,7 +1,7 @@
 import dataclasses
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import Self, Unpack, overload
+from typing import Any, Self, Unpack, overload
 
 from arguebuf.locate import DEFAULT_THRESHOLD
 from arguebuf.model._graph_references import relocate_references
@@ -48,8 +48,9 @@ __all__ = (
 
 # lazily evaluated, so the overloads below can specialize the class they belong to
 type _JsonGraph = _GraphBase
-# lazily evaluated, so `Graph` can reference the class defined after it
+# lazily evaluated, so `Graph` can reference itself and the class defined after it
 type _Draft[A, S, E, G, R, P, N] = GraphDraft[A, S, E, G, R, P, N]
+type _Frozen[A, S, E, G, R, P, N] = Graph[A, S, E, G, R, P, N]
 
 
 class _GraphBase[
@@ -169,6 +170,35 @@ class Graph[
         return GraphDraft[A, S, E, G, R, P, N]._of(
             self.name, self.metadata, self.userdata, self._store.fork()
         )
+
+    def edit(
+        self, recipe: Callable[[_Draft[A, S, E, G, R, P, N]], Any]
+    ) -> _Frozen[A, S, E, G, R, P, N]:
+        """The graph changed by `recipe` on a draft, like `produce` of immer.
+
+        The draft never escapes the recipe, whose return value is ignored.
+        If it raises, nothing is changed.
+        Use `draft` and `GraphDraft.freeze` for edits that span several steps.
+
+        Args:
+            recipe: Function changing the draft, e.g. a lambda or a nested function.
+
+        Returns:
+            The changed graph, it shares the unchanged elements with this one.
+
+        Examples:
+            >>> g = Graph().edit(lambda d: d.add_node(AtomNode("Claim", id="c")))
+            >>> def rename(draft: GraphDraft) -> None:
+            ...     draft.update_atom("c", text="Renamed")
+            ...     draft.major_claim = "c"
+            >>> renamed = g.edit(rename)
+            >>> g.atom_nodes["c"].text, renamed.atom_nodes["c"].text, renamed.major_claim
+            ('Claim', 'Renamed', 'c')
+        """
+        draft = self.draft()
+        recipe(draft)
+
+        return draft.freeze()
 
 
 @dataclass(slots=True, eq=False, init=False)

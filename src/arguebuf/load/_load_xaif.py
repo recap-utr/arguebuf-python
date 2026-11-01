@@ -42,9 +42,8 @@ def load_xaif[
     if not (plain_text := parse_html(text)[0]):
         return g
 
-    draft = g.draft()
-    draft.add_resource(
-        Resource(plain_text, userdata=codecs.resource.validate_python({}))
+    return g.edit(
+        lambda draft: draft.add_resource(
+            Resource(plain_text, userdata=codecs.resource.validate_python({}))
+        )
     )
-
-    return draft.freeze()

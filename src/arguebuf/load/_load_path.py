@@ -55,9 +55,11 @@ def load_file[
     if text_file != file and text_file.exists():
         # some corpora (e.g. us-2016) contain texts that are not valid UTF-8
         text = text_file.read_text(encoding="utf-8", errors="replace")
-        draft = graph.draft()
-        draft.add_resource(Resource(text, userdata=codecs.resource.validate_python({})))
-        graph = draft.freeze()
+        graph = graph.edit(
+            lambda draft: draft.add_resource(
+                Resource(text, userdata=codecs.resource.validate_python({}))
+            )
+        )
 
     return graph
 
