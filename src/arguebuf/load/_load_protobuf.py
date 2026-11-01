@@ -69,7 +69,7 @@ def load_protobuf[
         g.add_analyst(
             Analyst(
                 analyst.name or None,
-                email=analyst.email or None,
+                email=analyst.email if analyst.HasField("email") else None,
                 metadata=metadata_from_protobuf(analyst.metadata),
                 userdata=codecs.analyst.validate_python(_userdata(analyst)),
                 id=analyst_id,
