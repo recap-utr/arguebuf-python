@@ -671,6 +671,7 @@ class GraphDraft[
     ) -> None:
         """Change fields of an analyst."""
         current = get(self._store.analysts, analyst, "Analyst")
+        changes.setdefault("metadata", touched(current.metadata))
         self._store.own_analysts()[current.id] = dataclasses.replace(current, **changes)
 
     def remove_analyst(self, analyst: str | Analyst[N]) -> None:

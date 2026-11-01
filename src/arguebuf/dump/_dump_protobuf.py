@@ -113,6 +113,7 @@ def analyst_to_protobuf[N](obj: Analyst[N], codec: Codec[N]) -> graph_pb2.Analys
     return graph_pb2.Analyst(
         name=obj.name or "",
         email=obj.email,
+        metadata=metadata_to_protobuf(obj.metadata),
         userdata=_struct(codec, obj.userdata),
     )
 

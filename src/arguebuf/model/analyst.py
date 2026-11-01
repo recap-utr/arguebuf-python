@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import TypedDict, overload
 
+from arguebuf.model.metadata import Metadata
 from arguebuf.model.userdata import JSON_OBJECT, JsonObject, own
 from arguebuf.model.utils import Entity, uuid
 
@@ -20,6 +21,7 @@ class Analyst[N = JsonObject](Entity):
 
     name: str | None
     email: str | None
+    metadata: Metadata = field(repr=False)
     userdata: N = field(repr=False)
     id: str
 
@@ -29,6 +31,7 @@ class Analyst[N = JsonObject](Entity):
         name: str | None = None,
         *,
         email: str | None = None,
+        metadata: Metadata | None = None,
         userdata: JsonObject = ...,
         id: str | None = None,
     ) -> None: ...
@@ -39,6 +42,7 @@ class Analyst[N = JsonObject](Entity):
         name: str | None = None,
         *,
         email: str | None = None,
+        metadata: Metadata | None = None,
         userdata: N,
         id: str | None = None,
     ) -> None: ...
@@ -48,12 +52,14 @@ class Analyst[N = JsonObject](Entity):
         name: str | None = None,
         *,
         email: str | None = None,
+        metadata: Metadata | None = None,
         userdata: object = JSON_OBJECT,
         id: str | None = None,
     ) -> None:
         # frozen dataclasses can only be initialized via object.__setattr__
         object.__setattr__(self, "name", name)
         object.__setattr__(self, "email", email)
+        object.__setattr__(self, "metadata", metadata or Metadata())
         object.__setattr__(self, "userdata", own(userdata))
         object.__setattr__(self, "id", uuid() if id is None else id)
 
@@ -63,4 +69,5 @@ class AnalystChanges[N](TypedDict, total=False):
 
     name: str | None
     email: str | None
+    metadata: Metadata
     userdata: N

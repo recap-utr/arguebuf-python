@@ -70,6 +70,7 @@ def load_protobuf[
             Analyst(
                 analyst.name or None,
                 email=analyst.email or None,
+                metadata=metadata_from_protobuf(analyst.metadata),
                 userdata=codecs.analyst.validate_python(_userdata(analyst)),
                 id=analyst_id,
             )

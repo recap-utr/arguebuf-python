@@ -227,6 +227,8 @@ def test_protobuf_roundtrip():
     g, a, p, r = _sample()
     g.update_atom(a, userdata={"count": 1})
     g.major_claim = a
+    analyst = ag.Analyst("Name")
+    g.add_analyst(analyst)
     graph = g.freeze()
     proto = ag.dump.protobuf(graph)
     loaded = ag.load.protobuf(proto)
@@ -237,6 +239,7 @@ def test_protobuf_roundtrip():
     assert loaded.atom_nodes[a.id].reference == ag.Reference("a", resource=r.id, offset=0)
     assert loaded.atom_nodes[a.id].metadata == graph.atom_nodes[a.id].metadata
     assert copy.deepcopy(graph).atom_nodes[a.id].userdata == {"count": 1}
+    assert loaded.analysts[analyst.id].metadata == analyst.metadata
 
 
 def test_protobuf_dangling(caplog: pytest.LogCaptureFixture):
