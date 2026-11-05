@@ -15,7 +15,7 @@ from arguebuf.patch._schema import (
 __all__ = ("outline",)
 
 
-def outline[A, S, E, G, R, P, N](graph: Graph[A, S, E, G, R, P, N]) -> Outline:
+def outline[A, S, E, R, P, N, G](graph: Graph[A, S, E, R, P, N, G]) -> Outline:
     """The graph in the shape of a patch, e.g. to show it to an agent.
 
     Examples:
@@ -39,8 +39,8 @@ def outline[A, S, E, G, R, P, N](graph: Graph[A, S, E, G, R, P, N]) -> Outline:
     return result
 
 
-def _scheme_outline[A, S, E, G, R, P, N](
-    graph: Graph[A, S, E, G, R, P, N], scheme: SchemeNode[S]
+def _scheme_outline[A, S, E, R, P, N, G](
+    graph: Graph[A, S, E, R, P, N, G], scheme: SchemeNode[S]
 ) -> SchemePatch:
     item: SchemePatch = {"id": scheme.id}
     value = scheme.scheme

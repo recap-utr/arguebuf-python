@@ -14,19 +14,19 @@ def load_xaif[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     obj: xaif.Graph,
     name: str | None = None,
     *,
     reconstruct_dialog: bool = False,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from xAIF argument graph file.
 
     The graph in `AIF` is loaded like an AIF graph (see `load_aif`).

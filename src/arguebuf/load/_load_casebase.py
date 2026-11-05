@@ -128,10 +128,10 @@ def load_casebase[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     include: CasebaseFilterType | Iterable[CasebaseFilterType],
     exclude: CasebaseFilterType | Iterable[CasebaseFilterType] | None = None,
@@ -140,10 +140,10 @@ def load_casebase[
     strict_equal: bool = False,
     *,
     reconstruct_dialog: bool = False,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> dict[Path, Graph[A, S, E, G, R, P, N]]:
+) -> dict[Path, Graph[A, S, E, R, P, N, G]]:
     """Load all cases selected by `include` and not selected by `exclude`.
 
     Args:
@@ -161,7 +161,7 @@ def load_casebase[
     """
     include_filters = _convert_filters(include)
     exclude_filters = _convert_filters(exclude)
-    graphs: dict[Path, Graph[A, S, E, G, R, P, N]] = {}
+    graphs: dict[Path, Graph[A, S, E, R, P, N, G]] = {}
 
     for folder in sorted(Path(basepath).glob(glob)):
         if (

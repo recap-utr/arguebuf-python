@@ -49,7 +49,7 @@ class Reporting(Protocol):
 
 
 @dataclass(slots=True, frozen=True)
-class Context[A, S, E, G, R, P, N]:
+class Context[A, S, E, R, P, N, G]:
     """Codecs and reporting options of a loader.
 
     Attributes:
@@ -59,7 +59,7 @@ class Context[A, S, E, G, R, P, N]:
         strict: Raise a `GraphError` instead of repairing or skipping malformed data.
     """
 
-    codecs: Codecs[A, S, E, G, R, P, N]
+    codecs: Codecs[A, S, E, R, P, N, G]
     on_issue: Reporter | None = None
     strict: bool = False
 
@@ -155,18 +155,18 @@ def new_reference(
     )
 
 
-def add_node[A, S, E, G, R, P, N](
-    g: GraphDraft[A, S, E, G, R, P, N],
-    ctx: Context[A, S, E, G, R, P, N],
+def add_node[A, S, E, R, P, N, G](
+    g: GraphDraft[A, S, E, R, P, N, G],
+    ctx: Context[A, S, E, R, P, N, G],
     node: AtomOrSchemeNode[A, S],
 ) -> None:
     """Add a node, skipping it with a warning if it is invalid, e.g. if its id is taken."""
     ctx.attempt(lambda: g.add_node(node), lambda _: "The node was skipped.")
 
 
-def add_edge[A, S, E, G, R, P, N](
-    g: GraphDraft[A, S, E, G, R, P, N],
-    ctx: Context[A, S, E, G, R, P, N],
+def add_edge[A, S, E, R, P, N, G](
+    g: GraphDraft[A, S, E, R, P, N, G],
+    ctx: Context[A, S, E, R, P, N, G],
     source_id: str,
     target_id: str,
     id: str,
@@ -209,9 +209,9 @@ def add_edge[A, S, E, G, R, P, N](
         )
 
 
-def connect[A, S, E, G, R, P, N](
-    g: GraphDraft[A, S, E, G, R, P, N],
-    ctx: Context[A, S, E, G, R, P, N],
+def connect[A, S, E, R, P, N, G](
+    g: GraphDraft[A, S, E, R, P, N, G],
+    ctx: Context[A, S, E, R, P, N, G],
     source_ids: Iterable[str],
     scheme_id: str,
     target_id: str,
@@ -228,8 +228,8 @@ def connect[A, S, E, G, R, P, N](
     add_edge(g, ctx, scheme_id, target_id, f"{scheme_id}->{target_id}")
 
 
-def relocate[A, S, E, G, R, P, N](
-    g: GraphDraft[A, S, E, G, R, P, N], ctx: Context[A, S, E, G, R, P, N]
+def relocate[A, S, E, R, P, N, G](
+    g: GraphDraft[A, S, E, R, P, N, G], ctx: Context[A, S, E, R, P, N, G]
 ) -> None:
     """Re-anchor references that do not match their resource, see `GraphDraft.relocate_references`."""
     for item in g.relocate_references():

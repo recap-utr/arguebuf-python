@@ -11,8 +11,8 @@ from arguebuf.traverse import dfs
 __all__ = ("check",)
 
 
-def check[A, S, E, G, R, P, N](
-    graph: Graph[A, S, E, G, R, P, N], *, ignore: Iterable[IssueCode] = ()
+def check[A, S, E, R, P, N, G](
+    graph: Graph[A, S, E, R, P, N, G], *, ignore: Iterable[IssueCode] = ()
 ) -> list[Issue]:
     """Find the problems of a graph that the strict model cannot prevent.
 
@@ -97,8 +97,8 @@ def check[A, S, E, G, R, P, N](
     return [item for item in issues if item.code not in ignored]
 
 
-def _check_scheme[A, S, E, G, R, P, N](
-    graph: Graph[A, S, E, G, R, P, N], node: SchemeNode[S]
+def _check_scheme[A, S, E, R, P, N, G](
+    graph: Graph[A, S, E, R, P, N, G], node: SchemeNode[S]
 ) -> list[Issue]:
     issues: list[Issue] = []
     conclusions = len(graph.outgoing_edges(node))
@@ -137,8 +137,8 @@ def _check_scheme[A, S, E, G, R, P, N](
     return issues
 
 
-def _check_atom[A, S, E, G, R, P, N](
-    graph: Graph[A, S, E, G, R, P, N], node: AtomNode[A]
+def _check_atom[A, S, E, R, P, N, G](
+    graph: Graph[A, S, E, R, P, N, G], node: AtomNode[A]
 ) -> list[Issue]:
     # the model ensures that the resource exists
     reference = node.reference

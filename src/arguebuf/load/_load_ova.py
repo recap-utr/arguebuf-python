@@ -31,18 +31,18 @@ def load_ova[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     obj: ova.Graph,
     name: str | None = None,
     *,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from OVA argument graph file.
 
     Reference: http://ova.uni-trier.de/
@@ -52,7 +52,7 @@ def load_ova[
     Dialog nodes (L, TA, YA) and their edges are skipped.
     Numeric ids are converted to strings.
     """
-    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
+    g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     analysis = obj["analysis"]

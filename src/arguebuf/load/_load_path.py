@@ -14,19 +14,19 @@ def load_file[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     file: Path | str,
     text_file: Path | str | None = None,
     *,
     reconstruct_dialog: bool = False,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Load a graph from a file.
 
     Args:
@@ -68,10 +68,10 @@ def load_folder[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     folder: Path | str,
     pattern: str,
@@ -79,10 +79,10 @@ def load_folder[
     text_suffix: str = ".txt",
     *,
     reconstruct_dialog: bool = False,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> dict[Path, Graph[A, S, E, G, R, P, N]]:
+) -> dict[Path, Graph[A, S, E, R, P, N, G]]:
     """Load all graphs matching the specified `pattern` in `folder`.
 
     Args:

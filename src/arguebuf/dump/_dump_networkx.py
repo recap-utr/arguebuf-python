@@ -12,9 +12,9 @@ __all__ = ("dump_networkx",)
 type DiGraph = nx.DiGraph[str]
 
 
-def dump_networkx[A, S, E, G, R, P, N](
-    graph: Graph[A, S, E, G, R, P, N],
-    graph_attrs: Mapping[str, Callable[[Graph[A, S, E, G, R, P, N]], object]]
+def dump_networkx[A, S, E, R, P, N, G](
+    graph: Graph[A, S, E, R, P, N, G],
+    graph_attrs: Mapping[str, Callable[[Graph[A, S, E, R, P, N, G]], object]]
     | None = None,
     atom_attrs: Mapping[str, Callable[[AtomNode[A]], object]] | None = None,
     scheme_attrs: Mapping[str, Callable[[SchemeNode[S]], object]] | None = None,

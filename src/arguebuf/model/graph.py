@@ -49,18 +49,18 @@ __all__ = (
 # lazily evaluated, so the overloads below can specialize the class they belong to
 type _JsonGraph = _GraphBase
 # lazily evaluated, so `Graph` can reference itself and the class defined after it
-type _Draft[A, S, E, G, R, P, N] = GraphDraft[A, S, E, G, R, P, N]
-type _Frozen[A, S, E, G, R, P, N] = Graph[A, S, E, G, R, P, N]
+type _Draft[A, S, E, R, P, N, G] = GraphDraft[A, S, E, R, P, N, G]
+type _Frozen[A, S, E, R, P, N, G] = Graph[A, S, E, R, P, N, G]
 
 
 class _GraphBase[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](GraphView[A, S, E, R, P, N]):
     """Construction of the fields that `Graph` and `GraphDraft` declare."""
 
@@ -127,11 +127,11 @@ class Graph[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
-](_GraphBase[A, S, E, G, R, P, N]):
+    G = JsonObject,
+](_GraphBase[A, S, E, R, P, N, G]):
     """Immutable argument graph consisting of atom nodes, scheme nodes, and edges.
 
     A graph never changes, so it can be shared freely, e.g. in an undo history.
@@ -141,7 +141,7 @@ class Graph[
     Userdata is shared as is, so replace it via a draft instead of changing it in place.
     Elements reference each other by id.
     The type parameters are the userdata types of atom nodes, scheme nodes, edges,
-    the graph, resources, participants, and analysts (see `arguebuf.Codecs`).
+    resources, participants, analysts, and the graph (see `arguebuf.Codecs`).
 
     Attributes:
         name: Optional name, used for example as file name by `arguebuf.dump.file`.
@@ -165,15 +165,15 @@ class Graph[
     userdata: G = field(repr=False)
     _store: GraphStore[A, S, E, R, P, N] = field(repr=False)
 
-    def draft(self) -> _Draft[A, S, E, G, R, P, N]:
+    def draft(self) -> _Draft[A, S, E, R, P, N, G]:
         """Start changing the graph, it stays unchanged itself."""
-        return GraphDraft[A, S, E, G, R, P, N]._of(
+        return GraphDraft[A, S, E, R, P, N, G]._of(
             self.name, self.metadata, self.userdata, self._store.fork()
         )
 
     def edit(
-        self, recipe: Callable[[_Draft[A, S, E, G, R, P, N]], Any]
-    ) -> _Frozen[A, S, E, G, R, P, N]:
+        self, recipe: Callable[[_Draft[A, S, E, R, P, N, G]], Any]
+    ) -> _Frozen[A, S, E, R, P, N, G]:
         """The graph changed by `recipe` on a draft, like `produce` of immer.
 
         The draft never escapes the recipe, whose return value is ignored.
@@ -206,11 +206,11 @@ class GraphDraft[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
-](_GraphBase[A, S, E, G, R, P, N]):
+    G = JsonObject,
+](_GraphBase[A, S, E, R, P, N, G]):
     """Mutable argument graph that is turned into an immutable `Graph` by `freeze`.
 
     It is created empty like a `Graph` or from one via `Graph.draft`.
@@ -231,7 +231,7 @@ class GraphDraft[
     userdata: G = field(repr=False)
     _store: GraphStore[A, S, E, R, P, N] = field(repr=False)
 
-    def freeze(self) -> Graph[A, S, E, G, R, P, N]:
+    def freeze(self) -> Graph[A, S, E, R, P, N, G]:
         """The current state as immutable graph, the draft can still be changed afterwards.
 
         Examples:
@@ -246,7 +246,7 @@ class GraphDraft[
         # the graph takes the containers, so the draft clones them before writing
         self._store = store.fork()
 
-        return Graph[A, S, E, G, R, P, N]._of(
+        return Graph[A, S, E, R, P, N, G]._of(
             self.name, self.metadata, self.userdata, store
         )
 

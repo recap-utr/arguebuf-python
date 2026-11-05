@@ -30,19 +30,19 @@ def load_aif[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     obj: aif.Graph,
     name: str | None = None,
     *,
     reconstruct_dialog: bool = False,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from AIF argument graph file.
 
     Dialog nodes (L, TA, YA) are skipped.
@@ -56,7 +56,7 @@ def load_aif[
     are connected to the atoms of adjacent turns via rephrase nodes,
     otherwise they become isolated.
     """
-    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
+    g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     index = _Index.from_aif(obj)
@@ -203,8 +203,8 @@ class _Index:
         return self.follow(self.follow([atom_id], False, "YA"), False, "L")
 
 
-def _reconstruct_dialog[A, S, E, G, R, P, N](
-    g: GraphDraft[A, S, E, G, R, P, N], ctx: Context[A, S, E, G, R, P, N], index: _Index
+def _reconstruct_dialog[A, S, E, R, P, N, G](
+    g: GraphDraft[A, S, E, R, P, N, G], ctx: Context[A, S, E, R, P, N, G], index: _Index
 ) -> None:
     """Connect isolated atoms to the atoms of adjacent turns via rephrase nodes.
 

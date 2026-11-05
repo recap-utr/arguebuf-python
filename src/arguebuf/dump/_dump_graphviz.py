@@ -10,8 +10,8 @@ from arguebuf.schemas.graphviz import EdgeStyle
 __all__ = ("dump_graphviz",)
 
 
-def dump_graphviz[A, S, E, G, R, P, N](
-    graph: Graph[A, S, E, G, R, P, N],
+def dump_graphviz[A, S, E, R, P, N, G](
+    graph: Graph[A, S, E, R, P, N, G],
     nodesep: float = 0.25,
     ranksep: float = 0.5,
     wrap_col: int = 36,

@@ -24,18 +24,18 @@ def load_microtexts[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     obj: IO[str],
     name: str | None = None,
     *,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from a microtexts (arggraph) XML file.
 
     ADUs become atoms with the text of their segment, joints concatenate their EDUs with spaces.
@@ -47,7 +47,7 @@ def load_microtexts[
     """
     root = Tree.parse(obj).getroot()
     ctx = Context(codecs, on_issue, strict)
-    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
+    g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name or root.get("id"),
         userdata=codecs.graph.validate_python(
             {"stance": root.get("stance"), "topic": root.get("topic_id")}

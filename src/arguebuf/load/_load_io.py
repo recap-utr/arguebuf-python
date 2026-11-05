@@ -17,20 +17,20 @@ def load_io[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     obj: TextIO,
     suffix: str,
     name: str | None = None,
     *,
     reconstruct_dialog: bool = False,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from a file object based on the file `suffix` (case-insensitive).
 
     `reconstruct_dialog` only applies to AIF and xAIF graphs (see `load_aif`).

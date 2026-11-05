@@ -36,14 +36,14 @@ def dump_protobuf[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
-    obj: Graph[A, S, E, G, R, P, N],
+    obj: Graph[A, S, E, R, P, N, G],
     *,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
 ) -> graph_pb2.Graph:
     """Export structure of Graph instance to protobuf argument graph format.
 

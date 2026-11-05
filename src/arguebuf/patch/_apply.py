@@ -27,7 +27,7 @@ __all__ = ("PatchResult", "apply_patch")
 
 
 @dataclass(slots=True, frozen=True)
-class PatchResult[A, S, E, G, R, P, N]:
+class PatchResult[A, S, E, R, P, N, G]:
     """Result of `apply_patch`.
 
     The ids cover nodes, resources, and participants and are empty if there are errors.
@@ -40,7 +40,7 @@ class PatchResult[A, S, E, G, R, P, N]:
         removed: Ids of the removed elements, including those removed by cascades.
     """
 
-    graph: Graph[A, S, E, G, R, P, N]
+    graph: Graph[A, S, E, R, P, N, G]
     issues: tuple[Issue, ...] = ()
     created: tuple[str, ...] = ()
     updated: tuple[str, ...] = ()
@@ -48,9 +48,9 @@ class PatchResult[A, S, E, G, R, P, N]:
 
 
 @dataclass(slots=True)
-class _Editor[A, S, E, G, R, P, N]:
-    graph: GraphDraft[A, S, E, G, R, P, N]
-    codecs: Codecs[A, S, E, G, R, P, N]
+class _Editor[A, S, E, R, P, N, G]:
+    graph: GraphDraft[A, S, E, R, P, N, G]
+    codecs: Codecs[A, S, E, R, P, N, G]
     threshold: float
     # ids of the nodes, resources, and participants of the input,
     # which may be removed by cascades before `remove` names them
@@ -337,13 +337,13 @@ class _Editor[A, S, E, G, R, P, N]:
         self.graph.major_claim = patch.get("majorClaim")
 
 
-def apply_patch[A, S, E, G, R, P, N](
-    graph: Graph[A, S, E, G, R, P, N],
+def apply_patch[A, S, E, R, P, N, G](
+    graph: Graph[A, S, E, R, P, N, G],
     patch: Patch,
     *,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     threshold: float = DEFAULT_THRESHOLD,
-) -> PatchResult[A, S, E, G, R, P, N]:
+) -> PatchResult[A, S, E, R, P, N, G]:
     """Apply a patch to a graph, all or nothing.
 
     The patch is applied to a draft of the graph (see `Graph.draft`),

@@ -25,18 +25,18 @@ def load_brat[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     obj: TextIO,
     name: str | None = None,
     *,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from BRAT argument graph file (reference: https://brat.nlplab.org/).
 
     Lines consist of tab-separated columns, blank lines are skipped.
@@ -48,7 +48,7 @@ def load_brat[
     Unknown stances, relation types, and atoms are skipped with a warning,
     lines of other shapes are ignored.
     """
-    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
+    g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     ctx = Context(codecs, on_issue, strict)

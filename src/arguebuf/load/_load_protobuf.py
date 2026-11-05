@@ -33,25 +33,25 @@ def load_protobuf[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     obj: graph_pb2.Graph,
     name: str | None = None,
     *,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from a protobuf message.
 
     Edges, references, and the major claim pointing to unknown elements
     are skipped with a warning, unknown scheme values raise a `ValueError`.
     """
     ctx = Context(codecs, on_issue, strict)
-    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
+    g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name,
         metadata=metadata_from_protobuf(obj.metadata),
         userdata=codecs.graph.validate_python(_userdata(obj)),

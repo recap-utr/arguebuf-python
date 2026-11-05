@@ -7,7 +7,7 @@ from arguebuf.schemas import aif
 __all__ = ("dump_aif", "dump_edge", "dump_node")
 
 
-def dump_aif[A, S, E, G, R, P, N](obj: Graph[A, S, E, G, R, P, N]) -> aif.Graph:
+def dump_aif[A, S, E, R, P, N, G](obj: Graph[A, S, E, R, P, N, G]) -> aif.Graph:
     """Export structure of Graph instance to AIF argument graph format."""
     return {
         "nodes": [dump_node(node, timestamp=True) for node in obj.nodes.values()],

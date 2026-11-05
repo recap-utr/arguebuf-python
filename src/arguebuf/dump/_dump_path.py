@@ -13,17 +13,17 @@ def dump_file[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
-    graph: Graph[A, S, E, G, R, P, N],
+    graph: Graph[A, S, E, R, P, N, G],
     path: Path | str,
     *,
     format: Format = Format.ARGUEBUF,
     prettify: bool = True,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
 ) -> None:
     """Export structure of Graph instance into a JSON file.
 

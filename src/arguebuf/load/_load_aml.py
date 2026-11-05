@@ -17,18 +17,18 @@ def load_aml[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ](
     obj: IO[str],
     name: str | None = None,
     *,
-    codecs: Codecs[A, S, E, G, R, P, N] = DEFAULT_CODECS,
+    codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
-) -> Graph[A, S, E, G, R, P, N]:
+) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from AML argument graph file
 
     The proposition (PROP) of the top argument unit (AU) is the major claim.
@@ -40,7 +40,7 @@ def load_aml[
     """
     root = Tree.parse(obj).getroot()
     ctx = Context(codecs, on_issue, strict)
-    g: GraphDraft[A, S, E, G, R, P, N] = GraphDraft(
+    g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
 
@@ -53,10 +53,10 @@ def load_aml[
     return g.freeze()
 
 
-def read_au[A, S, E, G, R, P, N](
+def read_au[A, S, E, R, P, N, G](
     au: Tree.Element,
-    g: GraphDraft[A, S, E, G, R, P, N],
-    ctx: Context[A, S, E, G, R, P, N],
+    g: GraphDraft[A, S, E, R, P, N, G],
+    ctx: Context[A, S, E, R, P, N, G],
     conclusion: AtomNode[A],
 ) -> None:
     """Read the premises of an argument unit (AU) whose PROP is the `conclusion`."""
@@ -72,11 +72,11 @@ def read_au[A, S, E, G, R, P, N](
                 _read_premises([premise_au], conclusion, g, ctx, refutation=False)
 
 
-def _read_premises[A, S, E, G, R, P, N](
+def _read_premises[A, S, E, R, P, N, G](
     aus: list[Tree.Element],
     conclusion: AtomNode[A],
-    g: GraphDraft[A, S, E, G, R, P, N],
-    ctx: Context[A, S, E, G, R, P, N],
+    g: GraphDraft[A, S, E, R, P, N, G],
+    ctx: Context[A, S, E, R, P, N, G],
     refutation: bool,
 ) -> None:
     units = [(au, prop) for au in aus if (prop := au.find("PROP")) is not None]

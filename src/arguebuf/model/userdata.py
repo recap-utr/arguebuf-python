@@ -84,13 +84,13 @@ class Codecs[
     A = JsonObject,
     S = JsonObject,
     E = JsonObject,
-    G = JsonObject,
     R = JsonObject,
     P = JsonObject,
     N = JsonObject,
+    G = JsonObject,
 ]:
-    """Codecs for the userdata of atom nodes, scheme nodes, edges, the graph,
-    resources, participants, and analysts.
+    """Codecs for the userdata of atom nodes, scheme nodes, edges,
+    resources, participants, analysts, and the graph.
 
     Kinds without a codec keep JSON object userdata.
 

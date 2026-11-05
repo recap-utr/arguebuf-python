@@ -245,7 +245,7 @@ AIF and xAIF exports are lossy, they do not contain locutions, participants of a
 ### Userdata
 
 Every graph, node, edge, resource, participant, and analyst has `userdata`, a JSON object (`ag.JsonObject`) by default.
-The type parameters of `Graph` customize it per kind in the order atom, scheme, edge, graph, resource, participant, analyst, omitted kinds keep `JsonObject`.
+The type parameters of `Graph` customize it per kind in the order atom, scheme, edge, resource, participant, analyst, graph, omitted kinds keep `JsonObject`.
 Each element class is generic in its own userdata type, e.g. `ag.AtomNode[AtomData]`.
 In memory, userdata may hold anything, for example numpy arrays or class instances.
 
