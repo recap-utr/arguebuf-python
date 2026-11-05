@@ -1,5 +1,11 @@
 # Changelog
 
+## [4.0.1](https://github.com/recap-utr/arguebuf-python/compare/v4.0.0...v4.0.1) (2026-11-05)
+
+### Bug Fixes
+
+* **deps:** replace include-group with uv default-groups ([7bda653](https://github.com/recap-utr/arguebuf-python/commit/7bda653a67f633ce34a0b70242bbb46d13013444))
+
 ## [4.0.0](https://github.com/recap-utr/arguebuf-python/compare/v3.0.0...v4.0.0) (2026-11-05)
 
 ### ⚠ BREAKING CHANGES
