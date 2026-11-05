@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from arguebuf.dt import now
+from arguebuf._dt import now
 
 __all__ = ("Metadata",)
 

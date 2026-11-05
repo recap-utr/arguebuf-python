@@ -4,7 +4,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Self
 
-from arguebuf.dt import from_format
+from arguebuf._dt import from_format
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata

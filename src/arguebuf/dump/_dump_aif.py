@@ -1,4 +1,4 @@
-from arguebuf.dt import to_format
+from arguebuf._dt import to_format
 from arguebuf.model import AbstractNode, AtomNode, Edge, GraphView, SchemeNode
 from arguebuf.model.node import NO_SCHEME_LABEL
 from arguebuf.model.scheme import is_default_scheme, scheme2aif, scheme2aif_default

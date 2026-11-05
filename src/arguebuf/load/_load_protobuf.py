@@ -3,7 +3,7 @@ from collections.abc import Mapping
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf import proto_json
 
-from arguebuf.dt import from_protobuf
+from arguebuf._dt import from_protobuf
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.issue import Reporter

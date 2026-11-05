@@ -4,7 +4,7 @@
 
 import logging
 
-from . import dt, dump, load, model, render, schemas, traverse
+from . import dump, load, model, render, schemas, traverse
 from .check import check
 from .locate import DEFAULT_THRESHOLD, Match, is_anchored, locate
 from .model import (
@@ -127,7 +127,6 @@ __all__ = (
     "Support",
     "apply_patch",
     "check",
-    "dt",
     "dump",
     "has_errors",
     "is_anchored",

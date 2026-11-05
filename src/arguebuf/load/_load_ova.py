@@ -1,6 +1,6 @@
 import dataclasses
 
-from arguebuf.dt import from_format
+from arguebuf._dt import from_format
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.issue import Reporter

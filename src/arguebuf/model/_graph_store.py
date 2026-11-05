@@ -4,7 +4,7 @@ import weakref
 from collections.abc import Mapping
 from typing import Self, assert_never
 
-from arguebuf.dt import now
+from arguebuf._dt import now
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge
 from arguebuf.model.metadata import Metadata

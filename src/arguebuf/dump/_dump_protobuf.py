@@ -3,7 +3,7 @@ import importlib.metadata
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf.struct_pb2 import Struct
 
-from arguebuf.dt import to_protobuf
+from arguebuf._dt import to_protobuf
 from arguebuf.model import GraphView
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge

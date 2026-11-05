@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 
-from arguebuf.dt import from_isoformat
+from arguebuf._dt import from_isoformat
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model import scheme as scheme_model
 from arguebuf.model.analyst import Analyst
