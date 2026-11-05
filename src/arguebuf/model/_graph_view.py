@@ -229,6 +229,7 @@ class GraphView[A, S, E, R, P, N, G](ABC):
     def sibling_node_distances(
         self,
         node: str | AbstractNode,
+        *,
         max_levels: int | None = 1,
         node_type: type[AbstractNode] = AbstractNode,
     ) -> dict[AtomOrSchemeNode[A, S], int]:
@@ -289,11 +290,14 @@ class GraphView[A, S, E, R, P, N, G](ABC):
     def sibling_nodes(
         self,
         node: str | AbstractNode,
+        *,
         max_levels: int | None = 1,
         node_type: type[AbstractNode] = AbstractNode,
     ) -> AbstractSet[AtomOrSchemeNode[A, S]]:
         """Find the sibling nodes of a node, see `sibling_node_distances`."""
-        return self.sibling_node_distances(node, max_levels, node_type).keys()
+        return self.sibling_node_distances(
+            node, max_levels=max_levels, node_type=node_type
+        ).keys()
 
     def scheme_between(
         self, premise: str | AbstractNode, claim: str | AbstractNode

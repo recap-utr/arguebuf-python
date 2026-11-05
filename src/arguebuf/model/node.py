@@ -74,7 +74,7 @@ class AbstractNode(Entity, ABC):
         """Label used when rendering the node."""
 
     @abstractmethod
-    def color(self, major_claim: bool, monochrome: bool) -> Color:
+    def color(self, *, major_claim: bool = False, monochrome: bool = False) -> Color:
         """Color used when rendering the node."""
 
 
@@ -142,7 +142,7 @@ class AtomNode[A = JsonObject](AbstractNode):
         return self.text
 
     @override
-    def color(self, major_claim: bool, monochrome: bool) -> Color:
+    def color(self, *, major_claim: bool = False, monochrome: bool = False) -> Color:
         if monochrome:
             return COLOR_MONOCHROME_LIGHT
 
@@ -211,7 +211,7 @@ class SchemeNode[S = JsonObject](AbstractNode):
         return label
 
     @override
-    def color(self, major_claim: bool, monochrome: bool) -> Color:
+    def color(self, *, major_claim: bool = False, monochrome: bool = False) -> Color:
         if monochrome:
             return COLOR_MONOCHROME_DARK
 

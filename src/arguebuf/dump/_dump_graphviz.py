@@ -12,6 +12,7 @@ __all__ = ("dump_graphviz",)
 
 def dump_graphviz[A, S, E, R, P, N, G](
     graph: GraphView[A, S, E, R, P, N, G],
+    *,
     nodesep: float = 0.25,
     ranksep: float = 0.5,
     wrap_col: int = 36,
@@ -70,7 +71,7 @@ def dump_graphviz[A, S, E, R, P, N, G](
 
     for node in graph.atom_nodes.values():
         major_claim = graph.major_claim == node.id
-        color = node.color(major_claim, monochrome)
+        color = node.color(major_claim=major_claim, monochrome=monochrome)
         label = atom_label(node) if atom_label else node.label
         gv_graph.add_node(
             node.id,
@@ -88,13 +89,13 @@ def dump_graphviz[A, S, E, R, P, N, G](
             gv_graph.add_edge(
                 relation.source.id,
                 relation.target.id,
-                color=relation.scheme.color(False, monochrome).bg,
+                color=relation.scheme.color(monochrome=monochrome).bg,
             )
 
         return gv_graph
 
     for node in graph.scheme_nodes.values():
-        color = node.color(False, monochrome)
+        color = node.color(monochrome=monochrome)
         gv_graph.add_node(
             node.id,
             label=_escape(scheme_label(node) if scheme_label else node.label),

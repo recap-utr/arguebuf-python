@@ -131,6 +131,7 @@ def issue(
     code: IssueCode,
     message: str,
     elements: Iterable[str] = (),
+    *,
     severity: Severity | None = None,
 ) -> Issue:
     """Create an issue with the default severity and hint of its code.

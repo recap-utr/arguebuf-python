@@ -24,8 +24,8 @@ def load_io[
 ](
     obj: TextIO,
     suffix: str,
-    name: str | None = None,
     *,
+    name: str | None = None,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
@@ -40,16 +40,16 @@ def load_io[
     """
     match suffix.lower():
         case ".ann":
-            return load_brat(obj, name, codecs=codecs, on_issue=on_issue, strict=strict)
+            return load_brat(obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict)
         case ".txt":
-            return load_text(obj, name, codecs=codecs, on_issue=on_issue, strict=strict)
+            return load_text(obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict)
         case ".aml":
-            return load_aml(obj, name, codecs=codecs, on_issue=on_issue, strict=strict)
+            return load_aml(obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict)
         case ".xml":
-            return load_microtexts(obj, name, codecs=codecs, on_issue=on_issue, strict=strict)
+            return load_microtexts(obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict)
         case ".json":
             return load_json(
-                obj, name, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict
+                obj, name=name, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict
             )
         case _:
             raise ValueError(f"The suffix '{suffix}' is not supported.")

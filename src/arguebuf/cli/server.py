@@ -27,9 +27,9 @@ class CasebaseService(casebase_pb2_grpc.CasebaseServiceServicer):
         require_all(["include"], request)
         cases = arguebuf.load.casebase(
             request.include,
-            request.exclude if request.HasField("exclude") else None,
-            self.basepath,
-            self.glob,
+            exclude=request.exclude if request.HasField("exclude") else None,
+            basepath=self.basepath,
+            glob=self.glob,
         )
 
         return casebase_pb2.CasebaseResponse(

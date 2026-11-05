@@ -9,6 +9,7 @@ __all__ = ("dump_d2",)
 
 def dump_d2[A, S, E, R, P, N, G](
     graph: GraphView[A, S, E, R, P, N, G],
+    *,
     atom_label: Callable[[AtomNode[A]], str] | None = None,
     scheme_label: Callable[[SchemeNode[S]], str] | None = None,
     max_nodes: int = 1000,
@@ -29,8 +30,8 @@ def dump_d2[A, S, E, R, P, N, G](
                 _dump_node(
                     node,
                     atom_label(node) if atom_label else node.label,
-                    graph.major_claim == node.id,
-                    monochrome,
+                    major_claim=graph.major_claim == node.id,
+                    monochrome=monochrome,
                 )
                 for node in graph.atom_nodes.values()
             ),
@@ -38,7 +39,7 @@ def dump_d2[A, S, E, R, P, N, G](
                 D2Edge(
                     from_id=relation.source.id,
                     to_id=relation.target.id,
-                    stroke=relation.scheme.color(False, monochrome).bg,
+                    stroke=relation.scheme.color(monochrome=monochrome).bg,
                 )
                 for relation in graph.atom_relations()
             ),
@@ -50,8 +51,8 @@ def dump_d2[A, S, E, R, P, N, G](
                 _dump_node(
                     node,
                     atom_label(node) if atom_label else node.label,
-                    graph.major_claim == node.id,
-                    monochrome,
+                    major_claim=graph.major_claim == node.id,
+                    monochrome=monochrome,
                 )
                 for node in graph.atom_nodes.values()
             ),
@@ -59,8 +60,8 @@ def dump_d2[A, S, E, R, P, N, G](
                 _dump_node(
                     node,
                     scheme_label(node) if scheme_label else node.label,
-                    False,
-                    monochrome,
+                    major_claim=False,
+                    monochrome=monochrome,
                 )
                 for node in graph.scheme_nodes.values()
             ),
@@ -73,9 +74,9 @@ def dump_d2[A, S, E, R, P, N, G](
 
 
 def _dump_node(
-    node: AbstractNode, label: str, major_claim: bool, monochrome: bool
+    node: AbstractNode, label: str, *, major_claim: bool, monochrome: bool
 ) -> D2Node:
-    color = node.color(major_claim, monochrome)
+    color = node.color(major_claim=major_claim, monochrome=monochrome)
 
     return D2Node(
         id=node.id,

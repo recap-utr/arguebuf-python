@@ -9,7 +9,9 @@ from ._dump_aif import dump_edge, dump_node
 __all__ = ("dump_participant", "dump_xaif")
 
 
-def dump_xaif[A, S, E, R, P, N, G](obj: GraphView[A, S, E, R, P, N, G]) -> xaif.Graph:
+def dump_xaif[A, S, E, R, P, N, G](
+    graph: GraphView[A, S, E, R, P, N, G],
+) -> xaif.Graph:
     """Export structure of Graph instance to xAIF argument graph format.
 
     xAIF nodes have no timestamps, so they are omitted.
@@ -17,19 +19,19 @@ def dump_xaif[A, S, E, R, P, N, G](obj: GraphView[A, S, E, R, P, N, G]) -> xaif.
     """
     return {
         "AIF": {
-            "nodes": [dump_node(node, timestamp=False) for node in obj.nodes.values()],
-            "edges": [dump_edge(edge) for edge in obj.edges.values()],
+            "nodes": [dump_node(node, timestamp=False) for node in graph.nodes.values()],
+            "edges": [dump_edge(edge) for edge in graph.edges.values()],
             "locutions": [],
             "schemefulfillments": [],
             "descriptorfulfillments": [],
             "participants": [
                 dump_participant(participant)
-                for participant in obj.participants.values()
+                for participant in graph.participants.values()
             ],
         },
         "text": "<br>".join(
             html.escape(resource.text, quote=False).replace("\n", "<br>")
-            for resource in obj.resources.values()
+            for resource in graph.resources.values()
         ),
         "dialog": False,
     }

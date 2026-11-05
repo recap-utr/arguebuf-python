@@ -21,8 +21,8 @@ def load_text[
     G = JsonObject,
 ](
     obj: TextIO,
-    name: str | None = None,
     *,
+    name: str | None = None,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
@@ -31,7 +31,7 @@ def load_text[
     text = obj.read()
 
     if title_pattern.search(text.partition("\n")[0]):
-        return load_kialo(StringIO(text), name, codecs=codecs, on_issue=on_issue, strict=strict)
+        return load_kialo(StringIO(text), name=name, codecs=codecs, on_issue=on_issue, strict=strict)
 
     g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})

@@ -240,10 +240,10 @@ def test_parse_patch() -> None:
         },
     }
 
-    assert [item.path for item in ag.parse_patch({"explanations": {"a": 1}}, schema).issues] == [
+    assert [item.path for item in ag.parse_patch({"explanations": {"a": 1}}, schema=schema).issues] == [
         ("explanations", "a")
     ]
-    assert ag.parse_patch({"explanations": {"a": "Why"}}, schema).patch == {
+    assert ag.parse_patch({"explanations": {"a": "Why"}}, schema=schema).patch == {
         "explanations": {"a": "Why"}
     }
 
@@ -252,8 +252,8 @@ def test_parse_patch() -> None:
         "properties": {**properties, "confidence": {"type": "number", "minimum": 0, "maximum": 1}},
     }
 
-    assert ag.parse_patch({"confidence": 2}, extended).patch is None
-    assert ag.parse_patch({"confidence": 0.5}, extended).patch == {"confidence": 0.5}
+    assert ag.parse_patch({"confidence": 2}, schema=extended).patch is None
+    assert ag.parse_patch({"confidence": 0.5}, schema=extended).patch == {"confidence": 0.5}
 
 
 def test_graph_edits() -> None:

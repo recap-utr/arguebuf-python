@@ -174,7 +174,7 @@ def render(
 
         # graphs exceeding `max_nodes` are skipped
         if gv is not None:
-            ag.render.graphviz(gv, path_pair.target, prog, dpi)
+            ag.render.graphviz(gv, path_pair.target, prog=prog, dpi=dpi)
 
 
 @cli.command()

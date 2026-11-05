@@ -412,6 +412,7 @@ class GraphDraft[
         premises: Iterable[str | AbstractNode],
         scheme: str | SchemeNode[S],
         conclusion: str | AbstractNode,
+        *,
         edge_userdata: Callable[[], E] = dict,
     ) -> None:
         """Connect the premises to the conclusion via the scheme node, all part of the graph.
@@ -488,7 +489,7 @@ class GraphDraft[
         if source_id in self._store.atom_nodes and target_id in self._store.atom_nodes:
             node = SchemeNode(scheme, userdata=scheme_userdata(), id=uuid())
             self.add_node(node)
-            self.connect([source_id], node, target_id, edge_userdata)
+            self.connect([source_id], node, target_id, edge_userdata=edge_userdata)
 
             return node
 

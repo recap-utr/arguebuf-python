@@ -70,9 +70,9 @@ class CasebaseFilter:
 
     Examples:
         >>> item = CasebaseFilter("micro.*", kwargs={"format": "aif"})
-        >>> item.matches_folder(FilesystemFilter("microtexts", {"format": "aif"}), True)
+        >>> item.matches_folder(FilesystemFilter("microtexts", {"format": "aif"}), strict=True)
         True
-        >>> item.matches_folder(FilesystemFilter("microtexts", {"format": "aifdb"}), True)
+        >>> item.matches_folder(FilesystemFilter("microtexts", {"format": "aifdb"}), strict=True)
         False
     """
 
@@ -80,7 +80,7 @@ class CasebaseFilter:
     cases: str | None = None
     kwargs: Mapping[str, str] = field(default_factory=dict)
 
-    def matches_folder(self, folder: FilesystemFilter, strict: bool) -> bool:
+    def matches_folder(self, folder: FilesystemFilter, *, strict: bool) -> bool:
         """Check if a casebase folder is selected by this filter.
 
         If `strict` is set, the folder must not have properties absent in the filter.
@@ -134,11 +134,11 @@ def load_casebase[
     G = JsonObject,
 ](
     include: CasebaseFilterType | Iterable[CasebaseFilterType],
+    *,
     exclude: CasebaseFilterType | Iterable[CasebaseFilterType] | None = None,
     basepath: Path | str = ".",
     glob: str = "*/*",
     strict_equal: bool = False,
-    *,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
@@ -179,12 +179,12 @@ def load_casebase[
         includes = [
             item
             for item in include_filters
-            if item.matches_folder(folder_filter, strict_equal)
+            if item.matches_folder(folder_filter, strict=strict_equal)
         ]
         excludes = [
             item
             for item in exclude_filters
-            if item.matches_folder(folder_filter, False)
+            if item.matches_folder(folder_filter, strict=False)
         ]
 
         if not includes:

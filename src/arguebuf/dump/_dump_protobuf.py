@@ -41,7 +41,7 @@ def dump_protobuf[
     N = JsonObject,
     G = JsonObject,
 ](
-    obj: GraphView[A, S, E, R, P, N, G],
+    graph: GraphView[A, S, E, R, P, N, G],
     *,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
 ) -> graph_pb2.Graph:
@@ -52,30 +52,30 @@ def dump_protobuf[
     return graph_pb2.Graph(
         schema_version=SCHEMA_VERSION,
         library_version=LIBRARY_VERSION,
-        metadata=metadata_to_protobuf(obj.metadata),
-        userdata=_struct(codecs.graph, obj.userdata),
-        major_claim=obj.major_claim,
+        metadata=metadata_to_protobuf(graph.metadata),
+        userdata=_struct(codecs.graph, graph.userdata),
+        major_claim=graph.major_claim,
         nodes={
             node_id: atom_to_protobuf(node, codecs.atom)
             if isinstance(node, AtomNode)
             else scheme_to_protobuf(node, codecs.scheme)
-            for node_id, node in obj.nodes.items()
+            for node_id, node in graph.nodes.items()
         },
         edges={
             edge_id: edge_to_protobuf(edge, codecs.edge)
-            for edge_id, edge in obj.edges.items()
+            for edge_id, edge in graph.edges.items()
         },
         resources={
             resource_id: resource_to_protobuf(resource, codecs.resource)
-            for resource_id, resource in obj.resources.items()
+            for resource_id, resource in graph.resources.items()
         },
         participants={
             participant_id: participant_to_protobuf(participant, codecs.participant)
-            for participant_id, participant in obj.participants.items()
+            for participant_id, participant in graph.participants.items()
         },
         analysts={
             analyst_id: analyst_to_protobuf(analyst, codecs.analyst)
-            for analyst_id, analyst in obj.analysts.items()
+            for analyst_id, analyst in graph.analysts.items()
         },
     )
 

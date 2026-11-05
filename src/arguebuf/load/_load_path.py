@@ -20,8 +20,8 @@ def load_file[
     G = JsonObject,
 ](
     file: Path | str,
-    text_file: Path | str | None = None,
     *,
+    text_file: Path | str | None = None,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
@@ -47,7 +47,7 @@ def load_file[
         graph = load_io(
             fp,
             file.suffix,
-            file.stem,
+            name=file.stem,
             reconstruct_dialog=reconstruct_dialog,
             codecs=codecs, on_issue=on_issue, strict=strict,
         )
@@ -75,9 +75,9 @@ def load_folder[
 ](
     folder: Path | str,
     pattern: str,
+    *,
     text_folder: Path | str | None = None,
     text_suffix: str = ".txt",
-    *,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
@@ -107,7 +107,7 @@ def load_folder[
     return {
         file: load_file(
             file,
-            text_folder / file.relative_to(folder).with_suffix(text_suffix)
+            text_file=text_folder / file.relative_to(folder).with_suffix(text_suffix)
             if text_folder
             else None,
             reconstruct_dialog=reconstruct_dialog,

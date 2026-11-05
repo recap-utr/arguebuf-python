@@ -51,8 +51,8 @@ def load_dict[
     G = JsonObject,
 ](
     obj: Mapping[str, Any],
-    name: str | None = None,
     *,
+    name: str | None = None,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
@@ -68,21 +68,21 @@ def load_dict[
     """
     if _is_xaif(obj):
         return load_xaif(
-            obj, name, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict
+            obj, name=name, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict
         )
 
     if _is_ova(obj):
-        return load_ova(obj, name, codecs=codecs, on_issue=on_issue, strict=strict)
+        return load_ova(obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict)
 
     if _is_sadface(obj):
-        return load_sadface(obj, name, codecs=codecs, on_issue=on_issue, strict=strict)
+        return load_sadface(obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict)
 
     if _is_argdown(obj):
-        return load_argdown(obj, name, codecs=codecs, on_issue=on_issue, strict=strict)
+        return load_argdown(obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict)
 
     if _is_aif(obj):
-        return load_aif(obj, name, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict)
+        return load_aif(obj, name=name, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict)
 
     return load_protobuf(
-        proto_json.parse(graph_pb2.Graph, dict(obj)), name, codecs=codecs, on_issue=on_issue, strict=strict
+        proto_json.parse(graph_pb2.Graph, dict(obj)), name=name, codecs=codecs, on_issue=on_issue, strict=strict
     )

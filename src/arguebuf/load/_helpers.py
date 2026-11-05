@@ -67,7 +67,7 @@ class Context[A, S, E, R, P, N, G]:
         self, code: IssueCode, message: str, elements: Iterable[str] = ()
     ) -> None:
         """Report a repaired or skipped element as warning."""
-        item = issue(code, message, elements, "warning")
+        item = issue(code, message, elements, severity="warning")
 
         if self.strict:
             raise GraphError(copy.replace(item, severity="error"))

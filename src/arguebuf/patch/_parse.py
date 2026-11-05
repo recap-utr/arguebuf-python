@@ -30,7 +30,7 @@ def _is_patch(value: object, schema: JsonSchema, issues: list[Issue]) -> TypeIs[
     return not issues
 
 
-def parse_patch(value: object, schema: JsonSchema = PATCH_SCHEMA) -> ParsedPatch:
+def parse_patch(value: object, *, schema: JsonSchema = PATCH_SCHEMA) -> ParsedPatch:
     """Validate untrusted input against `PATCH_SCHEMA` or a host extension.
 
     All failures are reported as `invalid-patch` issues using JSON Schema paths.

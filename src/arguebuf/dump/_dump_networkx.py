@@ -14,6 +14,7 @@ type DiGraph = nx.DiGraph[str]
 
 def dump_networkx[A, S, E, R, P, N, G](
     graph: GraphView[A, S, E, R, P, N, G],
+    *,
     graph_attrs: Mapping[str, Callable[[GraphView[A, S, E, R, P, N, G]], object]]
     | None = None,
     atom_attrs: Mapping[str, Callable[[AtomNode[A]], object]] | None = None,

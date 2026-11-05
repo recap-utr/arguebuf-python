@@ -8,6 +8,7 @@ __all__ = ("graphviz",)
 def graphviz(
     graph: AGraph,
     path: Path | str,
+    *,
     prog: str = "dot",
     dpi: int = 300,
 ) -> None:

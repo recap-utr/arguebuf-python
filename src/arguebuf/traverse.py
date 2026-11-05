@@ -10,24 +10,27 @@ __all__ = ("bfs", "dfs", "node_distance")
 def dfs[N: AbstractNode](
     start: N,
     connections: Callable[[N], Iterable[N]],
+    *,
     include_start: bool = True,
 ) -> list[N]:
     """Visit all nodes reachable from `start` in depth-first order."""
-    return _traverse(start, connections, include_start, deque.pop)
+    return _traverse(start, connections, include_start=include_start, pop=deque.pop)
 
 
 def bfs[N: AbstractNode](
     start: N,
     connections: Callable[[N], Iterable[N]],
+    *,
     include_start: bool = True,
 ) -> list[N]:
     """Visit all nodes reachable from `start` in breadth-first order."""
-    return _traverse(start, connections, include_start, deque.popleft)
+    return _traverse(start, connections, include_start=include_start, pop=deque.popleft)
 
 
 def _traverse[N: AbstractNode](
     start: N,
     connections: Callable[[N], Iterable[N]],
+    *,
     include_start: bool,
     pop: Callable[[deque[N]], N],
 ) -> list[N]:
@@ -51,22 +54,23 @@ def _traverse[N: AbstractNode](
 
 
 def node_distance[N: AbstractNode](
-    start_node: N,
-    end_node: N,
+    start: N,
+    end: N,
     connections: Callable[[N], Iterable[N]],
+    *,
     max_distance: int | None = None,
     directed: bool = True,
 ) -> int | None:
-    """Get the distance between `start_node` and `end_node` in the graph.
+    """Get the distance between `start` and `end` in the graph.
 
     Args:
-        start_node: Node object that is part of the graph.
-        end_node: Node object that is part of the graph.
+        start: Node object that is part of the graph.
+        end: Node object that is part of the graph.
         connections: Callable containing links between nodes
             (e.g., `graph.incoming_atom_nodes` and `graph.outgoing_nodes`)
         max_distance: Only search for nodes having at most a distance of this argument.
             Especially helpful when dealing with large graphs where shorts paths are searched for.
-        directed: If `False`, also search for the direction `end_node` -> `start_node`.
+        directed: If `False`, also search for the direction `end` -> `start`.
 
     Returns:
         Number of edges on the shortest path or `None` if there is no path.
@@ -86,26 +90,26 @@ def node_distance[N: AbstractNode](
         >>> node_distance(n3, n1, g.outgoing_nodes)
     """
 
-    if start_node == end_node:
+    if start == end:
         return 0
 
-    dist = _directed_node_distance(start_node, end_node, connections, max_distance)
+    dist = _directed_node_distance(start, end, connections, max_distance)
 
     if dist is None and not directed:
-        dist = _directed_node_distance(end_node, start_node, connections, max_distance)
+        dist = _directed_node_distance(end, start, connections, max_distance)
 
     return dist
 
 
 def _directed_node_distance[N: AbstractNode](
-    start_node: N,
-    end_node: N,
+    start: N,
+    end: N,
     connections: Callable[[N], Iterable[N]],
     max_distance: int | None,
 ) -> int | None:
     """Breadth-first search for the shortest distance."""
-    visited = {start_node}
-    pending: deque[tuple[N, int]] = deque([(start_node, 0)])
+    visited = {start}
+    pending: deque[tuple[N, int]] = deque([(start, 0)])
 
     while pending:
         node, distance = pending.popleft()
@@ -114,7 +118,7 @@ def _directed_node_distance[N: AbstractNode](
             continue
 
         for neighbor in connections(node):
-            if neighbor == end_node:
+            if neighbor == end:
                 return distance + 1
 
             if neighbor not in visited:

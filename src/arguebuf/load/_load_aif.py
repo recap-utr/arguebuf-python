@@ -36,8 +36,8 @@ def load_aif[
     G = JsonObject,
 ](
     obj: aif.Graph,
-    name: str | None = None,
     *,
+    name: str | None = None,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,

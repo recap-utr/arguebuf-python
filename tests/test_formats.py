@@ -286,7 +286,7 @@ def test_numeric_ids() -> None:
 def test_dict_argdown():
     g = ag.load.dict(
         {"statements": {}, "arguments": {}, "relations": [], "frontMatter": None},
-        "name",
+        name="name",
     )
 
     assert g.name == "name"

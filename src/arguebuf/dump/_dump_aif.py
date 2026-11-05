@@ -7,18 +7,18 @@ from arguebuf.schemas import aif
 __all__ = ("dump_aif", "dump_edge", "dump_node")
 
 
-def dump_aif[A, S, E, R, P, N, G](obj: GraphView[A, S, E, R, P, N, G]) -> aif.Graph:
+def dump_aif[A, S, E, R, P, N, G](graph: GraphView[A, S, E, R, P, N, G]) -> aif.Graph:
     """Export structure of Graph instance to AIF argument graph format."""
     return {
-        "nodes": [dump_node(node, timestamp=True) for node in obj.nodes.values()],
+        "nodes": [dump_node(node, timestamp=True) for node in graph.nodes.values()],
         "edges": [
-            {**dump_edge(edge), "formEdgeID": None} for edge in obj.edges.values()
+            {**dump_edge(edge), "formEdgeID": None} for edge in graph.edges.values()
         ],
         "locutions": [],
     }
 
 
-def dump_node(obj: AbstractNode, timestamp: bool) -> aif.Node:
+def dump_node(obj: AbstractNode, *, timestamp: bool) -> aif.Node:
     """Export an atom or scheme node to an AIF node, with or without timestamp."""
     node: aif.Node
 

@@ -50,8 +50,8 @@ def load_sadface[
     G = JsonObject,
 ](
     obj: sadface.Graph,
-    name: str | None = None,
     *,
+    name: str | None = None,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     on_issue: Reporter | None = None,
     strict: bool = False,
