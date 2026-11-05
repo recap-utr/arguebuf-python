@@ -1,7 +1,7 @@
 import dataclasses
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import Any, Self, Unpack, overload
+from typing import Any, Self, Unpack, cast, overload
 
 from arguebuf.locate import DEFAULT_THRESHOLD
 from arguebuf.model._graph_references import relocate_references
@@ -74,6 +74,12 @@ class _GraphBase[
         *,
         metadata: Metadata | None = None,
         userdata: JsonObject,
+        nodes: Iterable[Node[A, S]] = (),
+        edges: Iterable[Edge[E]] = (),
+        resources: Iterable[Resource[R]] = (),
+        participants: Iterable[Participant[P]] = (),
+        analysts: Iterable[Analyst[N]] = (),
+        major_claim: str | AbstractNode | None = None,
     ) -> None: ...
 
     @overload
@@ -83,6 +89,12 @@ class _GraphBase[
         *,
         metadata: Metadata | None = None,
         userdata: G = JSON_OBJECT,
+        nodes: Iterable[Node[A, S]] = (),
+        edges: Iterable[Edge[E]] = (),
+        resources: Iterable[Resource[R]] = (),
+        participants: Iterable[Participant[P]] = (),
+        analysts: Iterable[Analyst[N]] = (),
+        major_claim: str | AbstractNode | None = None,
     ) -> None: ...
 
     def __init__(
@@ -91,8 +103,35 @@ class _GraphBase[
         *,
         metadata: Metadata | None = None,
         userdata: object = JSON_OBJECT,
+        nodes: Iterable[Node[A, S]] = (),
+        edges: Iterable[Edge[E]] = (),
+        resources: Iterable[Resource[R]] = (),
+        participants: Iterable[Participant[P]] = (),
+        analysts: Iterable[Analyst[N]] = (),
+        major_claim: str | AbstractNode | None = None,
     ) -> None:
-        self._assign(name, metadata or Metadata(), own(userdata), GraphStore())
+        # the elements are validated and added in the order of their dependencies
+        draft = GraphDraft[A, S, E, R, P, N, G]._of(
+            name, metadata or Metadata(), cast(G, own(userdata)), GraphStore()
+        )
+
+        for resource in resources:
+            draft.add_resource(resource)
+
+        for participant in participants:
+            draft.add_participant(participant)
+
+        for analyst in analysts:
+            draft.add_analyst(analyst)
+
+        for node in nodes:
+            draft.add_node(node)
+
+        for edge in edges:
+            draft.add_edge(edge)
+
+        draft.major_claim = major_claim
+        self._assign(name, draft.metadata, draft.userdata, draft._store)
 
     @classmethod
     def _of(

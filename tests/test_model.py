@@ -350,12 +350,33 @@ def test_annotations() -> None:
     ]
 
 
+def test_init_with_elements():
+    for cls in (ag.Graph, ag.GraphDraft):
+        graph = cls(
+            nodes=[ag.AtomNode("P", id="p"), ag.SchemeNode(id="s"), ag.AtomNode("C", id="c")],
+            edges=[ag.Edge("p", "s"), ag.Edge("s", "c")],
+            resources=[ag.Resource("Text", id="r")],
+            analysts=[ag.Analyst("Name", id="n")],
+            major_claim="c",
+        )
+
+        assert list(graph.nodes) == ["p", "s", "c"]
+        assert graph.major_claim == "c"
+        assert list(graph.resources) == ["r"]
+        assert list(graph.analysts) == ["n"]
+
+    with pytest.raises(ag.GraphError):
+        ag.Graph(edges=[ag.Edge("p", "s")])
+
+
 def test_remove_returns_ids():
-    draft = new_draft(ag.AtomNode("A", id="n1"), ag.SchemeNode(id="s"))
-    draft.add_edge(ag.Edge("n1", "s", id="e"))
-    draft.add_resource(ag.Resource("Text", id="r"))
-    draft.add_participant(ag.Participant("Name", id="p"))
-    draft.add_analyst(ag.Analyst("Name", id="a"))
+    draft = ag.GraphDraft(
+        resources=[ag.Resource("Text", id="r")],
+        participants=[ag.Participant("Name", id="p")],
+        analysts=[ag.Analyst("Name", id="a")],
+        nodes=[ag.AtomNode("A", id="n1"), ag.SchemeNode(id="s")],
+        edges=[ag.Edge("n1", "s", id="e")],
+    )
 
     assert draft.remove_edge("e") == ["e"]
     assert draft.clean_resources() == ["r"]
