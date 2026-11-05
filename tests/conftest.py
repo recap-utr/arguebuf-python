@@ -4,7 +4,7 @@ import arguebuf as ag
 
 
 def new_draft(
-    *nodes: ag.AtomOrSchemeNode,
+    *nodes: ag.Node,
     edges: Iterable[tuple[ag.AbstractNode, ag.AbstractNode]] = (),
 ) -> ag.GraphDraft:
     """Create a draft from nodes and (source, target) pairs."""

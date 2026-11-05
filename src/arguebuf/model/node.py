@@ -26,8 +26,8 @@ __all__ = (
     "AbstractNode",
     "AtomChanges",
     "AtomNode",
-    "AtomOrSchemeNode",
     "Color",
+    "Node",
     "SchemeChanges",
     "SchemeNode",
 )
@@ -224,7 +224,7 @@ class SchemeNode[S = JsonObject](AbstractNode):
         return SCHEME_COLORS[type(self.scheme)]
 
 
-type AtomOrSchemeNode[A = JsonObject, S = JsonObject] = AtomNode[A] | SchemeNode[S]
+type Node[A = JsonObject, S = JsonObject] = AtomNode[A] | SchemeNode[S]
 
 
 class AtomChanges[A](TypedDict, total=False):

@@ -5,7 +5,7 @@ from collections.abc import Callable, Iterable, Mapping
 
 from arguebuf.model._graph_store import GraphStore, touched
 from arguebuf.model.issue import fail
-from arguebuf.model.node import AtomNode, AtomOrSchemeNode
+from arguebuf.model.node import AtomNode, Node
 from arguebuf.model.reference import Reference
 from arguebuf.traverse import dfs
 
@@ -141,7 +141,7 @@ def remove_participant[A, S, E, R, P, N](
 
 
 def remove_branches[A, S, E, R, P, N](
-    store: GraphStore[A, S, E, R, P, N], starts: Iterable[AtomOrSchemeNode[A, S]]
+    store: GraphStore[A, S, E, R, P, N], starts: Iterable[Node[A, S]]
 ) -> list[str]:
     """See `GraphDraft.remove_branch`, the branches of all starts are removed at once."""
     removed: _Removed = {}

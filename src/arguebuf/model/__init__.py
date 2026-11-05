@@ -42,8 +42,8 @@ from .node import (
     SCHEME_COLORS,
     AbstractNode,
     AtomNode,
-    AtomOrSchemeNode,
     Color,
+    Node,
     SchemeNode,
 )
 from .participant import Participant
@@ -80,7 +80,6 @@ __all__ = (
     "Annotation",
     "AtomChanges",
     "AtomNode",
-    "AtomOrSchemeNode",
     "AtomRelation",
     "Attack",
     "Codec",
@@ -98,6 +97,7 @@ __all__ = (
     "JsonObject",
     "JsonValue",
     "Metadata",
+    "Node",
     "Participant",
     "ParticipantChanges",
     "Preference",

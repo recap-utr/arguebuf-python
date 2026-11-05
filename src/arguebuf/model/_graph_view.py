@@ -10,7 +10,7 @@ from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge
 from arguebuf.model.issue import Issue
 from arguebuf.model.metadata import Metadata
-from arguebuf.model.node import AbstractNode, AtomNode, AtomOrSchemeNode, SchemeNode
+from arguebuf.model.node import AbstractNode, AtomNode, Node, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.resource import Resource
 from arguebuf.model.userdata import JsonObject
@@ -69,7 +69,7 @@ class GraphView[A, S, E, R, P, N, G](ABC):
     userdata: G
 
     @property
-    def nodes(self) -> Mapping[str, AtomOrSchemeNode[A, S]]:
+    def nodes(self) -> Mapping[str, Node[A, S]]:
         """Atom and scheme nodes by their id."""
         return MappingProxyType(self._store.nodes)
 
@@ -150,18 +150,18 @@ class GraphView[A, S, E, R, P, N, G](ABC):
             if not self._store.incoming[node.id]
         )
 
-    def _node(self, node: str | AbstractNode) -> AtomOrSchemeNode[A, S]:
+    def _node(self, node: str | AbstractNode) -> Node[A, S]:
         return get(self._store.nodes, node, "Node")
 
     def incoming_nodes(
         self, node: str | AbstractNode
-    ) -> AbstractSet[AtomOrSchemeNode[A, S]]:
+    ) -> AbstractSet[Node[A, S]]:
         """Source nodes of the edges pointing to `node`."""
         return ordered(self._node(edge.source) for edge in self.incoming_edges(node))
 
     def outgoing_nodes(
         self, node: str | AbstractNode
-    ) -> AbstractSet[AtomOrSchemeNode[A, S]]:
+    ) -> AbstractSet[Node[A, S]]:
         """Target nodes of the edges starting at `node`."""
         return ordered(self._node(edge.target) for edge in self.outgoing_edges(node))
 
@@ -179,7 +179,7 @@ class GraphView[A, S, E, R, P, N, G](ABC):
 
     def neighbor_nodes(
         self, node: str | AbstractNode
-    ) -> AbstractSet[AtomOrSchemeNode[A, S]]:
+    ) -> AbstractSet[Node[A, S]]:
         """Nodes connected to `node` via incoming or outgoing edges."""
         return ordered((*self.incoming_nodes(node), *self.outgoing_nodes(node)))
 
@@ -203,7 +203,7 @@ class GraphView[A, S, E, R, P, N, G](ABC):
     def _neighbor_atom_nodes(
         self,
         node: str | AbstractNode,
-        neighbors: Callable[[AbstractNode], AbstractSet[AtomOrSchemeNode[A, S]]],
+        neighbors: Callable[[AbstractNode], AbstractSet[Node[A, S]]],
     ) -> AbstractSet[AtomNode[A]]:
         start = self._node(node)
         visited: set[AbstractNode] = {start}
@@ -232,7 +232,7 @@ class GraphView[A, S, E, R, P, N, G](ABC):
         *,
         max_levels: int | None = 1,
         node_type: type[AbstractNode] = AbstractNode,
-    ) -> dict[AtomOrSchemeNode[A, S], int]:
+    ) -> dict[Node[A, S], int]:
         """Find the nodes `n` levels below the ancestors at the shortest up-distance `n` of `node`.
 
         Up follows outgoing edges, each sibling gets its smallest `n`, `node` itself is excluded.
@@ -254,9 +254,9 @@ class GraphView[A, S, E, R, P, N, G](ABC):
             True
         """
         start = self._node(node)
-        distances: dict[AtomOrSchemeNode[A, S], int] = {}
+        distances: dict[Node[A, S], int] = {}
         visited: set[AbstractNode] = {start}
-        ancestors: AbstractSet[AtomOrSchemeNode[A, S]] = {start}
+        ancestors: AbstractSet[Node[A, S]] = {start}
         level = 0
 
         while ancestors and (max_levels is None or level < max_levels):
@@ -293,7 +293,7 @@ class GraphView[A, S, E, R, P, N, G](ABC):
         *,
         max_levels: int | None = 1,
         node_type: type[AbstractNode] = AbstractNode,
-    ) -> AbstractSet[AtomOrSchemeNode[A, S]]:
+    ) -> AbstractSet[Node[A, S]]:
         """Find the sibling nodes of a node, see `sibling_node_distances`."""
         return self.sibling_node_distances(
             node, max_levels=max_levels, node_type=node_type

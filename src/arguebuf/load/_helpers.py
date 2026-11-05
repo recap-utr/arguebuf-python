@@ -18,7 +18,7 @@ from arguebuf.model.issue import (
     warn,
 )
 from arguebuf.model.metadata import Metadata
-from arguebuf.model.node import AtomOrSchemeNode, SchemeNode
+from arguebuf.model.node import Node, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.reference import Reference
 from arguebuf.model.userdata import Codec, Codecs, JsonObject
@@ -158,7 +158,7 @@ def new_reference(
 def add_node[A, S, E, R, P, N, G](
     g: GraphDraft[A, S, E, R, P, N, G],
     ctx: Context[A, S, E, R, P, N, G],
-    node: AtomOrSchemeNode[A, S],
+    node: Node[A, S],
 ) -> None:
     """Add a node, skipping it with a warning if it is invalid, e.g. if its id is taken."""
     ctx.attempt(lambda: g.add_node(node), lambda _: "The node was skipped.")

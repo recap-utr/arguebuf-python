@@ -5,7 +5,7 @@ from typing import Final
 
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
-from arguebuf.model.node import AtomNode, AtomOrSchemeNode, SchemeNode
+from arguebuf.model.node import AtomNode, Node, SchemeNode
 from arguebuf.model.scheme import Attack, Scheme, Support
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject, JsonValue
 from arguebuf.model.utils import uuid
@@ -180,14 +180,14 @@ def load_argdown[
         title: add_inferences(title, argument) or add_atom(argument, argument=True)
         for title, argument in obj["arguments"].items()
     }
-    members: dict[argdown.MemberType, Mapping[str, AtomOrSchemeNode[A, S]]] = {
+    members: dict[argdown.MemberType, Mapping[str, Node[A, S]]] = {
         "equivalence-class": statements,
         "argument": arguments,
     }
 
     def member(
         title: str, type: argdown.MemberType, index: int | None, owner: str
-    ) -> AtomOrSchemeNode[A, S] | None:
+    ) -> Node[A, S] | None:
         if type != "inference":
             return lookup(ctx, members.get(type, {}), title, type, owner)
 

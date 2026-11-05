@@ -22,7 +22,7 @@ from arguebuf.model.node import (
     AbstractNode,
     AtomChanges,
     AtomNode,
-    AtomOrSchemeNode,
+    Node,
     SchemeChanges,
     SchemeNode,
 )
@@ -268,7 +268,7 @@ class GraphDraft[
 
         self._store.major_claim = node.id
 
-    def add_node(self, node: AtomOrSchemeNode[A, S]) -> None:
+    def add_node(self, node: Node[A, S]) -> None:
         """Add a node to the graph.
 
         Args:

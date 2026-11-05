@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from arguebuf.locate import is_anchored
 from arguebuf.model import GraphView
 from arguebuf.model.issue import Issue, IssueCode, issue, unresolved_reference
-from arguebuf.model.node import AtomNode, AtomOrSchemeNode, SchemeNode
+from arguebuf.model.node import AtomNode, Node, SchemeNode
 from arguebuf.traverse import dfs
 
 __all__ = ("check",)
@@ -55,7 +55,7 @@ def check[A, S, E, R, P, N, G](
         if atom.id not in connected
     )
 
-    components: list[list[AtomOrSchemeNode[A, S]]] = []
+    components: list[list[Node[A, S]]] = []
     visited: set[str] = set()
 
     for node in linked:

@@ -8,7 +8,7 @@ from arguebuf._dt import now
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge
 from arguebuf.model.metadata import Metadata
-from arguebuf.model.node import AbstractNode, AtomNode, AtomOrSchemeNode, SchemeNode
+from arguebuf.model.node import AbstractNode, AtomNode, Node, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.resource import Resource
 
@@ -50,7 +50,7 @@ class GraphStore[A, S, E, R, P, N]:
     )
 
     def __init__(self) -> None:
-        self.nodes: dict[str, AtomOrSchemeNode[A, S]] = {}
+        self.nodes: dict[str, Node[A, S]] = {}
         self.atom_nodes: dict[str, AtomNode[A]] = {}
         self.scheme_nodes: dict[str, SchemeNode[S]] = {}
         self.edges: dict[str, Edge[E]] = {}
@@ -129,13 +129,13 @@ class GraphStore[A, S, E, R, P, N]:
 
         return edges
 
-    def insert_node(self, node: AtomOrSchemeNode[A, S]) -> None:
+    def insert_node(self, node: Node[A, S]) -> None:
         """Add a node without edges."""
         self.replace_node(node)
         self._adjacency(node.id, outgoing=False)
         self._adjacency(node.id, outgoing=True)
 
-    def replace_node(self, node: AtomOrSchemeNode[A, S]) -> None:
+    def replace_node(self, node: Node[A, S]) -> None:
         """Replace the node with the id of `node`, keeping its edges."""
         self._own_nodes(node)
         self.nodes[node.id] = node
@@ -148,7 +148,7 @@ class GraphStore[A, S, E, R, P, N]:
             case _:
                 assert_never(node)
 
-    def delete_node(self, node_id: str) -> AtomOrSchemeNode[A, S]:
+    def delete_node(self, node_id: str) -> Node[A, S]:
         """Remove a node together with its edges, unsetting it as major claim."""
         removed = self.nodes[node_id]
         self._own_nodes(removed)
