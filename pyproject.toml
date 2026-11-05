@@ -70,6 +70,7 @@ addopts = [
   "--cov=arguebuf",
   "--cov-report=term-missing",
   "--doctest-modules",
+  "--import-mode=importlib",
   "--ignore=src/arguebuf/cli",
 ]
 doctest_optionflags = ["ELLIPSIS", "IGNORE_EXCEPTION_DETAIL", "NORMALIZE_WHITESPACE"]
