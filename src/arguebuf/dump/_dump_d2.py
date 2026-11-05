@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
 from arguebuf.schemas.d2 import D2Edge, D2Graph, D2Node, D2Style
 
@@ -8,7 +8,7 @@ __all__ = ("dump_d2",)
 
 
 def dump_d2[A, S, E, R, P, N, G](
-    graph: Graph[A, S, E, R, P, N, G],
+    graph: GraphView[A, S, E, R, P, N, G],
     atom_label: Callable[[AtomNode[A]], str] | None = None,
     scheme_label: Callable[[SchemeNode[S]], str] | None = None,
     max_nodes: int = 1000,

@@ -3,7 +3,7 @@
 from collections.abc import Iterable
 
 from arguebuf.locate import is_anchored
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.issue import Issue, IssueCode, issue, unresolved_reference
 from arguebuf.model.node import AtomNode, AtomOrSchemeNode, SchemeNode
 from arguebuf.traverse import dfs
@@ -12,7 +12,7 @@ __all__ = ("check",)
 
 
 def check[A, S, E, R, P, N, G](
-    graph: Graph[A, S, E, R, P, N, G], *, ignore: Iterable[IssueCode] = ()
+    graph: GraphView[A, S, E, R, P, N, G], *, ignore: Iterable[IssueCode] = ()
 ) -> list[Issue]:
     """Find the problems of a graph that the strict model cannot prevent.
 
@@ -98,7 +98,7 @@ def check[A, S, E, R, P, N, G](
 
 
 def _check_scheme[A, S, E, R, P, N, G](
-    graph: Graph[A, S, E, R, P, N, G], node: SchemeNode[S]
+    graph: GraphView[A, S, E, R, P, N, G], node: SchemeNode[S]
 ) -> list[Issue]:
     issues: list[Issue] = []
     conclusions = len(graph.outgoing_edges(node))
@@ -138,7 +138,7 @@ def _check_scheme[A, S, E, R, P, N, G](
 
 
 def _check_atom[A, S, E, R, P, N, G](
-    graph: Graph[A, S, E, R, P, N, G], node: AtomNode[A]
+    graph: GraphView[A, S, E, R, P, N, G], node: AtomNode[A]
 ) -> list[Issue]:
     # the model ensures that the resource exists
     reference = node.reference

@@ -9,6 +9,7 @@ from arguebuf.model._graph_validation import edge_issue, get
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge
 from arguebuf.model.issue import Issue
+from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AbstractNode, AtomNode, AtomOrSchemeNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.resource import Resource
@@ -47,15 +48,25 @@ def ordered[T](elements: Iterable[T]) -> AbstractSet[T]:
     return dict.fromkeys(elements).keys()
 
 
-class GraphView[A, S, E, R, P, N](ABC):
-    """Read access to the elements of a graph and the queries derived from its adjacency.
+class GraphView[A, S, E, R, P, N, G](ABC):
+    """Read access to the fields, elements, and queries of a graph.
 
-    The base of `arguebuf.Graph` and `arguebuf.GraphDraft`, which declare its store.
+    The base of `arguebuf.Graph` and `arguebuf.GraphDraft`, which declare its fields and store.
+    Functions that only read a graph accept it to take both.
+
+    Attributes:
+        name: Optional name, used for example as file name by `arguebuf.dump.file`.
+        metadata: Creation and modification times of the graph.
+        userdata: Userdata of the graph.
     """
 
     __slots__ = ()
 
     _store: GraphStore[A, S, E, R, P, N]
+
+    name: str | None
+    metadata: Metadata
+    userdata: G
 
     @property
     def nodes(self) -> Mapping[str, AtomOrSchemeNode[A, S]]:

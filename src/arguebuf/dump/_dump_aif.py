@@ -1,5 +1,5 @@
 from arguebuf.dt import to_format
-from arguebuf.model import AbstractNode, AtomNode, Edge, Graph, SchemeNode
+from arguebuf.model import AbstractNode, AtomNode, Edge, GraphView, SchemeNode
 from arguebuf.model.node import NO_SCHEME_LABEL
 from arguebuf.model.scheme import is_default_scheme, scheme2aif, scheme2aif_default
 from arguebuf.schemas import aif
@@ -7,7 +7,7 @@ from arguebuf.schemas import aif
 __all__ = ("dump_aif", "dump_edge", "dump_node")
 
 
-def dump_aif[A, S, E, R, P, N, G](obj: Graph[A, S, E, R, P, N, G]) -> aif.Graph:
+def dump_aif[A, S, E, R, P, N, G](obj: GraphView[A, S, E, R, P, N, G]) -> aif.Graph:
     """Export structure of Graph instance to AIF argument graph format."""
     return {
         "nodes": [dump_node(node, timestamp=True) for node in obj.nodes.values()],

@@ -1,6 +1,6 @@
 import html
 
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.participant import Participant
 from arguebuf.schemas import aif, xaif
 
@@ -9,7 +9,7 @@ from ._dump_aif import dump_edge, dump_node
 __all__ = ("dump_participant", "dump_xaif")
 
 
-def dump_xaif[A, S, E, R, P, N, G](obj: Graph[A, S, E, R, P, N, G]) -> xaif.Graph:
+def dump_xaif[A, S, E, R, P, N, G](obj: GraphView[A, S, E, R, P, N, G]) -> xaif.Graph:
     """Export structure of Graph instance to xAIF argument graph format.
 
     xAIF nodes have no timestamps, so they are omitted.

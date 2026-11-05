@@ -2,7 +2,7 @@ from typing import assert_never
 
 from google.protobuf import proto_json
 
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
 from ._dump_aif import dump_aif
@@ -22,7 +22,7 @@ def dump_dict[
     N = JsonObject,
     G = JsonObject,
 ](
-    graph: Graph[A, S, E, R, P, N, G],
+    graph: GraphView[A, S, E, R, P, N, G],
     *,
     format: Format = Format.ARGUEBUF,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,

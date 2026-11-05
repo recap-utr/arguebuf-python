@@ -1,4 +1,4 @@
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.resource import Resource
@@ -15,10 +15,11 @@ from arguebuf.patch._schema import (
 __all__ = ("outline",)
 
 
-def outline[A, S, E, R, P, N, G](graph: Graph[A, S, E, R, P, N, G]) -> Outline:
+def outline[A, S, E, R, P, N, G](graph: GraphView[A, S, E, R, P, N, G]) -> Outline:
     """The graph in the shape of a patch, e.g. to show it to an agent.
 
     Examples:
+        >>> from arguebuf import Graph
         >>> outline(Graph())
         {'resources': [], 'participants': [], 'atoms': [], 'schemes': []}
     """
@@ -40,7 +41,7 @@ def outline[A, S, E, R, P, N, G](graph: Graph[A, S, E, R, P, N, G]) -> Outline:
 
 
 def _scheme_outline[A, S, E, R, P, N, G](
-    graph: Graph[A, S, E, R, P, N, G], scheme: SchemeNode[S]
+    graph: GraphView[A, S, E, R, P, N, G], scheme: SchemeNode[S]
 ) -> SchemePatch:
     item: SchemePatch = {"id": scheme.id}
     value = scheme.scheme

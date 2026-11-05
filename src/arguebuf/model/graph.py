@@ -61,7 +61,7 @@ class _GraphBase[
     P = JsonObject,
     N = JsonObject,
     G = JsonObject,
-](GraphView[A, S, E, R, P, N]):
+](GraphView[A, S, E, R, P, N, G]):
     """Construction of the fields that `Graph` and `GraphDraft` declare."""
 
     __slots__ = ()
@@ -162,7 +162,7 @@ class Graph[
 
     name: str | None
     metadata: Metadata = field(repr=False)
-    userdata: G = field(repr=False)
+    userdata: G = field(repr=False)  # ty: ignore[invalid-attribute-override]
     _store: GraphStore[A, S, E, R, P, N] = field(repr=False)
 
     def draft(self) -> _Draft[A, S, E, R, P, N, G]:

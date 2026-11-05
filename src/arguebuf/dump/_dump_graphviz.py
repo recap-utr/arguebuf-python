@@ -3,7 +3,7 @@ from collections.abc import Callable, Mapping
 
 from pygraphviz import AGraph
 
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.schemas.graphviz import EdgeStyle
 
@@ -11,7 +11,7 @@ __all__ = ("dump_graphviz",)
 
 
 def dump_graphviz[A, S, E, R, P, N, G](
-    graph: Graph[A, S, E, R, P, N, G],
+    graph: GraphView[A, S, E, R, P, N, G],
     nodesep: float = 0.25,
     ranksep: float = 0.5,
     wrap_col: int = 36,

@@ -11,6 +11,7 @@ from . import (
     scheme,
     userdata,
 )
+from ._graph_view import GraphView
 from .analyst import Analyst
 from .edge import Edge
 from .graph import (
@@ -88,6 +89,7 @@ __all__ = (
     "Graph",
     "GraphDraft",
     "GraphError",
+    "GraphView",
     "Issue",
     "IssueCode",
     "JsonCodec",

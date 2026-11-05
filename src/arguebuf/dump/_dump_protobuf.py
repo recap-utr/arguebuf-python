@@ -4,7 +4,7 @@ from arg_services.graph.v1 import graph_pb2
 from google.protobuf.struct_pb2 import Struct
 
 from arguebuf.dt import to_protobuf
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.analyst import Analyst
 from arguebuf.model.edge import Edge
 from arguebuf.model.metadata import Metadata
@@ -41,7 +41,7 @@ def dump_protobuf[
     N = JsonObject,
     G = JsonObject,
 ](
-    obj: Graph[A, S, E, R, P, N, G],
+    obj: GraphView[A, S, E, R, P, N, G],
     *,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
 ) -> graph_pb2.Graph:

@@ -1,7 +1,7 @@
 import json
 from typing import TextIO
 
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
 from ._dump_dict import dump_dict
@@ -19,7 +19,7 @@ def dump_json[
     N = JsonObject,
     G = JsonObject,
 ](
-    graph: Graph[A, S, E, R, P, N, G],
+    graph: GraphView[A, S, E, R, P, N, G],
     obj: TextIO,
     *,
     format: Format = Format.ARGUEBUF,

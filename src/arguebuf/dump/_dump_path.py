@@ -1,6 +1,6 @@
 from pathlib import Path, PurePath
 
-from arguebuf.model import Graph
+from arguebuf.model import GraphView
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
 from ._dump_json import dump_json
@@ -18,7 +18,7 @@ def dump_file[
     N = JsonObject,
     G = JsonObject,
 ](
-    graph: Graph[A, S, E, R, P, N, G],
+    graph: GraphView[A, S, E, R, P, N, G],
     path: Path | str,
     *,
     format: Format = Format.ARGUEBUF,
