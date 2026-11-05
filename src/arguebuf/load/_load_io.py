@@ -1,4 +1,6 @@
-from typing import TextIO
+from collections.abc import Mapping
+from types import MappingProxyType
+from typing import Final, Literal, TextIO
 
 from arguebuf.model import Graph
 from arguebuf.model.issue import Reporter
@@ -10,7 +12,21 @@ from ._load_json import load_json
 from ._load_microtexts import load_microtexts
 from ._load_text import load_text
 
-__all__ = ("load_io",)
+__all__ = ("SUFFIXES", "FileFormat", "load_io")
+
+type FileFormat = Literal["json", "brat", "text", "aml", "microtexts"]
+"""Formats of files, see `SUFFIXES`."""
+
+SUFFIXES: Final[Mapping[FileFormat, tuple[str, ...]]] = MappingProxyType(
+    {
+        "json": (".json",),
+        "brat": (".ann",),
+        "text": (".txt",),
+        "aml": (".aml",),
+        "microtexts": (".xml",),
+    }
+)
+"""Lowercase file suffixes by format."""
 
 
 def load_io[
@@ -36,26 +52,28 @@ def load_io[
     `reconstruct_dialog` only applies to AIF and xAIF graphs (see `load_aif`).
 
     Raises:
-        ValueError: If the suffix is none of `.ann`, `.txt`, `.aml`, `.xml`, and `.json`.
+        ValueError: If the suffix is not in `SUFFIXES`.
     """
-    match suffix.lower():
-        case ".ann":
+    match next(
+        (format for format, items in SUFFIXES.items() if suffix.lower() in items), None
+    ):
+        case "brat":
             return load_brat(
                 obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict
             )
-        case ".txt":
+        case "text":
             return load_text(
                 obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict
             )
-        case ".aml":
+        case "aml":
             return load_aml(
                 obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict
             )
-        case ".xml":
+        case "microtexts":
             return load_microtexts(
                 obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict
             )
-        case ".json":
+        case "json":
             return load_json(
                 obj,
                 name=name,

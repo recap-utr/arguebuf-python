@@ -21,6 +21,7 @@ def load_file[
 ](
     file: Path | str,
     *,
+    name: str | None = None,
     text_file: Path | str | None = None,
     reconstruct_dialog: bool = False,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
@@ -30,7 +31,9 @@ def load_file[
     """Load a graph from a file.
 
     Args:
-        file: Path of the graph, its suffix determines the format.
+        file: Path of the graph, its suffix determines the format (see `SUFFIXES`).
+        name: Name of the graph, defaults to the file name without suffix.
+            A kialo discussion title takes precedence.
         text_file: Plain text added as a resource to the graph.
             Defaults to the path of `file` with the suffix `.txt`.
         reconstruct_dialog: Reconstruct the dialog of AIF and xAIF graphs
@@ -47,7 +50,7 @@ def load_file[
         graph = load_io(
             fp,
             file.suffix,
-            name=file.stem,
+            name=file.stem if name is None else name,
             reconstruct_dialog=reconstruct_dialog,
             codecs=codecs,
             on_issue=on_issue,

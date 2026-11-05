@@ -339,8 +339,8 @@ Missing creation and modification timestamps default to the current time, malfor
 
 ### Files and Folders
 
-A file is loaded with `ag.load.file`, its suffix determines the format: `.json`, `.ann` (BRAT), `.txt` (Kialo or plain text), `.xml` (Microtexts), and `.aml` (Araucaria).
-The name of the graph is the file name without suffix.
+A file is loaded with `ag.load.file`, its suffix determines the format (see `ag.load.SUFFIXES`): `.json`, `.ann` (BRAT), `.txt` (Kialo or plain text), `.xml` (Microtexts), and `.aml` (Araucaria).
+The name of the graph is the file name without suffix unless `name` is given or a Kialo export names it.
 One can either pass a string pointing to the file or a `pathlib.Path` object.
 
 ```python

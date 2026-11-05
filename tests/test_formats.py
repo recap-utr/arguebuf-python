@@ -323,6 +323,18 @@ def test_casebase(tmp_path: Path):
     assert load(ag.load.CasebaseFilter("cb", kwargs={"lang": ".*"})) == []
 
 
+def test_load_file(tmp_path: Path):
+    (tmp_path / "notes.TXT").write_text("Claim")
+    (tmp_path / "map.argdown").write_text("[Claim]: Text")
+
+    assert ag.load.file(tmp_path / "notes.TXT").name == "notes"
+    assert ag.load.file(tmp_path / "notes.TXT", name="Other").name == "Other"
+    assert ".txt" in ag.load.SUFFIXES["text"]
+
+    with pytest.raises(ValueError, match="not supported"):
+        ag.load.file(tmp_path / "map.argdown")
+
+
 def test_dump_file(tmp_path: Path):
     g = ag.Graph("name")
     ag.dump.file(g, tmp_path / "graph.v2")
