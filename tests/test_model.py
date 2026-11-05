@@ -348,3 +348,16 @@ def test_annotations() -> None:
         ("c", 0, 3),
         ("a", 3, 6),
     ]
+
+
+def test_remove_returns_ids():
+    draft = new_draft(ag.AtomNode("A", id="n1"), ag.SchemeNode(id="s"))
+    draft.add_edge(ag.Edge("n1", "s", id="e"))
+    draft.add_resource(ag.Resource("Text", id="r"))
+    draft.add_participant(ag.Participant("Name", id="p"))
+    draft.add_analyst(ag.Analyst("Name", id="a"))
+
+    assert draft.remove_edge("e") == ["e"]
+    assert draft.clean_resources() == ["r"]
+    assert draft.clean_participants() == ["p"]
+    assert draft.remove_elements(["a"]) == ["a"]

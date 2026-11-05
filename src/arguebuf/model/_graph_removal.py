@@ -25,6 +25,7 @@ def remove_elements[A, S, E, R, P, N](
         store.edges,
         store.resources,
         store.participants,
+        store.analysts,
     )
 
     for id in ids:
@@ -42,6 +43,8 @@ def remove_elements[A, S, E, R, P, N](
             remove_resource(store, id)
         elif id in store.participants:
             remove_participant(store, id)
+        elif id in store.analysts:
+            del store.own_analysts()[id]
         else:
             # removed by a cascade earlier in the loop
             continue

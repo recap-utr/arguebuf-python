@@ -127,7 +127,7 @@ Elements reference each other by id, e.g. `edge.source`, `node.participant`, and
 Removing an element also removes or unsets all references to it, e.g., removing a node also removes its edges.
 Removing a node also removes the scheme nodes that are left without a premise or a conclusion, recursively, so that the graph stays consistent.
 `draft.remove_elements(ids)` removes elements of any kind at once, skipping those already removed by a cascade of the same call.
-Like `remove_node` and `remove_branch`, it returns the ids of all removed elements, including those of the cascades.
+Like `remove_node` and `remove_branch`, it returns the ids of all removed elements, including those of the cascades, and so do the other `remove_*` and `clean_*` methods.
 Functions that only read a graph (`ag.check`, `ag.outline`, and the dumpers) accept an `ag.GraphView`, so both graphs and drafts can be passed.
 `draft.link(source, target, scheme=...)` connects two nodes, two atoms through a new scheme node (untyped by default) that it returns.
 `graph.check_link(source, target)` returns the issue that prevents such a link without raising, e.g. to validate a connection while it is drawn.

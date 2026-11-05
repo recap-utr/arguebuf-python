@@ -323,7 +323,7 @@ class GraphDraft[
         return self.remove_elements([self._node(node).id])
 
     def remove_elements(self, ids: Iterable[str]) -> list[str]:
-        """Remove nodes, edges, resources, and participants by their ids at once.
+        """Remove nodes, edges, resources, participants, and analysts by their ids at once.
 
         Removing a node cascades like `remove_node`,
         ids removed by such a cascade earlier in the same call are skipped.
@@ -505,11 +505,14 @@ class GraphDraft[
         changes.setdefault("metadata", touched(current.metadata))
         self._store.own_edges()[current.id] = dataclasses.replace(current, **changes)
 
-    def remove_edge(self, edge: str | Edge[E]) -> None:
+    def remove_edge(self, edge: str | Edge[E]) -> list[str]:
         """Remove an edge.
 
         Args:
             edge: Edge object or id that is part of the graph.
+
+        Returns:
+            The id of the removed edge.
 
         Examples:
             >>> g = GraphDraft()
@@ -518,11 +521,12 @@ class GraphDraft[
             >>> g.add_node(n2)
             >>> e = Edge(n1.id, n2.id)
             >>> g.add_edge(e)
-            >>> g.remove_edge(e)
+            >>> g.remove_edge(e) == [e.id]
+            True
             >>> len(g.edges), len(g.nodes)
             (0, 2)
         """
-        self._store.delete_edge(get(self._store.edges, edge, "Edge").id)
+        return [self._store.delete_edge(get(self._store.edges, edge, "Edge").id).id]
 
     def add_resource(self, resource: Resource[R]) -> None:
         """Add a resource.
@@ -576,32 +580,44 @@ class GraphDraft[
 
         return self.relocate_references(resource=updated.id, threshold=threshold)
 
-    def remove_resource(self, resource: str | Resource[R]) -> None:
+    def remove_resource(self, resource: str | Resource[R]) -> list[str]:
         """Remove a resource and unset it in the references of all atom nodes.
+
+        Returns:
+            The id of the removed resource.
 
         Examples:
             >>> g = GraphDraft()
             >>> r1 = Resource("Resource1")
             >>> g.add_resource(r1)
-            >>> g.remove_resource(r1)
+            >>> g.remove_resource(r1) == [r1.id]
+            True
             >>> len(g.resources)
             0
         """
-        remove_resource(
-            self._store, get(self._store.resources, resource, "Resource").id
-        )
+        resource_id = get(self._store.resources, resource, "Resource").id
+        remove_resource(self._store, resource_id)
 
-    def clean_resources(self) -> None:
-        """Remove resources that are not referenced by any node."""
+        return [resource_id]
+
+    def clean_resources(self) -> list[str]:
+        """Remove resources that are not referenced by any node.
+
+        Returns:
+            The ids of the removed resources.
+        """
         used = {
             node.reference.resource
             for node in self._store.atom_nodes.values()
             if node.reference and node.reference.resource
         }
+        unused = [id for id in self._store.resources if id not in used]
         resources = self._store.own_resources()
 
-        for resource_id in resources.keys() - used:
+        for resource_id in unused:
             del resources[resource_id]
+
+        return unused
 
     def add_participant(self, participant: Participant[P]) -> None:
         """Add a participant.
@@ -628,32 +644,44 @@ class GraphDraft[
             current, **changes
         )
 
-    def remove_participant(self, participant: str | Participant[P]) -> None:
+    def remove_participant(self, participant: str | Participant[P]) -> list[str]:
         """Remove a participant and unset it for all its atom nodes.
+
+        Returns:
+            The id of the removed participant.
 
         Examples:
             >>> g = GraphDraft()
             >>> p1 = Participant("Participant1")
             >>> g.add_participant(p1)
-            >>> g.remove_participant(p1)
+            >>> g.remove_participant(p1) == [p1.id]
+            True
             >>> len(g.participants)
             0
         """
-        remove_participant(
-            self._store, get(self._store.participants, participant, "Participant").id
-        )
+        participant_id = get(self._store.participants, participant, "Participant").id
+        remove_participant(self._store, participant_id)
 
-    def clean_participants(self) -> None:
-        """Remove participants that are not assigned to any node."""
+        return [participant_id]
+
+    def clean_participants(self) -> list[str]:
+        """Remove participants that are not assigned to any node.
+
+        Returns:
+            The ids of the removed participants.
+        """
         used = {
             node.participant
             for node in self._store.atom_nodes.values()
             if node.participant
         }
+        unused = [id for id in self._store.participants if id not in used]
         participants = self._store.own_participants()
 
-        for participant_id in participants.keys() - used:
+        for participant_id in unused:
             del participants[participant_id]
+
+        return unused
 
     def add_analyst(self, analyst: Analyst[N]) -> None:
         """Add an analyst.
@@ -675,18 +703,25 @@ class GraphDraft[
         changes.setdefault("metadata", touched(current.metadata))
         self._store.own_analysts()[current.id] = dataclasses.replace(current, **changes)
 
-    def remove_analyst(self, analyst: str | Analyst[N]) -> None:
+    def remove_analyst(self, analyst: str | Analyst[N]) -> list[str]:
         """Remove an analyst.
+
+        Returns:
+            The id of the removed analyst.
 
         Examples:
             >>> g = GraphDraft()
             >>> a1 = Analyst("Name")
             >>> g.add_analyst(a1)
-            >>> g.remove_analyst(a1)
+            >>> g.remove_analyst(a1) == [a1.id]
+            True
             >>> len(g.analysts)
             0
         """
-        del self._store.own_analysts()[get(self._store.analysts, analyst, "Analyst").id]
+        analyst_id = get(self._store.analysts, analyst, "Analyst").id
+        del self._store.own_analysts()[analyst_id]
+
+        return [analyst_id]
 
     def relocate_references(
         self, *, resource: str | None = None, threshold: float = DEFAULT_THRESHOLD
