@@ -47,10 +47,6 @@ jobs:
       - run: nix profile install .#release-env
       - uses: cihelper/action-semanticrelease-uv@v1
         id: semanticrelease
-        with:
-          uv-publish: false
-      - uses: pypa/gh-action-pypi-publish@v1.14.3
-        if: ${{ steps.semanticrelease.outputs.released == 'true' }}
       - run: nix run .#docker-manifest --impure
         if: ${{ steps.semanticrelease.outputs.released == 'true' }}
         env:
