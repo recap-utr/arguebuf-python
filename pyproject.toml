@@ -75,5 +75,8 @@ addopts = [
 doctest_optionflags = ["ELLIPSIS", "IGNORE_EXCEPTION_DETAIL", "NORMALIZE_WHITESPACE"]
 testpaths = ["src", "tests"]
 
+[tool.uv.extra-build-dependencies]
+fuzzysearch = ["setuptools"]
+
 [tool.uv.exclude-newer-package]
 arg-services = false
