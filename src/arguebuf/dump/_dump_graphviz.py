@@ -1,13 +1,17 @@
 import textwrap
 from collections.abc import Callable, Mapping
+from typing import Literal, TypeAlias
 
 from pygraphviz import AGraph
 
 from arguebuf.model import GraphView
 from arguebuf.model.node import AtomNode, SchemeNode
-from arguebuf.schemas.graphviz import EdgeStyle
 
-__all__ = ("dump_graphviz",)
+__all__ = ("EdgeStyle", "dump_graphviz")
+
+# a classic alias, since typer cannot read `type` aliases
+EdgeStyle: TypeAlias = Literal["curved", "line", "ortho"]  # noqa: UP040
+"""GraphViz `splines` attribute that determines the shape of edges."""
 
 
 def dump_graphviz[A, S, E, R, P, N, G](
@@ -24,7 +28,7 @@ def dump_graphviz[A, S, E, R, P, N, G](
     graph_attr: Mapping[str, str] | None = None,
     node_attr: Mapping[str, str] | None = None,
     edge_attr: Mapping[str, str] | None = None,
-    edge_style: EdgeStyle = EdgeStyle.STEP,
+    edge_style: EdgeStyle = "ortho",
     max_nodes: int = 1000,
     monochrome: bool = False,
     scheme_nodes: bool = True,

@@ -1,12 +1,5 @@
-from enum import StrEnum
+from typing import Literal
 
 __all__ = ("EdgeType",)
 
-
-class EdgeType(StrEnum):
-    SEGMENTATION = "seg"
-    SUPPORT_DEFAULT = "sup"
-    SUPPORT_EXAMPLE = "exa"
-    ADDITIONAL_SOURCE = "add"
-    ATTACK_ATOM = "reb"
-    ATTACK_SCHEME = "und"
+type EdgeType = Literal["seg", "sup", "exa", "add", "reb", "und"]

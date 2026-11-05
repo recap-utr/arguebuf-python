@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from types import MappingProxyType
-from typing import IO, Final
+from typing import IO, Final, cast
 from xml.etree import ElementTree as Tree
 
 from arguebuf.model import Graph, GraphDraft
@@ -16,10 +16,10 @@ __all__ = ("load_microtexts",)
 
 _EDGE_SCHEMES: Final[Mapping[EdgeType, Scheme]] = MappingProxyType(
     {
-        EdgeType.SUPPORT_DEFAULT: Support.DEFAULT,
-        EdgeType.SUPPORT_EXAMPLE: Support.EXAMPLE,
-        EdgeType.ATTACK_ATOM: Attack.DEFAULT,
-        EdgeType.ATTACK_SCHEME: Attack.DEFAULT,
+        "sup": Support.DEFAULT,
+        "exa": Support.EXAMPLE,
+        "reb": Attack.DEFAULT,
+        "und": Attack.DEFAULT,
     }
 )
 
@@ -57,8 +57,13 @@ def load_microtexts[
             {"stance": root.get("stance"), "topic": root.get("topic_id")}
         ),
     )
-    edges = [
-        (elem.get("id", ""), elem.get("src", ""), elem.get("trg", ""), elem.get("type"))
+    edges: list[tuple[str, str, str, EdgeType]] = [
+        (
+            elem.get("id", ""),
+            elem.get("src", ""),
+            elem.get("trg", ""),
+            cast(EdgeType, elem.get("type")),
+        )
         for elem in root.iter("edge")
     ]
     texts = {edu.get("id", ""): edu.text or "" for edu in root.iter("edu")}
@@ -66,7 +71,7 @@ def load_microtexts[
     segments = dict.fromkeys(
         (source, target)
         for _, source, target, type in edges
-        if type == EdgeType.SEGMENTATION
+        if type == "seg"
     )
 
     for joint in root.iter("joint"):
@@ -98,10 +103,10 @@ def load_microtexts[
 
     # all scheme nodes are added first since undercutters may target later edges
     for id, _, _, type in edges:
-        if type in _EDGE_SCHEMES:
+        if (scheme := _EDGE_SCHEMES.get(type)) is not None:
             g.add_node(
                 SchemeNode(
-                    _EDGE_SCHEMES[EdgeType(type)],
+                    scheme,
                     userdata=codecs.scheme.validate_python({}),
                     id=id,
                 )
@@ -112,7 +117,7 @@ def load_microtexts[
     for id, source, target, type in edges:
         if id in schemes:
             connect(g, ctx, [source], id, target)
-        elif type == EdgeType.ADDITIONAL_SOURCE:
+        elif type == "add":
             add_edge(g, ctx, source, target, id)
 
     g.major_claim = g.root_node

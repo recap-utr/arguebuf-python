@@ -24,7 +24,7 @@ def dump_dict[
 ](
     graph: GraphView[A, S, E, R, P, N, G],
     *,
-    format: Format = Format.ARGUEBUF,
+    format: Format = "arguebuf",
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
 ) -> dict[str, object]:
     """Export structure of Graph instance to a dict in the given `format`.
@@ -32,11 +32,11 @@ def dump_dict[
     Only the Arguebuf format contains userdata, which is dumped by `codecs`.
     """
     match format:
-        case Format.AIF:
+        case "aif":
             return dict(dump_aif(graph))
-        case Format.XAIF:
+        case "xaif":
             return dict(dump_xaif(graph))
-        case Format.ARGUEBUF:
+        case "arguebuf":
             return proto_json.serialize(dump_protobuf(graph, codecs=codecs))
         case _:
             assert_never(format)

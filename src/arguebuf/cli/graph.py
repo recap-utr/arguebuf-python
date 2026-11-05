@@ -1,8 +1,7 @@
 import json
 from collections.abc import Callable
-from enum import StrEnum
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal, TypeAlias
 
 import typer
 from deepl import DeepLClient
@@ -19,14 +18,9 @@ OutputFormat = Annotated[
 ]
 
 
-class ReportFormat(StrEnum):
-    TEXT = "text"
-    JSON = "json"
-
-
-class FailOn(StrEnum):
-    ERROR = "error"
-    WARNING = "warning"
+# classic aliases, since typer cannot read `type` aliases
+ReportFormat: TypeAlias = Literal["text", "json"]  # noqa: UP040
+FailOn: TypeAlias = Literal["error", "warning"]  # noqa: UP040
 
 
 def _report_repairs(path: Path) -> ag.Reporter:
@@ -44,7 +38,7 @@ def translate(
     auth_key: model.AuthKey,
     input_glob: model.InputGlob,
     output_folder: model.OutputFolder = None,
-    output_format: OutputFormat = ag.dump.Format.ARGUEBUF,
+    output_format: OutputFormat = "arguebuf",
     clean: model.Clean = False,
     overwrite: model.Overwrite = False,
     start: model.Start = 1,
@@ -113,8 +107,8 @@ def render(
         ),
     ] = None,
     edge_style: Annotated[
-        ag.schemas.graphviz.EdgeStyle, typer.Option(help="Shape of the edges.")
-    ] = ag.schemas.graphviz.EdgeStyle.STEP,
+        ag.dump.EdgeStyle, typer.Option(help="Shape of the edges.")
+    ] = "ortho",
     nodesep: Annotated[
         float,
         typer.Option(help="Minimum space between nodes of the same rank in inches."),
@@ -182,7 +176,7 @@ def convert(
     input_folder: model.InputFolder,
     input_glob: model.InputGlob,
     output_folder: model.OutputFolder = None,
-    output_format: OutputFormat = ag.dump.Format.ARGUEBUF,
+    output_format: OutputFormat = "arguebuf",
     clean: model.Clean = False,
     overwrite: model.Overwrite = False,
     start: model.Start = 1,
@@ -232,11 +226,11 @@ def check(
     input_glob: model.InputGlob,
     output_format: Annotated[
         ReportFormat, typer.Option("--format", help="Format of the report.")
-    ] = ReportFormat.TEXT,
+    ] = "text",
     fail_on: Annotated[
         FailOn,
         typer.Option(help="Lowest severity of issues that cause a non-zero exit code."),
-    ] = FailOn.ERROR,
+    ] = "error",
     ignore: Annotated[
         list[str] | None,
         typer.Option(help="Code of issues to skip, can be given multiple times."),
@@ -278,7 +272,7 @@ def check(
         issues.extend(ag.check(graph, ignore=ignored))
         report[str(path)] = issues
 
-    if output_format == ReportFormat.JSON:
+    if output_format == "json":
         typer.echo(
             json.dumps(
                 {
@@ -293,7 +287,7 @@ def check(
             for item in issues:
                 typer.echo(f"{path}: {item.severity}: {item.message}")
 
-    severities = {"error"} if fail_on == FailOn.ERROR else {"error", "warning"}
+    severities = {"error"} if fail_on == "error" else {"error", "warning"}
 
     if any(
         item.severity in severities for issues in report.values() for item in issues

@@ -88,7 +88,7 @@ def test_dialog_xaif():
     )
 
 
-@pytest.mark.parametrize("format", [ag.dump.Format.AIF, ag.dump.Format.XAIF])
+@pytest.mark.parametrize("format", ["aif", "xaif"])
 def test_roundtrip(format: ag.dump.Format):
     timestamp = datetime(2020, 1, 2, 3, 4, 5, tzinfo=UTC)
     draft = ag.GraphDraft()
@@ -110,7 +110,7 @@ def test_roundtrip(format: ag.dump.Format):
     assert loaded.edges.keys() == graph.edges.keys()
     # only AIF stores timestamps
     assert (loaded.atom_nodes[claim.id].metadata.created == timestamp) == (
-        format == ag.dump.Format.AIF
+        format == "aif"
     )
 
 

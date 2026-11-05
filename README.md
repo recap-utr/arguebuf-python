@@ -229,7 +229,7 @@ The dumpers in `ag.dump` support the following formats:
 message = ag.dump.protobuf(graph)
 
 # Arguebuf, AIF, or xAIF as JSON object
-obj = ag.dump.dict(graph, format=ag.dump.Format.AIF)
+obj = ag.dump.dict(graph, format="aif")
 
 # Directed NetworkX graph
 nx_graph = ag.dump.networkx(graph)
@@ -362,7 +362,7 @@ If the path is an existing folder, the graph is saved as `<name>.json` inside it
 ag.dump.file(graph, "./graph.json")
 
 # Save the graph as AIF
-ag.dump.file(graph, "./graph.json", format=ag.dump.Format.AIF)
+ag.dump.file(graph, "./graph.json", format="aif")
 ```
 
 ### Rendering

@@ -22,7 +22,7 @@ def dump_json[
     graph: GraphView[A, S, E, R, P, N, G],
     obj: TextIO,
     *,
-    format: Format = Format.ARGUEBUF,
+    format: Format = "arguebuf",
     prettify: bool = True,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
 ) -> None:

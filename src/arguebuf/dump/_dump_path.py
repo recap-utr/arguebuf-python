@@ -21,7 +21,7 @@ def dump_file[
     graph: GraphView[A, S, E, R, P, N, G],
     path: Path | str,
     *,
-    format: Format = Format.ARGUEBUF,
+    format: Format = "arguebuf",
     prettify: bool = True,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
 ) -> None:

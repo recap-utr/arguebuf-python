@@ -38,10 +38,10 @@ def test_check_exit_code() -> None:
     typer = pytest.importorskip("typer")
     pytest.importorskip("deepl")
 
-    from arguebuf.cli.graph import FailOn, check
+    from arguebuf.cli.graph import check
 
     # loader repairs and quality problems are warnings, the untyped scheme is an error
     check(Path("data/malformed.json"), "*", ignore=["untyped-scheme"])
 
     with pytest.raises(typer.Exit):
-        check(Path("data/malformed.json"), "*", fail_on=FailOn.WARNING)
+        check(Path("data/malformed.json"), "*", fail_on="warning")

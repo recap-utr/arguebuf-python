@@ -37,8 +37,8 @@ def test_convert_arggraph():
 
 
 def _test_generic(graph: ag.Graph):
-    assert ag.dump.dict(graph, format=ag.dump.Format.AIF) != {}
-    assert ag.dump.dict(graph, format=ag.dump.Format.ARGUEBUF) != {}
+    assert ag.dump.dict(graph, format="aif") != {}
+    assert ag.dump.dict(graph, format="arguebuf") != {}
 
 
 def _clean_raw_aif(g: MutableMapping[str, Any]) -> None:
@@ -80,7 +80,7 @@ def _test_aif(graph: ag.Graph, file: Path):
 
     _clean_raw_aif(raw)
 
-    export = ag.dump.dict(graph, format=ag.dump.Format.AIF)
+    export = ag.dump.dict(graph, format="aif")
     _clean_exported_aif(export)
 
     assert export == raw, file  # for debugging

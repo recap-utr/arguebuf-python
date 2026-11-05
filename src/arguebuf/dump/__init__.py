@@ -1,6 +1,7 @@
 from ._dump_aif import dump_aif as aif
 from ._dump_d2 import dump_d2 as d2
 from ._dump_dict import dump_dict as dict
+from ._dump_graphviz import EdgeStyle
 from ._dump_graphviz import dump_graphviz as graphviz
 from ._dump_json import dump_json as json
 from ._dump_networkx import dump_networkx as networkx
@@ -10,6 +11,7 @@ from ._dump_xaif import dump_xaif as xaif
 from ._format import Format
 
 __all__ = (
+    "EdgeStyle",
     "Format",
     "aif",
     "d2",
