@@ -80,7 +80,7 @@ def _test_aif(graph: ag.Graph, file: Path):
 
     _clean_raw_aif(raw)
 
-    export = ag.dump.dict(graph, format="aif")
+    export = dict(ag.dump.dict(graph, format="aif"))
     _clean_exported_aif(export)
 
     assert export == raw, file  # for debugging
