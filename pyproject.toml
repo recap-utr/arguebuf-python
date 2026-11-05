@@ -41,8 +41,6 @@ cli = ["arg-services[grpcio]>=2,<3", "deepl>=1,<2", "typer>=0.27,<0.28"]
 dev = [
   "types-jsonschema>=4,<5",
   "types-networkx>=3,<4",
-  { include-group = "docs" },
-  { include-group = "test" },
 ]
 docs = ["pdoc>=16,<17"]
 test = [
@@ -75,6 +73,9 @@ addopts = [
 ]
 doctest_optionflags = ["ELLIPSIS", "IGNORE_EXCEPTION_DETAIL", "NORMALIZE_WHITESPACE"]
 testpaths = ["src", "tests"]
+
+[tool.uv]
+default-groups = ["dev", "docs", "test"]
 
 [tool.uv.extra-build-dependencies]
 fuzzysearch = ["setuptools"]
