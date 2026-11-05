@@ -31,7 +31,9 @@ def load_text[
     text = obj.read()
 
     if TITLE_PATTERN.search(text.partition("\n")[0]):
-        return load_kialo(StringIO(text), name=name, codecs=codecs, on_issue=on_issue, strict=strict)
+        return load_kialo(
+            StringIO(text), name=name, codecs=codecs, on_issue=on_issue, strict=strict
+        )
 
     g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})

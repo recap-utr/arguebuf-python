@@ -79,7 +79,9 @@ class Context[A, S, E, R, P, N, G]:
     ) -> Issue | None:
         """Run the action and report its `GraphError` together with the consequence of skipping it."""
         if (error := catch_graph_error(action)) is not None:
-            self.report(error.code, f"{error.message} {consequence(error)}", error.elements)
+            self.report(
+                error.code, f"{error.message} {consequence(error)}", error.elements
+            )
 
         return error
 
@@ -128,7 +130,9 @@ def lookup[K, V](
 
     if (element := elements.get(id)) is None:
         ctx.report(
-            "unknown-element", f"Skipping unknown {kind} '{id}' referenced by {owner}.", [str(id)]
+            "unknown-element",
+            f"Skipping unknown {kind} '{id}' referenced by {owner}.",
+            [str(id)],
         )
 
     return element
@@ -193,16 +197,24 @@ def add_edge[A, S, E, R, P, N, G](
 
     error = ctx.attempt(
         lambda: g.add_edge(edge),
-        lambda error: "An untyped scheme was inserted."
-        if error.code == "atom-edge"
-        else "The edge was skipped.",
+        lambda error: (
+            "An untyped scheme was inserted."
+            if error.code == "atom-edge"
+            else "The edge was skipped."
+        ),
     )
 
     if error is not None and error.code == "atom-edge":
         scheme = SchemeNode(userdata=ctx.codecs.scheme.validate_python({}))
         g.add_node(scheme)
         g.add_edge(
-            Edge(source_id, scheme.id, id=edge.id, metadata=edge.metadata, userdata=edge.userdata)
+            Edge(
+                source_id,
+                scheme.id,
+                id=edge.id,
+                metadata=edge.metadata,
+                userdata=edge.userdata,
+            )
         )
         g.add_edge(
             Edge(scheme.id, target_id, metadata=edge.metadata, userdata=edge.userdata)

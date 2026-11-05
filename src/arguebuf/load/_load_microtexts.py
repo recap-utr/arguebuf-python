@@ -69,9 +69,7 @@ def load_microtexts[
     texts = {edu.get("id", ""): edu.text or "" for edu in root.iter("edu")}
     # dict as an ordered set for fast membership tests
     segments = dict.fromkeys(
-        (source, target)
-        for _, source, target, type in edges
-        if type == "seg"
+        (source, target) for _, source, target, type in edges if type == "seg"
     )
 
     for joint in root.iter("joint"):

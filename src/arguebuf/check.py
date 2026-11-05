@@ -149,9 +149,11 @@ def _check_atom[A, S, E, R, P, N, G](
     text = graph.resources[reference.resource].text
 
     if reference.offset is None:
-        return [] if reference.text in text else [
-            unresolved_reference(node.id, reference.resource)
-        ]
+        return (
+            []
+            if reference.text in text
+            else [unresolved_reference(node.id, reference.resource)]
+        )
 
     if is_anchored(text, reference.text, reference.offset):
         return []

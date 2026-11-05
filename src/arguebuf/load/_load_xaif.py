@@ -33,7 +33,14 @@ def load_xaif[
     The `text` (a string or `{"txt": ...}`) is HTML whose plain text (see `parse_html`)
     becomes a resource if it is not empty, a missing text yields no resource.
     """
-    g = load_aif(obj["AIF"], name=name, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict)
+    g = load_aif(
+        obj["AIF"],
+        name=name,
+        reconstruct_dialog=reconstruct_dialog,
+        codecs=codecs,
+        on_issue=on_issue,
+        strict=strict,
+    )
     text = obj.get("text") or ""
 
     if not isinstance(text, str):

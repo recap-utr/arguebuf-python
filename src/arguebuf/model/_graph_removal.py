@@ -9,7 +9,12 @@ from arguebuf.model.node import AtomNode, Node
 from arguebuf.model.reference import Reference
 from arguebuf.traverse import dfs
 
-__all__ = ("remove_branches", "remove_elements", "remove_participant", "remove_resource")
+__all__ = (
+    "remove_branches",
+    "remove_elements",
+    "remove_participant",
+    "remove_resource",
+)
 
 # ids of removed elements, a dict keeps their order
 type _Removed = dict[str, None]

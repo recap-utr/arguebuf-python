@@ -19,7 +19,12 @@ def test_atom_relations():
     relations = {(r.source.id, r.target.id, r.scheme.id) for r in g.atom_relations()}
 
     assert relations == {("a1", "a4", "s1"), ("a2", "a4", "s1"), ("a3", "a4", "s2")}
-    assert set(ag.dump.networkx(g.freeze(), scheme_nodes=False).nodes) == {"a1", "a2", "a3", "a4"}
+    assert set(ag.dump.networkx(g.freeze(), scheme_nodes=False).nodes) == {
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+    }
     assert len(g.nodes) == 7
 
 

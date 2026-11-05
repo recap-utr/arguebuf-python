@@ -96,7 +96,13 @@ Outline = TypedDict(
 """Graph in the shape of a patch, without the texts of resources and without None values."""
 
 type _SchemaValue = (
-    str | int | float | bool | None | Sequence[_SchemaValue] | Mapping[str, _SchemaValue]
+    str
+    | int
+    | float
+    | bool
+    | None
+    | Sequence[_SchemaValue]
+    | Mapping[str, _SchemaValue]
 )
 type JsonSchema = Mapping[str, _SchemaValue]
 

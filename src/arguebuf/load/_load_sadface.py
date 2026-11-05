@@ -109,7 +109,9 @@ def load_sadface[
         match sadface_node["type"]:
             case "atom":
                 add_node(
-                    g, ctx, atom_from_sadface(sadface_node, g.resources, ctx, codecs.atom)
+                    g,
+                    ctx,
+                    atom_from_sadface(sadface_node, g.resources, ctx, codecs.atom),
                 )
             case "scheme" | "inference" | "conflict":
                 add_node(g, ctx, scheme_from_sadface(sadface_node, codecs.scheme))

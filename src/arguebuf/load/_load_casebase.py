@@ -16,20 +16,22 @@ from ._load_path import load_file
 __all__ = ("CasebaseFilter", "load_casebase")
 
 # folders of other formats (e.g. argdown source files) are skipped
-_FORMAT_GLOBS: Final[Mapping[str, str]] = MappingProxyType({
-    "aif": "*.json",
-    "aml": "*.aml",
-    "argdown-json": "*.json",
-    "arggraph": "*.xml",
-    "arguebuf": "*.json",
-    "brat": "*.ann",
-    "kialo": "*.txt",
-    "microtexts": "*.xml",
-    "ova": "*.json",
-    "protobuf": "*.json",
-    "sadface": "*.json",
-    "xaif": "*.json",
-})
+_FORMAT_GLOBS: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        "aif": "*.json",
+        "aml": "*.aml",
+        "argdown-json": "*.json",
+        "arggraph": "*.xml",
+        "arguebuf": "*.json",
+        "brat": "*.ann",
+        "kialo": "*.txt",
+        "microtexts": "*.xml",
+        "ova": "*.json",
+        "protobuf": "*.json",
+        "sadface": "*.json",
+        "xaif": "*.json",
+    }
+)
 
 
 @dataclass(slots=True, frozen=True)
@@ -200,7 +202,11 @@ def load_casebase[
                 and file.is_file()
             ):
                 graphs[file] = load_file(
-                    file, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict
+                    file,
+                    reconstruct_dialog=reconstruct_dialog,
+                    codecs=codecs,
+                    on_issue=on_issue,
+                    strict=strict,
                 )
 
     return graphs

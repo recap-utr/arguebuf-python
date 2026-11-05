@@ -106,7 +106,9 @@ def _approximate(
         candidates,
         key=lambda match: (
             match.dist,
-            abs(origin[match.start] - near) if near is not None else origin[match.start],
+            abs(origin[match.start] - near)
+            if near is not None
+            else origin[match.start],
             origin[match.start],
             -match.end,
         ),
@@ -114,7 +116,9 @@ def _approximate(
     offset = origin[match.start]
 
     return Match(
-        offset, source[offset : origin[match.end - 1] + 1], 1 - match.dist / len(pattern)
+        offset,
+        source[offset : origin[match.end - 1] + 1],
+        1 - match.dist / len(pattern),
     )
 
 

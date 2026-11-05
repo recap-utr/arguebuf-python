@@ -166,9 +166,7 @@ def test_sadface():
         "c": "Attack",
         "s": "Attack",
     }
-    assert g.atom_nodes["a"].reference == ag.Reference(
-        "A", resource="r", offset=5
-    )
+    assert g.atom_nodes["a"].reference == ag.Reference("A", resource="r", offset=5)
     assert g.userdata == {"sadfaceVersion": "0.5"}
     assert not g.analysts
     assert _edges(g) == {("a", "i")}

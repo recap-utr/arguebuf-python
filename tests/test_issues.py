@@ -195,7 +195,11 @@ def test_apply_patch() -> None:
     ]
     # the scheme without premise and its undercutter are removed
     assert list(edited.graph.nodes) == ["mc", "u", "c", "y"]
-    assert (edited.created, edited.updated, edited.removed) == ((), ("c", "y"), ("p", "s", "x"))
+    assert (edited.created, edited.updated, edited.removed) == (
+        (),
+        ("c", "y"),
+        ("p", "s", "x"),
+    )
     assert ag.outline(edited.graph)["schemes"] == [
         {"id": "y", "type": "attack", "premises": ["c", "u"], "conclusion": "mc"}
     ]
@@ -236,24 +240,33 @@ def test_parse_patch() -> None:
         **ag.PATCH_SCHEMA,
         "properties": {
             **properties,
-            "explanations": {"type": "object", "additionalProperties": {"type": "string"}},
+            "explanations": {
+                "type": "object",
+                "additionalProperties": {"type": "string"},
+            },
         },
     }
 
-    assert [item.path for item in ag.parse_patch({"explanations": {"a": 1}}, schema=schema).issues] == [
-        ("explanations", "a")
-    ]
+    assert [
+        item.path
+        for item in ag.parse_patch({"explanations": {"a": 1}}, schema=schema).issues
+    ] == [("explanations", "a")]
     assert ag.parse_patch({"explanations": {"a": "Why"}}, schema=schema).patch == {
         "explanations": {"a": "Why"}
     }
 
     extended = {
         **schema,
-        "properties": {**properties, "confidence": {"type": "number", "minimum": 0, "maximum": 1}},
+        "properties": {
+            **properties,
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        },
     }
 
     assert ag.parse_patch({"confidence": 2}, schema=extended).patch is None
-    assert ag.parse_patch({"confidence": 0.5}, schema=extended).patch == {"confidence": 0.5}
+    assert ag.parse_patch({"confidence": 0.5}, schema=extended).patch == {
+        "confidence": 0.5
+    }
 
 
 def test_graph_edits() -> None:

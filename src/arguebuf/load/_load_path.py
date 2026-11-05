@@ -49,7 +49,9 @@ def load_file[
             file.suffix,
             name=file.stem,
             reconstruct_dialog=reconstruct_dialog,
-            codecs=codecs, on_issue=on_issue, strict=strict,
+            codecs=codecs,
+            on_issue=on_issue,
+            strict=strict,
         )
 
     if text_file != file and text_file.exists():
@@ -111,7 +113,9 @@ def load_folder[
             if text_folder
             else None,
             reconstruct_dialog=reconstruct_dialog,
-            codecs=codecs, on_issue=on_issue, strict=strict,
+            codecs=codecs,
+            on_issue=on_issue,
+            strict=strict,
         )
         for file in sorted(folder.glob(pattern))
     }

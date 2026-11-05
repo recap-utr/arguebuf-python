@@ -97,7 +97,9 @@ def load_brat[
             case "R", [relation, *arguments] if {"Arg1", "Arg2"} <= (
                 roles := _roles(arguments)
             ).keys():
-                scheme = lookup(ctx, _RELATION_SCHEMES, relation, "relation type", owner)
+                scheme = lookup(
+                    ctx, _RELATION_SCHEMES, relation, "relation type", owner
+                )
                 source = lookup(ctx, atoms, roles["Arg1"], "atom", owner)
                 target = lookup(ctx, atoms, roles["Arg2"], "atom", owner)
 

@@ -153,15 +153,11 @@ class GraphView[A, S, E, R, P, N, G](ABC):
     def _node(self, node: str | AbstractNode) -> Node[A, S]:
         return get(self._store.nodes, node, "Node")
 
-    def incoming_nodes(
-        self, node: str | AbstractNode
-    ) -> AbstractSet[Node[A, S]]:
+    def incoming_nodes(self, node: str | AbstractNode) -> AbstractSet[Node[A, S]]:
         """Source nodes of the edges pointing to `node`."""
         return ordered(self._node(edge.source) for edge in self.incoming_edges(node))
 
-    def outgoing_nodes(
-        self, node: str | AbstractNode
-    ) -> AbstractSet[Node[A, S]]:
+    def outgoing_nodes(self, node: str | AbstractNode) -> AbstractSet[Node[A, S]]:
         """Target nodes of the edges starting at `node`."""
         return ordered(self._node(edge.target) for edge in self.outgoing_edges(node))
 
@@ -177,9 +173,7 @@ class GraphView[A, S, E, R, P, N, G](ABC):
 
         return ordered(store.edges[id] for id in store.outgoing[self._node(node).id])
 
-    def neighbor_nodes(
-        self, node: str | AbstractNode
-    ) -> AbstractSet[Node[A, S]]:
+    def neighbor_nodes(self, node: str | AbstractNode) -> AbstractSet[Node[A, S]]:
         """Nodes connected to `node` via incoming or outgoing edges."""
         return ordered((*self.incoming_nodes(node), *self.outgoing_nodes(node)))
 

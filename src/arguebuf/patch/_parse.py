@@ -42,4 +42,6 @@ def parse_patch(value: object, *, schema: JsonSchema = PATCH_SCHEMA) -> ParsedPa
     """
     issues: list[Issue] = []
 
-    return ParsedPatch(value if _is_patch(value, schema, issues) else None, tuple(issues))
+    return ParsedPatch(
+        value if _is_patch(value, schema, issues) else None, tuple(issues)
+    )

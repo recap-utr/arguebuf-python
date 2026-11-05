@@ -118,7 +118,9 @@ class _Editor[A, S, E, R, P, N, G]:
             return nodes.get(id)
 
         actual, expected = (
-            ("an atom", "a scheme") if isinstance(node, AtomNode) else ("a scheme", "an atom")
+            ("an atom", "a scheme")
+            if isinstance(node, AtomNode)
+            else ("a scheme", "an atom")
         )
         fail("invalid-patch", f"Node '{id}' is {actual}, not {expected}.", [id])
 
@@ -172,7 +174,9 @@ class _Editor[A, S, E, R, P, N, G]:
         current = graph.participants.get(id)
 
         if current is None:
-            current = Participant(userdata=self.codecs.participant.validate_python({}), id=id)
+            current = Participant(
+                userdata=self.codecs.participant.validate_python({}), id=id
+            )
             graph.add_participant(current)
 
         graph.update_participant(
@@ -388,9 +392,16 @@ def apply_patch[A, S, E, R, P, N, G](
     return PatchResult(
         draft.freeze(),
         tuple(editor.issues),
-        created=tuple(id for before, after in stores for id in after if id not in before),
-        updated=tuple(
-            id for before, after in stores for id in after if id in before and id in named
+        created=tuple(
+            id for before, after in stores for id in after if id not in before
         ),
-        removed=tuple(id for before, after in stores for id in before if id not in after),
+        updated=tuple(
+            id
+            for before, after in stores
+            for id in after
+            if id in before and id in named
+        ),
+        removed=tuple(
+            id for before, after in stores for id in before if id not in after
+        ),
     )

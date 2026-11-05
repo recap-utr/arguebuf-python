@@ -32,5 +32,10 @@ def load_json[
     See `load_dict`, `reconstruct_dialog` only applies to AIF and xAIF graphs.
     """
     return load_dict(
-        json.load(obj), name=name, reconstruct_dialog=reconstruct_dialog, codecs=codecs, on_issue=on_issue, strict=strict
+        json.load(obj),
+        name=name,
+        reconstruct_dialog=reconstruct_dialog,
+        codecs=codecs,
+        on_issue=on_issue,
+        strict=strict,
     )

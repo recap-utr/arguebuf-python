@@ -19,7 +19,9 @@ def dump_xaif[A, S, E, R, P, N, G](
     """
     return {
         "AIF": {
-            "nodes": [dump_node(node, timestamp=False) for node in graph.nodes.values()],
+            "nodes": [
+                dump_node(node, timestamp=False) for node in graph.nodes.values()
+            ],
             "edges": [dump_edge(edge) for edge in graph.edges.values()],
             "locutions": [],
             "schemefulfillments": [],

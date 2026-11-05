@@ -68,7 +68,9 @@ def dump_networkx[A, S, E, R, P, N, G](
 
     if not scheme_nodes:
         for relation in graph.atom_relations():
-            g.add_edge(relation.source.id, relation.target.id, scheme=relation.scheme.id)
+            g.add_edge(
+                relation.source.id, relation.target.id, scheme=relation.scheme.id
+            )
 
         return g
 

@@ -49,6 +49,7 @@ def is_issue_code(value: str) -> TypeIs[IssueCode]:
     """Whether the string is an issue code, e.g. given on the command line."""
     return value in ISSUE_CODES
 
+
 type Severity = Literal["error", "warning"]
 
 type JsonIssue = dict[str, str | list[str] | list[str | int]]

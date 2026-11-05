@@ -236,7 +236,9 @@ def test_protobuf_roundtrip():
     assert proto.library_version.startswith("arguebuf-python:")
     assert loaded.major_claim == a.id
     assert loaded.atom_nodes[a.id].participant == p.id
-    assert loaded.atom_nodes[a.id].reference == ag.Reference("a", resource=r.id, offset=0)
+    assert loaded.atom_nodes[a.id].reference == ag.Reference(
+        "a", resource=r.id, offset=0
+    )
     assert loaded.atom_nodes[a.id].metadata == graph.atom_nodes[a.id].metadata
     assert copy.deepcopy(graph).atom_nodes[a.id].userdata == {"count": 1}
     assert loaded.analysts[analyst.id].email == ""
@@ -332,7 +334,9 @@ def test_batch_removals_and_links() -> None:
 
     g.add_node(ag.AtomNode("", id="b"))
 
-    assert (issue := g.check_link("a", scheme)) is not None and issue.code == "parallel-edge"
+    assert (
+        issue := g.check_link("a", scheme)
+    ) is not None and issue.code == "parallel-edge"
     assert g.link("b", scheme) is None
     assert list(g.premise_nodes(scheme)) == [g.nodes["a"], g.nodes["b"]]
 
@@ -342,7 +346,11 @@ def test_annotations() -> None:
     g.add_resource(ag.Resource("Resource", id="r"))
 
     for id, text, offset in (("a", "our", 3), ("b", "moved", 2), ("c", "Res", 0)):
-        g.add_node(ag.AtomNode("", reference=ag.Reference(text, resource="r", offset=offset), id=id))
+        g.add_node(
+            ag.AtomNode(
+                "", reference=ag.Reference(text, resource="r", offset=offset), id=id
+            )
+        )
 
     assert [(item.node.id, item.start, item.end) for item in g.annotations("r")] == [
         ("c", 0, 3),
@@ -353,7 +361,11 @@ def test_annotations() -> None:
 def test_init_with_elements():
     for cls in (ag.Graph, ag.GraphDraft):
         graph = cls(
-            nodes=[ag.AtomNode("P", id="p"), ag.SchemeNode(id="s"), ag.AtomNode("C", id="c")],
+            nodes=[
+                ag.AtomNode("P", id="p"),
+                ag.SchemeNode(id="s"),
+                ag.AtomNode("C", id="c"),
+            ],
             edges=[ag.Edge("p", "s"), ag.Edge("s", "c")],
             resources=[ag.Resource("Text", id="r")],
             analysts=[ag.Analyst("Name", id="n")],

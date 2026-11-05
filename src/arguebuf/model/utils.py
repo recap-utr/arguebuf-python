@@ -35,7 +35,6 @@ class Entity(ABC):
         return self.id
 
 
-
 def id_of(element: str | Entity) -> str:
     """Id of an element that is given by itself or its id."""
     return element if isinstance(element, str) else element.id
