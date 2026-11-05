@@ -1,5 +1,53 @@
 # Changelog
 
+## [4.0.0](https://github.com/recap-utr/arguebuf-python/compare/v3.0.0...v4.0.0) (2026-11-05)
+
+### ⚠ BREAKING CHANGES
+
+* **model:** rename AtomOrSchemeNode to Node
+* replace format, edge style, and edge type enums with literals
+* rename exported constants consistently
+* make date helpers private
+* pass optional parameters as keywords
+* order userdata type parameters with the graph last
+* freeze d2 graphs and kialo statements
+* **model:** type json userdata as read-only
+* **model:** make graphs immutable and change them through drafts
+* **api:** make graph elements immutable and repair malformed input
+* **api:** unify strict graph and format APIs
+
+### Features
+
+* **api:** make graph elements immutable and repair malformed input ([df56222](https://github.com/recap-utr/arguebuf-python/commit/df5622243444ca0fa47ec2d3878800d4cfdd0902))
+* **api:** unify strict graph and format APIs ([312b882](https://github.com/recap-utr/arguebuf-python/commit/312b882f6005d65aab3e57d036f3c7d018a17bc7))
+* **dump:** type dict exports by format ([8060f20](https://github.com/recap-utr/arguebuf-python/commit/8060f200af3087b810a61fd83428622ce0f76655))
+* export graph view and accept it in check, outline, and dumpers ([1c933fe](https://github.com/recap-utr/arguebuf-python/commit/1c933feecd61bdda811620db15cea08f231e6618))
+* export scheme labels and scheme colors ([0eccf14](https://github.com/recap-utr/arguebuf-python/commit/0eccf1497048da706aedee897ac67d0a005fe4f5))
+* **load:** export file suffixes and name loaded files ([6defdc2](https://github.com/recap-utr/arguebuf-python/commit/6defdc26d71b92bcca4d248754c86dabc8981397))
+* **model:** add metadata to analysts ([fc58d94](https://github.com/recap-utr/arguebuf-python/commit/fc58d94f5cd9f990e9700d3826de8988f64b7c1e))
+* **model:** check and type links, return removed ids and list annotations ([7937f99](https://github.com/recap-utr/arguebuf-python/commit/7937f9974f1593ef9c578ca41bf3b732e0ba9c94))
+* **model:** construct graphs from their elements ([56cd25c](https://github.com/recap-utr/arguebuf-python/commit/56cd25c4bc256cfd02ff788257eaa0ae13eb0fa2))
+* **model:** edit graphs through recipes ([2c96691](https://github.com/recap-utr/arguebuf-python/commit/2c96691de0b9e867c73c2961611864e387793eda))
+* **model:** make graphs immutable and change them through drafts ([c5c538c](https://github.com/recap-utr/arguebuf-python/commit/c5c538ce7f6afa6e9aef3370c7d965e9a48a055b))
+* **model:** return removed ids from all removals ([5c27ccb](https://github.com/recap-utr/arguebuf-python/commit/5c27ccbce917ceb813d77d1c2f8d575135b02b27))
+* **model:** type json userdata as read-only ([34ec793](https://github.com/recap-utr/arguebuf-python/commit/34ec793b2137fec37c3c450ad04b2d179663318f))
+* order userdata type parameters with the graph last ([fdc51a6](https://github.com/recap-utr/arguebuf-python/commit/fdc51a6c6bd916af2399210fcfe7893baccfe125))
+* pass optional parameters as keywords ([50089a2](https://github.com/recap-utr/arguebuf-python/commit/50089a2e7e0ab2806dc581fd0f6f9479287babf9))
+* **patch:** add check and patch api for agents ([6657015](https://github.com/recap-utr/arguebuf-python/commit/6657015df979dbd7b5f54333a3de90528bd56c83))
+* replace format, edge style, and edge type enums with literals ([5d71de8](https://github.com/recap-utr/arguebuf-python/commit/5d71de80627e95a1cad8a5355876e63bd232bb96))
+
+### Bug Fixes
+
+* **model:** generate random uuid v4 ids ([809cedf](https://github.com/recap-utr/arguebuf-python/commit/809cedfd8d636bbb7c8eb182b34fdd7471d1c624))
+* **protobuf:** keep empty analyst emails ([ff69fe8](https://github.com/recap-utr/arguebuf-python/commit/ff69fe88cf1ab09d53737db92a77aef6c4e11eea))
+
+### Code Refactoring
+
+* freeze d2 graphs and kialo statements ([7a95c13](https://github.com/recap-utr/arguebuf-python/commit/7a95c13aab2c899650083b403e939df8a8c228d8))
+* make date helpers private ([3999f3b](https://github.com/recap-utr/arguebuf-python/commit/3999f3b4cbfb65a62aa13f367c9ece648888da5d))
+* **model:** rename AtomOrSchemeNode to Node ([c1594d5](https://github.com/recap-utr/arguebuf-python/commit/c1594d5c5376def1aba5e3d0e359cb2aedf7cb22))
+* rename exported constants consistently ([74748fd](https://github.com/recap-utr/arguebuf-python/commit/74748fd83fc582af1e796fef1a3c14bbef7536a5))
+
 ## [3.0.0](https://github.com/recap-utr/arguebuf-python/compare/v2.7.2...v3.0.0) (2026-10-16)
 
 ### ⚠ BREAKING CHANGES
