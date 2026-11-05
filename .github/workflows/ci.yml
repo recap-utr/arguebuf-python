@@ -10,13 +10,13 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@v23
         with:
           extra-conf: |
             accept-flake-config = true
             log-lines = 1000
-      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+      - uses: cachix/cachix-action@v17
         with:
           name: recap
           authToken: ${{ secrets.CACHIX_TOKEN }}
@@ -30,26 +30,26 @@ jobs:
       contents: write
       packages: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64
-      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - uses: DeterminateSystems/nix-installer-action@v23
         with:
           extra-conf: |
             extra-platforms = aarch64-linux
             accept-flake-config = true
             log-lines = 1000
-      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+      - uses: cachix/cachix-action@v17
         with:
           name: recap
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix profile install .#release-env
-      - uses: cihelper/action-semanticrelease-uv@a1c285cab8f6c4cb14e841e869ea9f58def2024a # v1
+      - uses: cihelper/action-semanticrelease-uv@v1
         id: semanticrelease
         with:
           uv-publish: false
-      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+      - uses: pypa/gh-action-pypi-publish@v1.14.3
         if: ${{ steps.semanticrelease.outputs.released == 'true' }}
       - run: nix run .#docker-manifest --impure
         if: ${{ steps.semanticrelease.outputs.released == 'true' }}
