@@ -12,7 +12,7 @@ from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.reference import Reference
 from arguebuf.model.resource import Resource
-from arguebuf.model.scheme import scheme2protobuf
+from arguebuf.model.scheme import _SCHEME_PROTOBUF
 from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
 
 __all__ = ("LIBRARY_VERSION", "SCHEMA_VERSION", "dump_protobuf")
@@ -98,7 +98,7 @@ def scheme_to_protobuf[S](obj: SchemeNode[S], codec: Codec[S]) -> graph_pb2.Node
     scheme = graph_pb2.Scheme(premise_descriptors=obj.premise_descriptors)
 
     if obj.scheme is not None:
-        field, values = scheme2protobuf[type(obj.scheme)]
+        field, values = _SCHEME_PROTOBUF[type(obj.scheme)]
         setattr(scheme, field, values[obj.scheme])
 
     return graph_pb2.Node(

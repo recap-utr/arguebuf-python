@@ -8,12 +8,12 @@ from arguebuf.model.issue import Issue, fail, issue
 from arguebuf.model.reference import Reference
 from arguebuf.model.resource import Resource
 from arguebuf.model.scheme import (
+    SCHEME_CLASSES,
+    SCHEME_TYPE_NAMES,
     Scheme,
     is_default_scheme,
-    name2scheme_type,
     normalize_scheme_label,
     resolve_scheme,
-    scheme_type2name,
 )
 from arguebuf.patch._schema import SchemePatch
 
@@ -94,7 +94,7 @@ def resolve_scheme_of(
 ) -> ResolvedScheme:
     """The scheme of the item, keeping the `current` type unless the item changes it."""
     id = item["id"]
-    scheme_type = name2scheme_type[item["type"]] if "type" in item else current
+    scheme_type = SCHEME_CLASSES[item["type"]] if "type" in item else current
 
     if scheme_type is None:
         fail("invalid-patch", f"Scheme '{id}' needs a type.", [id])
@@ -110,7 +110,7 @@ def resolve_scheme_of(
             scheme,
             issue(
                 "unknown-scheme",
-                f"The {scheme_type2name[scheme_type]} scheme '{label}' of '{id}' is unknown, the default is used.",
+                f"The {SCHEME_TYPE_NAMES[scheme_type]} scheme '{label}' of '{id}' is unknown, the default is used.",
                 [id],
             ),
         )

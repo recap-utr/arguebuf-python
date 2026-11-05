@@ -2,7 +2,7 @@ from arguebuf.model import GraphView
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.resource import Resource
-from arguebuf.model.scheme import is_default_scheme, scheme_type2name
+from arguebuf.model.scheme import SCHEME_TYPE_NAMES, is_default_scheme
 from arguebuf.patch._schema import (
     PARTICIPANT_FIELDS,
     AtomPatch,
@@ -47,7 +47,7 @@ def _scheme_outline[A, S, E, R, P, N, G](
     value = scheme.scheme
 
     if value is not None:
-        item["type"] = scheme_type2name[type(value)]
+        item["type"] = SCHEME_TYPE_NAMES[type(value)]
 
         if not is_default_scheme(value):
             item["scheme"] = value.value

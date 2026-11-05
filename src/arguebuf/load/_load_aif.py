@@ -10,7 +10,7 @@ from arguebuf.model.issue import Reporter
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.reference import Reference
-from arguebuf.model.scheme import Rephrase, aif2scheme, resolve_aif_scheme
+from arguebuf.model.scheme import AIF_SCHEME_TYPES, Rephrase, resolve_aif_scheme
 from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
 from arguebuf.schemas import aif
 
@@ -127,7 +127,7 @@ def node_from_aif[A, S](
     obj: aif.Node, atom_codec: Codec[A], scheme_codec: Codec[S]
 ) -> AtomNode[A] | SchemeNode[S] | None:
     """Generate an atom or scheme node from an AIF node, None if it is a dialog node."""
-    if obj["type"] != "I" and obj["type"] not in aif2scheme:
+    if obj["type"] != "I" and obj["type"] not in AIF_SCHEME_TYPES:
         return None
 
     metadata = Metadata(from_format(obj.get("timestamp"), aif.DATE_FORMAT))

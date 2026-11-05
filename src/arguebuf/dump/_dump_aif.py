@@ -1,7 +1,11 @@
 from arguebuf._dt import to_format
 from arguebuf.model import AbstractNode, AtomNode, Edge, GraphView, SchemeNode
 from arguebuf.model.node import NO_SCHEME_LABEL
-from arguebuf.model.scheme import is_default_scheme, scheme2aif, scheme2aif_default
+from arguebuf.model.scheme import (
+    SCHEME_AIF_DEFAULTS,
+    SCHEME_AIF_TYPES,
+    is_default_scheme,
+)
 from arguebuf.schemas import aif
 
 __all__ = ("dump_aif", "dump_edge", "dump_node")
@@ -30,10 +34,10 @@ def dump_node(obj: AbstractNode, *, timestamp: bool) -> aif.Node:
         case SchemeNode(scheme=scheme) if scheme is not None:
             node = {
                 "nodeID": obj.id,
-                "text": scheme2aif_default[type(scheme)]
+                "text": SCHEME_AIF_DEFAULTS[type(scheme)]
                 if is_default_scheme(scheme)
                 else scheme.value,
-                "type": scheme2aif[type(scheme)],
+                "type": SCHEME_AIF_TYPES[type(scheme)],
             }
         case _:
             raise ValueError("Node type not supported.")

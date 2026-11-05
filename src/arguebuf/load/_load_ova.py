@@ -8,7 +8,7 @@ from arguebuf.model.metadata import Metadata
 from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.reference import Reference
 from arguebuf.model.resource import Resource
-from arguebuf.model.scheme import aif2scheme, resolve_aif_scheme
+from arguebuf.model.scheme import AIF_SCHEME_TYPES, resolve_aif_scheme
 from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
 from arguebuf.model.utils import uuid
 from arguebuf.schemas import aif, ova
@@ -146,7 +146,7 @@ def load_ova[
 
 def scheme_from_ova[S](obj: ova.Node, codec: Codec[S]) -> SchemeNode[S] | None:
     """Generate SchemeNode object from OVA Node object."""
-    if obj["type"] not in aif2scheme:
+    if obj["type"] not in AIF_SCHEME_TYPES:
         return None
 
     return SchemeNode(

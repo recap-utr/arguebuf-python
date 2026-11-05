@@ -1,5 +1,6 @@
-from collections.abc import Iterable
-from typing import TextIO
+from collections.abc import Iterable, Mapping
+from types import MappingProxyType
+from typing import Final, TextIO
 
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
@@ -11,14 +12,12 @@ from ._helpers import Context, connect, lookup
 
 __all__ = ("load_brat",)
 
-relation2scheme: dict[str, Scheme] = {
-    "supports": Support.DEFAULT,
-    "attacks": Attack.DEFAULT,
-}
-stance2scheme: dict[str, Scheme] = {
-    "For": Support.DEFAULT,
-    "Against": Attack.DEFAULT,
-}
+_RELATION_SCHEMES: Final[Mapping[str, Scheme]] = MappingProxyType(
+    {"supports": Support.DEFAULT, "attacks": Attack.DEFAULT}
+)
+_STANCE_SCHEMES: Final[Mapping[str, Scheme]] = MappingProxyType(
+    {"For": Support.DEFAULT, "Against": Attack.DEFAULT}
+)
 
 
 def load_brat[
@@ -84,7 +83,7 @@ def load_brat[
 
         match id[:1], annotation:
             case "A", ["Stance", source_id, stance]:
-                scheme = lookup(ctx, stance2scheme, stance, "stance", owner)
+                scheme = lookup(ctx, _STANCE_SCHEMES, stance, "stance", owner)
                 source = lookup(ctx, atoms, source_id, "atom", owner)
                 target = None if g.major_claim is None else g.atom_nodes[g.major_claim]
 
@@ -98,7 +97,7 @@ def load_brat[
             case "R", [relation, *arguments] if {"Arg1", "Arg2"} <= (
                 roles := _roles(arguments)
             ).keys():
-                scheme = lookup(ctx, relation2scheme, relation, "relation type", owner)
+                scheme = lookup(ctx, _RELATION_SCHEMES, relation, "relation type", owner)
                 source = lookup(ctx, atoms, roles["Arg1"], "atom", owner)
                 target = lookup(ctx, atoms, roles["Arg2"], "atom", owner)
 

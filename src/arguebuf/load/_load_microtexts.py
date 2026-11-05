@@ -1,4 +1,6 @@
-from typing import IO
+from collections.abc import Mapping
+from types import MappingProxyType
+from typing import IO, Final
 from xml.etree import ElementTree as Tree
 
 from arguebuf.model import Graph, GraphDraft
@@ -12,12 +14,14 @@ from ._helpers import Context, add_edge, connect, lookup
 
 __all__ = ("load_microtexts",)
 
-edge2scheme: dict[EdgeType, Scheme] = {
-    EdgeType.SUPPORT_DEFAULT: Support.DEFAULT,
-    EdgeType.SUPPORT_EXAMPLE: Support.EXAMPLE,
-    EdgeType.ATTACK_ATOM: Attack.DEFAULT,
-    EdgeType.ATTACK_SCHEME: Attack.DEFAULT,
-}
+_EDGE_SCHEMES: Final[Mapping[EdgeType, Scheme]] = MappingProxyType(
+    {
+        EdgeType.SUPPORT_DEFAULT: Support.DEFAULT,
+        EdgeType.SUPPORT_EXAMPLE: Support.EXAMPLE,
+        EdgeType.ATTACK_ATOM: Attack.DEFAULT,
+        EdgeType.ATTACK_SCHEME: Attack.DEFAULT,
+    }
+)
 
 
 def load_microtexts[
@@ -94,10 +98,10 @@ def load_microtexts[
 
     # all scheme nodes are added first since undercutters may target later edges
     for id, _, _, type in edges:
-        if type in edge2scheme:
+        if type in _EDGE_SCHEMES:
             g.add_node(
                 SchemeNode(
-                    edge2scheme[EdgeType(type)],
+                    _EDGE_SCHEMES[EdgeType(type)],
                     userdata=codecs.scheme.validate_python({}),
                     id=id,
                 )

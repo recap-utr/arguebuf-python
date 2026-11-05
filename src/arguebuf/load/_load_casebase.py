@@ -2,7 +2,8 @@ import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Self
+from types import MappingProxyType
+from typing import Final, Self
 
 from arg_services.cbr.v1beta.model_pb2 import CasebaseFilter as CasebaseFilterProto
 
@@ -15,7 +16,7 @@ from ._load_path import load_file
 __all__ = ("CasebaseFilter", "load_casebase")
 
 # folders of other formats (e.g. argdown source files) are skipped
-format2glob = {
+_FORMAT_GLOBS: Final[Mapping[str, str]] = MappingProxyType({
     "aif": "*.json",
     "aml": "*.aml",
     "argdown-json": "*.json",
@@ -28,7 +29,7 @@ format2glob = {
     "protobuf": "*.json",
     "sadface": "*.json",
     "xaif": "*.json",
-}
+})
 
 
 @dataclass(slots=True, frozen=True)
@@ -45,7 +46,7 @@ class FilesystemFilter:
     @property
     def glob(self) -> str | None:
         """File pattern of the graphs in the folder, None if the format is unknown."""
-        return format2glob.get(self.kwargs.get("format", ""))
+        return _FORMAT_GLOBS.get(self.kwargs.get("format", ""))
 
     @classmethod
     def from_path(cls, path: Path) -> Self:

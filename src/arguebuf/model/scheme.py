@@ -1,5 +1,7 @@
+from collections.abc import Mapping
 from enum import StrEnum, auto
-from typing import Literal, Protocol
+from types import MappingProxyType
+from typing import Final, Literal, Protocol
 
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf.descriptor import EnumValueDescriptor
@@ -7,20 +9,20 @@ from google.protobuf.descriptor import EnumValueDescriptor
 from arguebuf.schemas import aif
 
 __all__ = (
+    "AIF_SCHEME_TYPES",
+    "SCHEME_AIF_DEFAULTS",
+    "SCHEME_AIF_TYPES",
+    "SCHEME_CLASSES",
+    "SCHEME_TYPE_LABELS",
+    "SCHEME_TYPE_NAMES",
     "Attack",
     "Preference",
     "Rephrase",
     "Scheme",
     "SchemeType",
     "Support",
-    "aif2scheme",
-    "name2scheme_type",
     "resolve_aif_scheme",
     "resolve_scheme",
-    "scheme2aif",
-    "scheme2aif_default",
-    "scheme_type2label",
-    "scheme_type2name",
 )
 
 
@@ -147,57 +149,77 @@ type Scheme = Support | Attack | Rephrase | Preference
 type SchemeType = Literal["support", "attack", "rephrase", "preference"]
 """Name of a scheme type, identical to the field of the protobuf `Scheme.type` oneof."""
 
-name2scheme_type: dict[SchemeType, type[Scheme]] = {
-    "support": Support,
-    "attack": Attack,
-    "rephrase": Rephrase,
-    "preference": Preference,
-}
-scheme_type2name: dict[type[Scheme], SchemeType] = {
-    scheme_type: name for name, scheme_type in name2scheme_type.items()
-}
-scheme_type2label: dict[type[Scheme], str] = {
-    Support: "Support",
-    Attack: "Attack",
-    Rephrase: "Rephrase",
-    Preference: "Preference",
-}
+SCHEME_CLASSES: Final[Mapping[SchemeType, type[Scheme]]] = MappingProxyType(
+    {
+        "support": Support,
+        "attack": Attack,
+        "rephrase": Rephrase,
+        "preference": Preference,
+    }
+)
+"""Scheme classes by their `SchemeType` name."""
+
+SCHEME_TYPE_NAMES: Final[Mapping[type[Scheme], SchemeType]] = MappingProxyType(
+    {scheme_type: name for name, scheme_type in SCHEME_CLASSES.items()}
+)
+"""`SchemeType` names by their scheme class."""
+
+SCHEME_TYPE_LABELS: Final[Mapping[type[Scheme], str]] = MappingProxyType(
+    {
+        Support: "Support",
+        Attack: "Attack",
+        Rephrase: "Rephrase",
+        Preference: "Preference",
+    }
+)
 """Human-readable labels of the scheme types."""
 
 # field of the protobuf `Scheme.type` oneof and enum value of each scheme,
 # keyed by type since members of different scheme types are equal strings
-scheme2protobuf: dict[type[Scheme], tuple[str, dict[Scheme, int]]] = {
-    scheme_type: (
-        name,
+_SCHEME_PROTOBUF: Final[Mapping[type[Scheme], tuple[str, Mapping[Scheme, int]]]] = (
+    MappingProxyType(
         {
-            item: _protobuf_value(scheme_type.__name__, item.name).number
-            for item in scheme_type
-        },
+            scheme_type: (
+                name,
+                MappingProxyType(
+                    {
+                        item: _protobuf_value(scheme_type.__name__, item.name).number
+                        for item in scheme_type
+                    }
+                ),
+            )
+            for scheme_type, name in SCHEME_TYPE_NAMES.items()
+        }
     )
-    for scheme_type, name in scheme_type2name.items()
-}
+)
 # schemes by the field of the protobuf `Scheme.type` oneof and their enum value
-protobuf2scheme: dict[str, dict[int, Scheme]] = {
-    field: {value: item for item, value in values.items()}
-    for field, values in scheme2protobuf.values()
-}
+_PROTOBUF_SCHEMES: Final[Mapping[str, Mapping[int, Scheme]]] = MappingProxyType(
+    {
+        field: MappingProxyType({value: item for item, value in values.items()})
+        for field, values in _SCHEME_PROTOBUF.values()
+    }
+)
 
-scheme2aif: dict[type[Scheme], aif.SchemeType] = {
-    Support: "RA",
-    Attack: "CA",
-    Rephrase: "MA",
-    Preference: "PA",
-}
-aif2scheme: dict[str, type[Scheme] | None] = {
-    aif_type: scheme_type for scheme_type, aif_type in scheme2aif.items()
-} | {"": None}
-# AIFdb labels of the default schemes
-scheme2aif_default: dict[type[Scheme], str] = {
-    Support: "Default Inference",
-    Attack: "Default Conflict",
-    Rephrase: "Default Rephrase",
-    Preference: "Default Preference",
-}
+SCHEME_AIF_TYPES: Final[Mapping[type[Scheme], aif.SchemeType]] = MappingProxyType(
+    {Support: "RA", Attack: "CA", Rephrase: "MA", Preference: "PA"}
+)
+"""AIF node types by their scheme class."""
+
+AIF_SCHEME_TYPES: Final[Mapping[str, type[Scheme] | None]] = MappingProxyType(
+    {aif_type: scheme_type for scheme_type, aif_type in SCHEME_AIF_TYPES.items()}
+    | {"": None}
+)
+"""Scheme classes by their AIF node type, untyped schemes map to `None`."""
+
+SCHEME_AIF_DEFAULTS: Final[Mapping[type[Scheme], str]] = MappingProxyType(
+    {
+        Support: "Default Inference",
+        Attack: "Default Conflict",
+        Rephrase: "Default Rephrase",
+        Preference: "Default Preference",
+    }
+)
+"""AIFdb labels of the default schemes."""
 
 
 def is_default_scheme(scheme: Scheme) -> bool:
@@ -235,7 +257,7 @@ _support_aliases: dict[str, Support] = {
 
 _text2scheme: dict[type[Scheme], dict[str, Scheme]] = {
     scheme_type: {normalize_scheme_label(item.value): item for item in scheme_type}
-    for scheme_type in scheme2aif
+    for scheme_type in SCHEME_AIF_TYPES
 }
 _text2scheme[Support] |= {
     normalize_scheme_label(text): item for text, item in _support_aliases.items()
@@ -264,8 +286,8 @@ def resolve_scheme(scheme_type: type[Scheme], text: str) -> Scheme:
 def resolve_aif_scheme(aif_type: str, text: str) -> Scheme | None:
     """Get the scheme of an AIF scheme node, refined by its text if possible.
 
-    Callers must ensure that `aif_type` is a key of `aif2scheme`.
+    Callers must ensure that `aif_type` is a key of `AIF_SCHEME_TYPES`.
     """
-    scheme_type = aif2scheme[aif_type]
+    scheme_type = AIF_SCHEME_TYPES[aif_type]
 
     return resolve_scheme(scheme_type, text) if scheme_type else None

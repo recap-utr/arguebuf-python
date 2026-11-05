@@ -12,7 +12,7 @@ from arguebuf.model.node import AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.reference import Reference
 from arguebuf.model.resource import Resource
-from arguebuf.model.scheme import Scheme, protobuf2scheme
+from arguebuf.model.scheme import _PROTOBUF_SCHEMES, Scheme
 from arguebuf.model.userdata import DEFAULT_CODECS, Codec, Codecs, JsonObject
 from arguebuf.model.utils import Entity
 
@@ -189,7 +189,7 @@ def scheme_from_protobuf[S](
     if field := obj.scheme.WhichOneof("type"):
         value: int = getattr(obj.scheme, field)
 
-        if (scheme := protobuf2scheme[field].get(value)) is None:
+        if (scheme := _PROTOBUF_SCHEMES[field].get(value)) is None:
             raise ValueError(
                 f"Scheme node '{id}' has the unknown scheme value {value}."
             )

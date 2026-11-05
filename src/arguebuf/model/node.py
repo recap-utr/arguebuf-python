@@ -1,18 +1,19 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Self, TypedDict, overload, override
+from types import MappingProxyType
+from typing import Final, Self, TypedDict, overload, override
 
 from arguebuf.model.metadata import Metadata
 from arguebuf.model.reference import Reference
 from arguebuf.model.scheme import (
+    SCHEME_TYPE_LABELS,
     Attack,
     Preference,
     Rephrase,
     Scheme,
     Support,
     is_default_scheme,
-    scheme_type2label,
 )
 from arguebuf.model.userdata import JSON_OBJECT, JsonObject, own
 from arguebuf.model.utils import Entity, uuid
@@ -21,6 +22,7 @@ NO_SCHEME_LABEL = "Unknown"
 
 __all__ = (
     "NO_SCHEME_LABEL",
+    "SCHEME_COLORS",
     "AbstractNode",
     "AtomChanges",
     "AtomNode",
@@ -28,7 +30,6 @@ __all__ = (
     "Color",
     "SchemeChanges",
     "SchemeNode",
-    "scheme2color",
 )
 
 
@@ -47,12 +48,14 @@ COLOR_MONOCHROME_LIGHT = Color(bg="#ffffff", fg="#000000", border="#000000")
 COLOR_MONOCHROME_DARK = Color(bg="#000000", fg="#ffffff", border="#000000")
 COLOR_SCHEME_FALLBACK = Color.filled("#9E9E9E")
 
-scheme2color: dict[type[Scheme], Color] = {
-    Support: Color.filled("#4CAF50"),
-    Attack: Color.filled("#F44336"),
-    Rephrase: Color.filled("#009688"),
-    Preference: Color.filled("#9C27B0"),
-}
+SCHEME_COLORS: Final[Mapping[type[Scheme], Color]] = MappingProxyType(
+    {
+        Support: Color.filled("#4CAF50"),
+        Attack: Color.filled("#F44336"),
+        Rephrase: Color.filled("#009688"),
+        Preference: Color.filled("#9C27B0"),
+    }
+)
 """Colors of scheme nodes by the type of their scheme, untyped ones are grey."""
 
 
@@ -203,7 +206,7 @@ class SchemeNode[S = JsonObject](AbstractNode):
         if self.scheme is None:
             return NO_SCHEME_LABEL
 
-        label = scheme_type2label[type(self.scheme)]
+        label = SCHEME_TYPE_LABELS[type(self.scheme)]
 
         if not is_default_scheme(self.scheme):
             label = f"{label}: {self.scheme.value}"
@@ -218,7 +221,7 @@ class SchemeNode[S = JsonObject](AbstractNode):
         if self.scheme is None:
             return COLOR_SCHEME_FALLBACK
 
-        return scheme2color[type(self.scheme)]
+        return SCHEME_COLORS[type(self.scheme)]
 
 
 type AtomOrSchemeNode[A = JsonObject, S = JsonObject] = AtomNode[A] | SchemeNode[S]

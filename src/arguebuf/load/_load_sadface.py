@@ -1,4 +1,6 @@
 from collections.abc import Mapping
+from types import MappingProxyType
+from typing import Final
 
 from arguebuf._dt import from_isoformat
 from arguebuf.model import Graph, GraphDraft
@@ -33,11 +35,13 @@ from ._helpers import (
 __all__ = ("load_sadface",)
 
 # normalized names of generic `scheme` nodes that denote a scheme type instead of a specific scheme
-name2scheme_type: dict[str, type[Scheme]] = {
-    **scheme_model.name2scheme_type,
-    "inference": Support,
-    "conflict": Attack,
-}
+_GENERIC_SCHEMES: Final[Mapping[str, type[Scheme]]] = MappingProxyType(
+    {
+        **scheme_model.SCHEME_CLASSES,
+        "inference": Support,
+        "conflict": Attack,
+    }
+)
 
 
 def load_sadface[
@@ -156,7 +160,7 @@ def scheme_from_sadface[S](obj: sadface.Node, codec: Codec[S]) -> SchemeNode[S]:
     """Generate SchemeNode object from SADFace Node object.
 
     `inference` nodes are resolved by their name, `conflict` nodes are attacks.
-    Generic `scheme` nodes are resolved via `name2scheme_type` or as inference names,
+    Generic `scheme` nodes are resolved via `_GENERIC_SCHEMES` or as inference names,
     a missing name yields no scheme.
     """
     name = obj.get("name") or ""
@@ -167,7 +171,7 @@ def scheme_from_sadface[S](obj: sadface.Node, codec: Codec[S]) -> SchemeNode[S]:
             scheme = resolve_scheme(Support, name)
         case "conflict":
             scheme = Attack.DEFAULT
-        case _ if scheme_type := name2scheme_type.get(normalize_scheme_label(name)):
+        case _ if scheme_type := _GENERIC_SCHEMES.get(normalize_scheme_label(name)):
             scheme = scheme_type.DEFAULT
         case _:
             scheme = resolve_scheme(Support, name) if name else None

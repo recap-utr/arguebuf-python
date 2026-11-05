@@ -1,5 +1,7 @@
 import json
 from collections.abc import Mapping, Sequence
+from types import MappingProxyType
+from typing import Final
 
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
@@ -14,14 +16,18 @@ from ._helpers import Context, add_edge, compact, connect, lookup
 __all__ = ("load_argdown",)
 
 # scheme of a relation and whether it also applies in the opposite direction
-relation2scheme: dict[argdown.RelationType, tuple[Scheme, bool]] = {
-    "support": (Support.DEFAULT, False),
-    "entails": (Support.DEFAULT, False),
-    "attack": (Attack.DEFAULT, False),
-    "undercut": (Attack.DEFAULT, False),
-    "contrary": (Attack.DEFAULT, True),
-    "contradictory": (Attack.DEFAULT, True),
-}
+_RELATION_SCHEMES: Final[Mapping[argdown.RelationType, tuple[Scheme, bool]]] = (
+    MappingProxyType(
+        {
+            "support": (Support.DEFAULT, False),
+            "entails": (Support.DEFAULT, False),
+            "attack": (Attack.DEFAULT, False),
+            "undercut": (Attack.DEFAULT, False),
+            "contrary": (Attack.DEFAULT, True),
+            "contradictory": (Attack.DEFAULT, True),
+        }
+    )
+)
 
 
 def _userdata(**fields: JsonValue) -> JsonObject:
@@ -204,7 +210,7 @@ def load_argdown[
 
         if (
             mapping := lookup(
-                ctx, relation2scheme, relation_type, "relation type", owner
+                ctx, _RELATION_SCHEMES, relation_type, "relation type", owner
             )
         ) is None:
             continue

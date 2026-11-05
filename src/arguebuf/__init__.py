@@ -11,6 +11,8 @@ from .model import (
     DEFAULT_CODECS,
     ISSUE_CODES,
     NO_SCHEME_LABEL,
+    SCHEME_COLORS,
+    SCHEME_TYPE_LABELS,
     AbstractNode,
     Analyst,
     AnalystChanges,
@@ -51,8 +53,6 @@ from .model import (
     Support,
     has_errors,
     is_issue_code,
-    scheme2color,
-    scheme_type2label,
     uuid,
 )
 from .patch import (
@@ -78,6 +78,8 @@ __all__ = (
     "ISSUE_CODES",
     "NO_SCHEME_LABEL",
     "PATCH_SCHEMA",
+    "SCHEME_COLORS",
+    "SCHEME_TYPE_LABELS",
     "AbstractNode",
     "Analyst",
     "AnalystChanges",
@@ -138,8 +140,6 @@ __all__ = (
     "parse_patch",
     "render",
     "schemas",
-    "scheme2color",
-    "scheme_type2label",
     "traverse",
     "uuid",
 )

@@ -1,7 +1,7 @@
 from collections.abc import Mapping, Sequence
 from typing import Final, Literal, NotRequired, Required, TypedDict
 
-from arguebuf.model.scheme import SchemeType, name2scheme_type
+from arguebuf.model.scheme import SCHEME_CLASSES, SchemeType
 
 __all__ = (
     "PARTICIPANT_FIELDS",
@@ -158,7 +158,7 @@ PATCH_SCHEMA: Final[JsonSchema] = {
         "schemes": _items_schema(
             "Relations from premises to a conclusion.",
             {
-                "type": {"type": "string", "enum": list(name2scheme_type)},
+                "type": {"type": "string", "enum": list(SCHEME_CLASSES)},
                 "scheme": {
                     "type": "string",
                     "description": "Argumentation scheme, e.g. Expert Opinion.",

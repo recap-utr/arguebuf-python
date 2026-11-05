@@ -39,24 +39,24 @@ from .issue import (
 from .metadata import Metadata
 from .node import (
     NO_SCHEME_LABEL,
+    SCHEME_COLORS,
     AbstractNode,
     AtomNode,
     AtomOrSchemeNode,
     Color,
     SchemeNode,
-    scheme2color,
 )
 from .participant import Participant
 from .reference import Reference
 from .resource import Resource
 from .scheme import (
+    SCHEME_TYPE_LABELS,
     Attack,
     Preference,
     Rephrase,
     Scheme,
     SchemeType,
     Support,
-    scheme_type2label,
 )
 from .userdata import (
     DEFAULT_CODECS,
@@ -72,6 +72,8 @@ __all__ = (
     "DEFAULT_CODECS",
     "ISSUE_CODES",
     "NO_SCHEME_LABEL",
+    "SCHEME_COLORS",
+    "SCHEME_TYPE_LABELS",
     "AbstractNode",
     "Analyst",
     "AnalystChanges",
@@ -122,8 +124,6 @@ __all__ = (
     "reference",
     "resource",
     "scheme",
-    "scheme2color",
-    "scheme_type2label",
     "userdata",
     "uuid",
 )

@@ -1,7 +1,9 @@
 import dataclasses
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import TextIO
+from types import MappingProxyType
+from typing import Final, TextIO
 
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
@@ -13,7 +15,7 @@ from ._helpers import Context, connect, lookup
 
 __all__ = ("load_kialo",)
 
-title_pattern = re.compile(r"Discussion Title: (.*)")
+TITLE_PATTERN = re.compile(r"Discussion Title: (.*)")
 # Example: 1.1. Pro: Gold is better than silver.
 # Pattern: {ID}.{ID}. {STANCE (OPTIONAL)}: {TEXT}
 _statement = re.compile(r"^(1\.(?:\d+\.)*) (?:(Con|Pro): )?(.*)")
@@ -21,11 +23,9 @@ _reference = re.compile(r"^-> See ((?:\d+\.)+)")
 # link targets may contain one level of parentheses, e.g. Wikipedia URLs
 _link = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
 _escape = re.compile(r"\\([\[\]\(\)])")
-stance2scheme: dict[str | None, Scheme] = {
-    "Pro": Support.DEFAULT,
-    "Con": Attack.DEFAULT,
-    None: Rephrase.DEFAULT,
-}
+_STANCE_SCHEMES: Final[Mapping[str | None, Scheme]] = MappingProxyType(
+    {"Pro": Support.DEFAULT, "Con": Attack.DEFAULT, None: Rephrase.DEFAULT}
+)
 
 
 @dataclass(slots=True, frozen=True)
@@ -59,7 +59,7 @@ def load_kialo[
     so it and its children are attached to that atom.
     Markdown links are replaced by their text and escaped brackets are unescaped.
     """
-    if name_match := title_pattern.search(obj.readline()):
+    if name_match := TITLE_PATTERN.search(obj.readline()):
         name = name_match[1].strip()
 
     if obj.readline().strip():
@@ -133,7 +133,7 @@ def load_kialo[
 
         if (source := resolve(id, owner)) and (target := resolve(parent_id, owner)):
             scheme = SchemeNode(
-                stance2scheme[statement.stance],
+                _STANCE_SCHEMES[statement.stance],
                 userdata=codecs.scheme.validate_python({}),
                 id=f"{id}scheme",
             )

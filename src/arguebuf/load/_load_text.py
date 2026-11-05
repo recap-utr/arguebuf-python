@@ -6,7 +6,7 @@ from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
 
-from ._load_kialo import load_kialo, title_pattern
+from ._load_kialo import TITLE_PATTERN, load_kialo
 
 __all__ = ("load_text",)
 
@@ -30,7 +30,7 @@ def load_text[
     """Load a kialo export or a plain text as a graph containing a single atom node."""
     text = obj.read()
 
-    if title_pattern.search(text.partition("\n")[0]):
+    if TITLE_PATTERN.search(text.partition("\n")[0]):
         return load_kialo(StringIO(text), name=name, codecs=codecs, on_issue=on_issue, strict=strict)
 
     g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
