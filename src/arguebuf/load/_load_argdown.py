@@ -20,17 +20,15 @@ __all__ = ("load_argdown",)
 _SCHEMA = TypeAdapter(argdown.Graph)
 
 # scheme of a relation and whether it also applies in the opposite direction
-_RELATION_SCHEMES: Final[Mapping[str, tuple[Scheme, bool]]] = (
-    MappingProxyType(
-        {
-            "support": (Support.DEFAULT, False),
-            "entails": (Support.DEFAULT, False),
-            "attack": (Attack.DEFAULT, False),
-            "undercut": (Attack.DEFAULT, False),
-            "contrary": (Attack.DEFAULT, True),
-            "contradictory": (Attack.DEFAULT, True),
-        }
-    )
+_RELATION_SCHEMES: Final[Mapping[str, tuple[Scheme, bool]]] = MappingProxyType(
+    {
+        "support": (Support.DEFAULT, False),
+        "entails": (Support.DEFAULT, False),
+        "attack": (Attack.DEFAULT, False),
+        "undercut": (Attack.DEFAULT, False),
+        "contrary": (Attack.DEFAULT, True),
+        "contradictory": (Attack.DEFAULT, True),
+    }
 )
 
 
@@ -90,9 +88,7 @@ def _premises(argument: argdown.Argument, index: int) -> list[argdown.Statement]
 
     numbers = [_integer(n) for n in uses] if isinstance(uses, list) else None
 
-    if numbers is None or not all(
-        n is not None and 1 <= n <= index for n in numbers
-    ):
+    if numbers is None or not all(n is not None and 1 <= n <= index for n in numbers):
         raise ValueError(
             f"Invalid 'uses' {json.dumps(uses)} of statement {index + 1} in argument '{argument['title']}'."
         )

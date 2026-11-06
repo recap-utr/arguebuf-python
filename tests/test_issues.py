@@ -67,7 +67,10 @@ def test_invalid_input() -> None:
 
     assert info.value.issue.code == "invalid-input"
     assert info.value.issue.severity == "error"
-    assert info.value.issue.hint == "Check the input against the specification of its format."
+    assert (
+        info.value.issue.hint
+        == "Check the input against the specification of its format."
+    )
     assert str(info.value) == "The AIF input is invalid: nodes.0.text: Field required"
 
     with pytest.raises(ag.GraphError, match=r"nodes\.0\.nodeID: .*valid string"):

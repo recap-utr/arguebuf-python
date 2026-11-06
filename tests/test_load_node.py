@@ -38,9 +38,7 @@ def test_sadface_atom() -> None:
 
 def test_aif_atom() -> None:
     node = node_from_aif(
-        aif.Node(
-            nodeID="a", text="Claim", type="I", timestamp="2015-12-14 12:09:15"
-        ),
+        aif.Node(nodeID="a", text="Claim", type="I", timestamp="2015-12-14 12:09:15"),
         JSON_CODEC,
         JSON_CODEC,
     )
