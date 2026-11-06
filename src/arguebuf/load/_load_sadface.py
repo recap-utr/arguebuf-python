@@ -2,6 +2,8 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final
 
+from pydantic import TypeAdapter
+
 from arguebuf._dt import from_isoformat
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model import scheme as scheme_model
@@ -30,9 +32,12 @@ from ._helpers import (
     compact,
     new_reference,
     relocate,
+    validate,
 )
 
 __all__ = ("load_sadface",)
+
+_SCHEMA = TypeAdapter(sadface.Graph)
 
 # normalized names of generic `scheme` nodes that denote a scheme type instead of a specific scheme
 _GENERIC_SCHEMES: Final[Mapping[str, type[Scheme]]] = MappingProxyType(
@@ -53,7 +58,7 @@ def load_sadface[
     N = JsonObject,
     G = JsonObject,
 ](
-    obj: sadface.Graph,
+    obj: Mapping[str, object],
     *,
     name: str | None = None,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
@@ -66,8 +71,10 @@ def load_sadface[
     The first source of an atom becomes its reference.
     The timestamps are ISO 8601, a missing creation date falls back to the edit date.
     Nodes of unknown types are skipped with a warning.
+    The input is validated first, raising a `GraphError` of code `invalid-input`.
     """
-    core = obj["metadata"]["core"]
+    sadface_obj = validate("SADFace", _SCHEMA, obj)
+    core = sadface_obj["metadata"]["core"]
     ctx = Context(codecs, on_issue, strict)
     edited = from_isoformat(core.get("edited"))
     g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
@@ -85,16 +92,18 @@ def load_sadface[
         ),
     )
 
-    if core.get("analyst_name") or core.get("analyst_email"):
+    analyst_name, analyst_email = core.get("analyst_name"), core.get("analyst_email")
+
+    if analyst_name or analyst_email:
         g.add_analyst(
             Analyst(
-                core.get("analyst_name") or None,
-                email=core.get("analyst_email") or None,
+                analyst_name or None,
+                email=analyst_email or None,
                 userdata=codecs.analyst.validate_python({}),
             )
         )
 
-    for sadface_resource in obj.get("resources") or []:
+    for sadface_resource in sadface_obj.get("resources") or []:
         g.add_resource(
             Resource(
                 sadface_resource.get("content") or "",
@@ -105,7 +114,7 @@ def load_sadface[
             )
         )
 
-    for sadface_node in obj["nodes"]:
+    for sadface_node in sadface_obj["nodes"]:
         match sadface_node["type"]:
             case "atom":
                 add_node(
@@ -122,7 +131,7 @@ def load_sadface[
                     [sadface_node["id"]],
                 )
 
-    for edge in obj["edges"]:
+    for edge in sadface_obj["edges"]:
         add_edge(g, ctx, edge["source_id"], edge["target_id"], edge["id"])
 
     relocate(g, ctx)
@@ -151,7 +160,7 @@ def atom_from_sadface[A](
         )
 
     return AtomNode(
-        obj.get("text", ""),
+        obj.get("text") or "",
         reference=reference,
         userdata=codec.validate_python(obj.get("metadata") or {}),
         id=obj["id"],

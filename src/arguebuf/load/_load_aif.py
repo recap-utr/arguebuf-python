@@ -4,6 +4,8 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Self
 
+from pydantic import TypeAdapter
+
 from arguebuf._dt import from_format
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
@@ -20,10 +22,12 @@ from ._helpers import (
     add_node,
     connect,
     new_participant,
-    stringify_id,
+    validate,
 )
 
-__all__ = ("load_aif",)
+__all__ = ("build_aif", "load_aif")
+
+_SCHEMA = TypeAdapter(aif.Graph)
 
 
 def load_aif[
@@ -35,7 +39,7 @@ def load_aif[
     N = JsonObject,
     G = JsonObject,
 ](
-    obj: aif.Graph,
+    obj: Mapping[str, object],
     *,
     name: str | None = None,
     reconstruct_dialog: bool = False,
@@ -45,8 +49,8 @@ def load_aif[
 ) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from AIF argument graph file.
 
-    Dialog nodes (L, TA, YA) are skipped.
-    Numeric ids are converted to strings, other numbers than integers raise an error.
+    Dialog nodes (L, TA, YA) are skipped silently, nodes of unknown types with a warning.
+    Numeric ids are converted to strings, other numbers than integers are invalid.
     All listed participants and the speakers of locutions become participants.
     An atom asserted by locutions gets their speaker as participant
     if all locutions together have exactly one speaker,
@@ -55,20 +59,36 @@ def load_aif[
     With `reconstruct_dialog`, atoms only linked through dialog nodes
     are connected to the atoms of adjacent turns via rephrase nodes,
     otherwise they become isolated.
+    The input is validated first, raising a `GraphError` of code `invalid-input`.
     """
+    return build_aif(
+        validate("AIF", _SCHEMA, obj),
+        name,
+        reconstruct_dialog,
+        Context(codecs, on_issue, strict),
+    )
+
+
+def build_aif[A, S, E, R, P, N, G](
+    obj: aif.Graph,
+    name: str | None,
+    reconstruct_dialog: bool,
+    ctx: Context[A, S, E, R, P, N, G],
+) -> Graph[A, S, E, R, P, N, G]:
+    """Build the graph of a validated AIF graph (see `load_aif`)."""
+    codecs = ctx.codecs
     g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
     index = _Index.from_aif(obj)
-    ctx = Context(codecs, on_issue, strict)
 
     for participant in obj.get("participants") or []:
         g.add_participant(
             new_participant(
                 codecs.participant,
-                stringify_id(participant["participantID"]),
-                participant.get("firstname", ""),
-                participant.get("surname", ""),
+                participant["participantID"],
+                participant.get("firstname"),
+                participant.get("surname"),
             )
         )
 
@@ -76,17 +96,30 @@ def load_aif[
     speakers: defaultdict[str, dict[str, None]] = defaultdict(dict)
 
     for locution in obj.get("locutions") or []:
-        person = stringify_id(locution["personID"])
+        person = locution["personID"]
 
         if person not in g.participants:
             g.add_participant(new_participant(codecs.participant, person))
 
-        speakers[stringify_id(locution["nodeID"])][person] = None
+        speakers[locution["nodeID"]][person] = None
+
+    # edges of skipped nodes are expected to be missing, unlike dangling ones
+    skipped: set[str] = set()
 
     for aif_node in obj["nodes"]:
         node = node_from_aif(aif_node, codecs.atom, codecs.scheme)
 
         if node is None:
+            node_id, node_type = aif_node["nodeID"], aif_node["type"]
+            skipped.add(node_id)
+
+            if node_type not in aif.DIALOG_TYPES:
+                ctx.report(
+                    "unknown-element",
+                    f"Skipping node '{node_id}' of unknown type '{node_type}'.",
+                    [node_id],
+                )
+
             continue
 
         if isinstance(node, AtomNode):
@@ -109,13 +142,8 @@ def load_aif[
 
         add_node(g, ctx, node)
 
-    # edges of dialog nodes are expected to be missing, unlike dangling ones
-    dialog = {
-        id for id, node in index.nodes.items() if node["type"] in aif.DIALOG_TYPES
-    }
-
     for edge_id, source, target in index.edges:
-        add_edge(g, ctx, source, target, edge_id, ignore=dialog)
+        add_edge(g, ctx, source, target, edge_id, ignore=skipped)
 
     if reconstruct_dialog:
         _reconstruct_dialog(g, ctx, index)
@@ -126,23 +154,25 @@ def load_aif[
 def node_from_aif[A, S](
     obj: aif.Node, atom_codec: Codec[A], scheme_codec: Codec[S]
 ) -> AtomNode[A] | SchemeNode[S] | None:
-    """Generate an atom or scheme node from an AIF node, None if it is a dialog node."""
-    if obj["type"] != "I" and obj["type"] not in AIF_SCHEME_TYPES:
+    """Generate an atom or scheme node from an AIF node, None for dialog nodes and unknown types."""
+    node_type, text = obj["type"], obj["text"]
+
+    if node_type != "I" and node_type not in AIF_SCHEME_TYPES:
         return None
 
     metadata = Metadata(from_format(obj.get("timestamp"), aif.DATE_FORMAT))
-    id = stringify_id(obj["nodeID"])
+    id = obj["nodeID"]
 
-    if obj["type"] == "I":
+    if node_type == "I":
         return AtomNode(
-            obj["text"],
+            text,
             metadata=metadata,
             userdata=atom_codec.validate_python({}),
             id=id,
         )
 
     return SchemeNode(
-        resolve_aif_scheme(obj["type"], obj.get("scheme") or obj["text"]),
+        resolve_aif_scheme(node_type, obj.get("scheme") or text),
         metadata=metadata,
         userdata=scheme_codec.validate_python({}),
         id=id,
@@ -161,12 +191,7 @@ class _Index:
     @classmethod
     def from_aif(cls, obj: aif.Graph) -> Self:
         edges = [
-            (
-                stringify_id(edge["edgeID"]),
-                stringify_id(edge["fromID"]),
-                stringify_id(edge["toID"]),
-            )
-            for edge in obj["edges"]
+            (edge["edgeID"], edge["fromID"], edge["toID"]) for edge in obj["edges"]
         ]
         successors: defaultdict[str, list[str]] = defaultdict(list)
         predecessors: defaultdict[str, list[str]] = defaultdict(list)
@@ -176,13 +201,13 @@ class _Index:
             predecessors[target].append(source)
 
         return cls(
-            {stringify_id(node["nodeID"]): node for node in obj["nodes"]},
+            {node["nodeID"]: node for node in obj["nodes"]},
             edges,
             successors,
             predecessors,
         )
 
-    def type(self, id: str) -> aif.NodeType | None:
+    def type(self, id: str) -> str | None:
         return node["type"] if (node := self.nodes.get(id)) else None
 
     def follow(

@@ -165,7 +165,7 @@ def test_lenient_aif():
     # a locution node listed with two speakers, no `locutions` key in the second graph
     nodes = [
         {"nodeID": 1, "text": "I1", "type": "I"},
-        {"nodeID": 2.0, "text": "L2", "type": "L"},
+        {"nodeID": 2, "text": "L2", "type": "L"},
         {"nodeID": "3", "text": "YA3", "type": "YA"},
         {"nodeID": 4, "text": "Default Conflict", "type": "CA", "scheme": None},
     ]
@@ -181,8 +181,3 @@ def test_lenient_aif():
     assert graph.scheme_nodes["4"].label == "Attack"
     assert ag.load.dict({"nodes": nodes, "edges": edges}).nodes.keys() == {"1", "4"}
     assert not ag.load.dict({"AIF": {"nodes": [], "edges": []}, "text": None}).resources
-
-    with pytest.raises(ValueError, match="integer"):
-        ag.load.dict(
-            {"nodes": [{"nodeID": 1.5, "text": "I", "type": "I"}], "edges": []}
-        )

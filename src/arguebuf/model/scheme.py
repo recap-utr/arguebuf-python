@@ -205,11 +205,10 @@ SCHEME_AIF_TYPES: Final[Mapping[type[Scheme], aif.SchemeType]] = MappingProxyTyp
 )
 """AIF node types by their scheme class."""
 
-AIF_SCHEME_TYPES: Final[Mapping[str, type[Scheme] | None]] = MappingProxyType(
+AIF_SCHEME_TYPES: Final[Mapping[str, type[Scheme]]] = MappingProxyType(
     {aif_type: scheme_type for scheme_type, aif_type in SCHEME_AIF_TYPES.items()}
-    | {"": None}
 )
-"""Scheme classes by their AIF node type, untyped schemes map to `None`."""
+"""Scheme classes by their AIF node type."""
 
 SCHEME_AIF_DEFAULTS: Final[Mapping[type[Scheme], str]] = MappingProxyType(
     {
@@ -283,11 +282,9 @@ def resolve_scheme(scheme_type: type[Scheme], text: str) -> Scheme:
     return _text2scheme[scheme_type].get(key, scheme_type.DEFAULT)
 
 
-def resolve_aif_scheme(aif_type: str, text: str) -> Scheme | None:
+def resolve_aif_scheme(aif_type: str, text: str) -> Scheme:
     """Get the scheme of an AIF scheme node, refined by its text if possible.
 
     Callers must ensure that `aif_type` is a key of `AIF_SCHEME_TYPES`.
     """
-    scheme_type = AIF_SCHEME_TYPES[aif_type]
-
-    return resolve_scheme(scheme_type, text) if scheme_type else None
+    return resolve_scheme(AIF_SCHEME_TYPES[aif_type], text)

@@ -1,13 +1,12 @@
 from collections.abc import Mapping
-from typing import Any, TypeIs
+from typing import Any
 
 from arg_services.graph.v1 import graph_pb2
 from google.protobuf import proto_json
 
 from arguebuf.model import Graph
-from arguebuf.model.issue import Reporter
+from arguebuf.model.issue import Reporter, fail
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject
-from arguebuf.schemas import aif, argdown, ova, sadface, xaif
 
 from ._load_aif import load_aif
 from ._load_argdown import load_argdown
@@ -21,23 +20,23 @@ __all__ = ("load_dict",)
 type _Obj = Mapping[str, Any]
 
 
-def _is_xaif(obj: _Obj) -> TypeIs[xaif.Graph]:
+def _is_xaif(obj: _Obj) -> bool:
     return "AIF" in obj
 
 
-def _is_ova(obj: _Obj) -> TypeIs[ova.Graph]:
+def _is_ova(obj: _Obj) -> bool:
     return "analysis" in obj
 
 
-def _is_sadface(obj: _Obj) -> TypeIs[sadface.Graph]:
+def _is_sadface(obj: _Obj) -> bool:
     return isinstance(metadata := obj.get("metadata"), Mapping) and "core" in metadata
 
 
-def _is_argdown(obj: _Obj) -> TypeIs[argdown.Graph]:
+def _is_argdown(obj: _Obj) -> bool:
     return {"statements", "arguments", "relations"} <= obj.keys()
 
 
-def _is_aif(obj: _Obj) -> TypeIs[aif.Graph]:
+def _is_aif(obj: _Obj) -> bool:
     return isinstance(obj.get("nodes"), list)
 
 
@@ -60,12 +59,17 @@ def load_dict[
 ) -> Graph[A, S, E, R, P, N, G]:
     """Generate Graph structure from a dict, detecting its format by its keys.
 
-    The checks are applied in order: `AIF` (xAIF), `analysis` (OVA),
+    The format is detected by the first marker that matches, a matching but invalid input
+    raises a `GraphError` of code `invalid-input` instead of trying the next format.
+    The markers are checked in order: `AIF` (xAIF), `analysis` (OVA),
     `metadata.core` (SADFace),
     `statements` with `arguments` and `relations` (Argdown JSON export),
     `nodes` as a list (AIF), and protobuf JSON otherwise.
     `reconstruct_dialog` only applies to AIF and xAIF graphs (see `load_aif`).
     """
+    if not isinstance(obj, Mapping):
+        fail("invalid-input", "The input is not a JSON object.")
+
     if _is_xaif(obj):
         return load_xaif(
             obj,
@@ -77,16 +81,30 @@ def load_dict[
         )
 
     if _is_ova(obj):
-        return load_ova(obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict)
+        return load_ova(
+            obj,
+            name=name,
+            codecs=codecs,
+            on_issue=on_issue,
+            strict=strict,
+        )
 
     if _is_sadface(obj):
         return load_sadface(
-            obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict
+            obj,
+            name=name,
+            codecs=codecs,
+            on_issue=on_issue,
+            strict=strict,
         )
 
     if _is_argdown(obj):
         return load_argdown(
-            obj, name=name, codecs=codecs, on_issue=on_issue, strict=strict
+            obj,
+            name=name,
+            codecs=codecs,
+            on_issue=on_issue,
+            strict=strict,
         )
 
     if _is_aif(obj):

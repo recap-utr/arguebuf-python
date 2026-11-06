@@ -6,6 +6,9 @@ from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from typing import Protocol
 
+from pydantic import TypeAdapter, ValidationError
+from pydantic_core import ErrorDetails
+
 from arguebuf.model import GraphDraft
 from arguebuf.model.edge import Edge
 from arguebuf.model.issue import (
@@ -14,6 +17,7 @@ from arguebuf.model.issue import (
     IssueCode,
     Reporter,
     catch_graph_error,
+    fail,
     issue,
     warn,
 )
@@ -34,7 +38,7 @@ __all__ = (
     "new_participant",
     "new_reference",
     "relocate",
-    "stringify_id",
+    "validate",
 )
 
 
@@ -86,30 +90,28 @@ class Context[A, S, E, R, P, N, G]:
         return error
 
 
-def stringify_id(value: str | float) -> str:
-    """Convert an id of a JSON format to a string, numbers must be safe integers.
+def validate[T](format: str, schema: TypeAdapter[T], obj: Mapping[str, object]) -> T:
+    """Validate an input against the schema of its format.
 
-    Examples:
-        >>> stringify_id(1), stringify_id(2.0), stringify_id("a")
-        ('1', '2', 'a')
-        >>> stringify_id(1.5)
-        Traceback (most recent call last):
-        ValueError: ...
+    Unknown keys are ignored, all problems are raised as one `GraphError`
+    of code `invalid-input`, independent of the strict option.
     """
-    if isinstance(value, str):
-        return value
+    try:
+        return schema.validate_python(obj)
+    except ValidationError as error:
+        problems = "; ".join(map(_problem, error.errors()))
 
-    if (
-        isinstance(value, bool)
-        or not -(2**53 - 1) <= value <= 2**53 - 1
-        or not float(value).is_integer()
-    ):
-        raise ValueError(f"The id {value!r} is neither a string nor a safe integer.")
-
-    return str(int(value))
+        fail("invalid-input", f"The {format} input is invalid: {problems}")
 
 
-def new_participant[P](codec: Codec[P], id: str, *names: str) -> Participant[P]:
+def _problem(item: ErrorDetails) -> str:
+    loc = item["loc"]
+    message = item["msg"].removeprefix("Value error, ")
+
+    return f"{'.'.join(map(str, loc))}: {message}" if loc else message
+
+
+def new_participant[P](codec: Codec[P], id: str, *names: str | None) -> Participant[P]:
     """Create a participant without userdata named by joining the non-empty `names`."""
     return Participant(
         " ".join(filter(None, names)) or None,

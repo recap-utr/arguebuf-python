@@ -1,4 +1,7 @@
 import dataclasses
+from collections.abc import Mapping
+
+from pydantic import TypeAdapter
 
 from arguebuf._dt import from_format
 from arguebuf.model import Graph, GraphDraft
@@ -20,11 +23,13 @@ from ._helpers import (
     lookup,
     new_participant,
     relocate,
-    stringify_id,
+    validate,
 )
 from ._html import parse_html
 
 __all__ = ("load_ova",)
+
+_SCHEMA = TypeAdapter(ova.Graph)
 
 
 def load_ova[
@@ -36,7 +41,7 @@ def load_ova[
     N = JsonObject,
     G = JsonObject,
 ](
-    obj: ova.Graph,
+    obj: Mapping[str, object],
     *,
     name: str | None = None,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
@@ -49,13 +54,18 @@ def load_ova[
     The resource text is the plain text of the highlighted `txt` (see `parse_html`),
     falling back to `plain_txt`.
     Spans with the id `node<atom id>` become references with offsets into it.
-    Dialog nodes (L, TA, YA) and their edges are skipped.
+    Dialog nodes (L, TA, YA) are skipped silently, nodes of unknown types with a warning.
     Numeric ids are converted to strings.
+    The descriptor values are atom ids as in ReCAP-OVA exports,
+    stock OVA2 files store node texts or "-" there.
+    A `participantID` of `0` means no participant.
+    The input is validated first, raising a `GraphError` of code `invalid-input`.
     """
+    ova_obj = validate("OVA", _SCHEMA, obj)
     g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
         name, userdata=codecs.graph.validate_python({})
     )
-    analysis = obj["analysis"]
+    analysis = ova_obj["analysis"]
     ctx = Context(codecs, on_issue, strict)
     text, spans = parse_html(analysis.get("txt") or "")
     resource: Resource[R] | None = None
@@ -72,13 +82,13 @@ def load_ova[
         )
         g.add_resource(resource)
 
-    for participant in obj["participants"]:
+    for participant in ova_obj["participants"]:
         g.add_participant(
             new_participant(
                 codecs.participant,
-                stringify_id(participant["id"]),
-                participant["firstname"],
-                participant["surname"],
+                participant["id"],
+                participant.get("firstname"),
+                participant.get("surname"),
             )
         )
 
@@ -87,8 +97,13 @@ def load_ova[
             Analyst(analyst_name, userdata=codecs.analyst.validate_python({}))
         )
 
-    for ova_node in obj["nodes"]:
-        if ova_node["type"] == "I":
+    # edges of skipped nodes are expected to be missing, unlike dangling ones
+    skipped: set[str] = set()
+
+    for ova_node in ova_obj["nodes"]:
+        node_id, node_type = ova_node["id"], ova_node["type"]
+
+        if node_type == "I":
             atom = atom_from_ova(ova_node, codecs.atom)
             span = spans.get(f"node{atom.id}")
             atom = dataclasses.replace(
@@ -121,22 +136,25 @@ def load_ova[
         elif scheme := scheme_from_ova(ova_node, codecs.scheme):
             add_node(g, ctx, scheme)
 
-    # edges of dialog nodes are expected to be missing, unlike dangling ones
-    dialog = {
-        stringify_id(node["id"])
-        for node in obj["nodes"]
-        if node["type"] in aif.DIALOG_TYPES
-    }
+        else:
+            skipped.add(node_id)
 
-    for ova_edge in obj["edges"]:
+            if node_type not in aif.DIALOG_TYPES:
+                ctx.report(
+                    "unknown-element",
+                    f"Skipping node '{node_id}' of unknown type '{node_type}'.",
+                    [node_id],
+                )
+
+    for ova_edge in ova_obj["edges"]:
         add_edge(
             g,
             ctx,
-            stringify_id(ova_edge["from"]["id"]),
-            stringify_id(ova_edge["to"]["id"]),
+            ova_edge["from"]["id"],
+            ova_edge["to"]["id"],
             uuid(),
             metadata=_metadata(ova_edge),
-            ignore=dialog,
+            ignore=skipped,
         )
 
     relocate(g, ctx)
@@ -153,13 +171,13 @@ def scheme_from_ova[S](obj: ova.Node, codec: Codec[S]) -> SchemeNode[S] | None:
         resolve_aif_scheme(obj["type"], obj["text"]),
         # descriptors map roles to atom ids, the conclusion is not a premise
         premise_descriptors=[
-            stringify_id(node_id)
-            for role, node_id in obj["descriptors"].items()
+            node_id
+            for role, node_id in (obj.get("descriptors") or {}).items()
             if node_id is not None and not role.casefold().startswith("s_conclusion")
         ],
         metadata=_metadata(obj),
         userdata=codec.validate_python({}),
-        id=stringify_id(obj["id"]),
+        id=obj["id"],
     )
 
 
@@ -169,7 +187,7 @@ def atom_from_ova[A](obj: ova.Node, codec: Codec[A]) -> AtomNode[A]:
         obj["text"],
         metadata=_metadata(obj),
         userdata=codec.validate_python({}),
-        id=stringify_id(obj["id"]),
+        id=obj["id"],
     )
 
 

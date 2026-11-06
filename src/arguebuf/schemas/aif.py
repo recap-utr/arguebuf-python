@@ -1,4 +1,8 @@
+"""Subset of the AIF and xAIF graph read and written by arguebuf."""
+
 import typing as t
+
+from ._types import Id
 
 __all__ = (
     "DATE_FORMAT",
@@ -14,49 +18,54 @@ __all__ = (
     "SchemeType",
 )
 
-type SchemeType = t.Literal["RA", "CA", "MA", "PA", ""]
+type SchemeType = t.Literal["RA", "CA", "MA", "PA"]
 type DialogType = t.Literal["L", "TA", "YA"]
 type NodeType = SchemeType | DialogType | t.Literal["I"]
-# AIFdb uses strings, xAIF tools mostly integers, loaders convert them to strings
-type Id = str | int
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DIALOG_TYPES: frozenset[str] = frozenset(("L", "TA", "YA"))
 
 
 class Node(t.TypedDict):
-    nodeID: t.ReadOnly[Id]
-    text: t.ReadOnly[str]
-    type: t.ReadOnly[NodeType]
-    timestamp: t.NotRequired[str]
-    scheme: t.NotRequired[t.ReadOnly[str | None]]
-    schemeID: t.NotRequired[t.ReadOnly[Id]]
+    """Node of an AIF graph, unknown types are skipped by the loader."""
+
+    nodeID: Id
+    text: str
+    type: str
+    timestamp: t.NotRequired[str | None]
+    scheme: t.NotRequired[str | None]
 
 
 class Edge(t.TypedDict):
-    edgeID: t.ReadOnly[Id]
-    fromID: t.ReadOnly[Id]
-    toID: t.ReadOnly[Id]
-    formEdgeID: t.NotRequired[t.ReadOnly[Id | None]]
+    """Edge of an AIF graph."""
+
+    edgeID: Id
+    fromID: Id
+    toID: Id
+    formEdgeID: t.NotRequired[Id | None]
 
 
 class Locution(t.TypedDict):
-    nodeID: t.ReadOnly[Id]
-    personID: t.ReadOnly[Id]
-    timestamp: t.NotRequired[t.ReadOnly[str]]
-    start: t.NotRequired[t.ReadOnly[str | None]]
-    end: t.NotRequired[t.ReadOnly[str | None]]
-    source: t.NotRequired[t.ReadOnly[str | None]]
+    """Utterance of a participant, linked to a locution node."""
+
+    nodeID: Id
+    personID: Id
 
 
 class Participant(t.TypedDict):
-    participantID: t.ReadOnly[Id]
-    firstname: t.NotRequired[t.ReadOnly[str]]
-    surname: t.NotRequired[t.ReadOnly[str]]
+    """Person of a dialog."""
+
+    participantID: Id
+    firstname: t.NotRequired[str | None]
+    surname: t.NotRequired[str | None]
 
 
 class Graph(t.TypedDict):
-    nodes: t.ReadOnly[list[Node]]
-    edges: t.ReadOnly[list[Edge]]
-    locutions: t.NotRequired[t.ReadOnly[list[Locution] | None]]
-    # only part of xAIF, AIFdb stores the participants separately
-    participants: t.NotRequired[t.ReadOnly[list[Participant] | None]]
+    """AIF graph, also the `AIF` part of xAIF.
+
+    The participants are only part of xAIF, AIFdb stores them separately.
+    """
+
+    nodes: list[Node]
+    edges: list[Edge]
+    locutions: t.NotRequired[list[Locution] | None]
+    participants: t.NotRequired[list[Participant] | None]

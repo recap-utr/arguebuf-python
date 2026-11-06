@@ -1,73 +1,93 @@
-"""Subset of the Argdown JSON export (https://argdown.org) read by the loader."""
+"""Subset of the Argdown JSON export (https://argdown.org) read by arguebuf."""
 
 import typing as t
 
-from arguebuf.model.userdata import JsonObject, JsonValue
+from arguebuf.model.userdata import JsonObject
 
 __all__ = (
     "Argument",
     "EquivalenceClass",
     "Graph",
     "Inference",
-    "MemberType",
+    "Member",
     "Relation",
-    "RelationType",
     "Statement",
 )
 
-type MemberType = t.Literal["equivalence-class", "argument", "inference"]
-type RelationType = t.Literal[
-    "support", "entails", "attack", "undercut", "contrary", "contradictory"
-]
-
 
 class Inference(t.TypedDict):
-    inferenceRules: t.NotRequired[t.ReadOnly[list[JsonValue]]]
-    data: t.NotRequired[t.ReadOnly[JsonObject]]
+    """Inference of a conclusion."""
+
+    inferenceRules: t.NotRequired[list[str] | None]
+    data: t.NotRequired[JsonObject | None]
+
+
+class Member(t.TypedDict):
+    """Statement that is a member of an equivalence class or an argument.
+
+    Any truthy `isReference` marks a reference.
+    """
+
+    text: t.NotRequired[str | None]
+    isReference: t.NotRequired[object]
+    data: t.NotRequired[JsonObject | None]
 
 
 class Statement(t.TypedDict):
-    title: t.NotRequired[t.ReadOnly[str]]
-    text: t.NotRequired[t.ReadOnly[str]]
-    role: t.NotRequired[t.ReadOnly[str]]
-    isReference: t.NotRequired[t.ReadOnly[bool]]
-    data: t.NotRequired[t.ReadOnly[JsonObject]]
-    inference: t.NotRequired[t.ReadOnly[Inference]]
+    """Statement of a premise conclusion structure, a conclusion has an inference."""
+
+    title: str
+    role: t.NotRequired[str | None]
+    data: t.NotRequired[JsonObject | None]
+    inference: t.NotRequired[Inference | None]
 
 
 class EquivalenceClass(t.TypedDict):
-    title: t.ReadOnly[str]
-    members: t.ReadOnly[list[Statement]]
-    tags: t.NotRequired[t.ReadOnly[list[JsonValue]]]
-    data: t.NotRequired[t.ReadOnly[JsonObject]]
+    """Statement defined by its members."""
+
+    title: str
+    members: list[Member]
+    tags: t.NotRequired[list[str] | None]
+    data: t.NotRequired[JsonObject | None]
 
 
 class Argument(t.TypedDict):
-    title: t.ReadOnly[str]
-    members: t.ReadOnly[list[Statement]]
-    pcs: t.ReadOnly[list[Statement]]
-    tags: t.NotRequired[t.ReadOnly[list[JsonValue]]]
-    data: t.NotRequired[t.ReadOnly[JsonObject]]
+    """Argument, reconstructed if it has premise conclusion statements (`pcs`)."""
+
+    title: str
+    members: list[Member]
+    pcs: list[Statement]
+    tags: t.NotRequired[list[str] | None]
+    data: t.NotRequired[JsonObject | None]
 
 
-# Members are referenced by title, inferences by argument title and `conclusionIndex`.
-# `from` is a keyword and thus requires the functional syntax.
+# `from` is a keyword and thus requires the functional syntax
 Relation = t.TypedDict(
     "Relation",
     {
-        "relationType": t.ReadOnly[RelationType],
-        "from": t.ReadOnly[str],
-        "fromType": t.ReadOnly[MemberType],
-        "to": t.ReadOnly[str],
-        "toType": t.ReadOnly[MemberType],
-        "conclusionIndex": t.NotRequired[t.ReadOnly[int]],
+        "relationType": str,
+        "from": str,
+        "fromType": str,
+        "to": str,
+        "toType": str,
+        "conclusionIndex": t.NotRequired[int | None],
     },
 )
+"""Relation between members of the types `equivalence-class`, `argument`, or `inference`.
+
+Members are referenced by title, inferences by argument title and `conclusionIndex`.
+The loader skips unknown relation and member types.
+"""
 
 
 class Graph(t.TypedDict):
-    statements: t.ReadOnly[dict[str, EquivalenceClass]]
-    arguments: t.ReadOnly[dict[str, Argument]]
-    relations: t.ReadOnly[list[Relation]]
-    # not part of the upstream export, added by arguebuf-typescript's `loadArgdown`
-    frontMatter: t.NotRequired[t.ReadOnly[JsonObject]]
+    """Argdown JSON export.
+
+    The `frontMatter` is not part of the upstream export,
+    it is added by arguebuf-typescript's `loadArgdown`.
+    """
+
+    statements: dict[str, EquivalenceClass]
+    arguments: dict[str, Argument]
+    relations: list[Relation]
+    frontMatter: t.NotRequired[JsonObject | None]

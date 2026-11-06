@@ -59,6 +59,60 @@ def test_load_repairs() -> None:
         ag.load.dict(MALFORMED, strict=True)
 
 
+def test_invalid_input() -> None:
+    node = {"nodeID": 1, "text": "a", "type": "I"}
+
+    with pytest.raises(ag.GraphError) as info:
+        ag.load.dict({"nodes": [{"nodeID": 1, "type": "I"}], "edges": []})
+
+    assert info.value.issue.code == "invalid-input"
+    assert info.value.issue.severity == "error"
+    assert info.value.issue.hint == "Check the input against the specification of its format."
+    assert str(info.value) == "The AIF input is invalid: nodes.0.text: Field required"
+
+    with pytest.raises(ag.GraphError, match=r"nodes\.0\.nodeID: .*valid string"):
+        ag.load.dict({"nodes": [{**node, "nodeID": True}], "edges": []}, strict=False)
+
+    assert ag.load.dict({"nodes": [node], "edges": []}).atom_nodes.keys() == {"1"}
+
+    with pytest.raises(ag.GraphError, match="not a JSON object"):
+        ag.load.dict(json.loads("null"))
+
+
+def test_unread_and_lenient_fields() -> None:
+    issues: list[ag.Issue] = []
+    graph = ag.load.dict(
+        {
+            "nodes": [
+                {"nodeID": 1, "text": "a", "type": "I"},
+                {"nodeID": 2, "text": "b", "type": "unknown"},
+                {"nodeID": 3, "text": "c", "type": "L"},
+            ],
+            "edges": [
+                {"edgeID": 1, "fromID": 2, "toID": 1},
+                {"edgeID": 2, "fromID": 3, "toID": 1},
+            ],
+        },
+        on_issue=issues.append,
+    )
+
+    assert graph.atom_nodes.keys() == {"1"}
+    assert [(i.code, i.message, i.elements) for i in issues] == [
+        ("unknown-element", "Skipping node '2' of unknown type 'unknown'.", ("2",))
+    ]
+
+    ova = ag.load.dict(
+        {
+            "analysis": {},
+            "participants": [],
+            "edges": [],
+            "nodes": [{"id": 1, "text": "a", "type": "I", "x": "bad"}],
+        }
+    )
+
+    assert ova.atom_nodes["1"].participant is None
+
+
 def test_check() -> None:
     resource = ag.Resource(SOURCE, id="r")
     g = ag.GraphDraft()

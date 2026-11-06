@@ -100,6 +100,10 @@ The loaders in `ag.load` support the following formats:
 - [BRAT](https://brat.nlplab.org) standoff annotations (`ag.load.brat`).
 - The XML formats of the [Microtexts](https://github.com/peldszus/arg-microtexts) corpus (`ag.load.microtexts`) and [Araucaria](https://arg-tech.org) (`ag.load.aml`).
 
+The format loaders `aif`, `xaif`, `ova`, `sadface`, and `argdown` validate their JSON objects against the typed dicts of `ag.schemas`, which also type the output of the AIF and xAIF dumpers.
+The schemas contain only the fields the loaders read and ignore unknown keys.
+Ids may be strings or numbers, which are converted to strings, node and relation types are plain strings so that unknown ones are skipped with a warning.
+
 JSON objects are passed to `ag.load.dict`, which detects their format by checking the following keys in order.
 
 1. An `AIF` key denotes xAIF.
@@ -163,8 +167,8 @@ Loaders are lenient.
 They repair what they can and skip the rest: an edge between two atoms gets an untyped scheme in between, while self-loops, duplicate connections, duplicate nodes, and elements referencing unknown ones are skipped.
 References whose text is not found at their offset are moved to the most similar span of their resource (see `draft.relocate_references`).
 Each repair is reported as a warning to the `on_issue` callback, which defaults to logging it, and `strict=True` raises a `GraphError` instead.
-Malformed values such as unparsable dates always raise an error.
-Loaders do not copy the objects they read, so the userdata of a graph may share objects with the input.
+Malformed values such as unparsable dates always raise an error, and so does structurally invalid input (`invalid-input`), which is independent of `strict`.
+The JSON format loaders copy their input while validating it.
 
 ### Issues
 
@@ -243,7 +247,8 @@ gv_graph = ag.dump.graphviz(graph)
 d2_graph = ag.dump.d2(graph)
 ```
 
-AIF and xAIF exports are lossy, they do not contain locutions, participants of atom nodes, or userdata.
+AIF and xAIF exports are lossy, they do not contain locutions, participants of atom nodes, or userdata, and untyped scheme nodes become default inferences (RA) as in AIFdb.
+xAIF exports contain no OVA layout, so OVA3 should import AIF exports instead.
 
 ### Userdata
 

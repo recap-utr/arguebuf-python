@@ -4,15 +4,14 @@ import io
 import logging
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import override
+from typing import Any, override
 
 import pytest
 from arg_services.graph.v1 import graph_pb2
 
 import arguebuf as ag
-from arguebuf.load._helpers import stringify_id
 from arguebuf.load._html import Span, parse_html
-from arguebuf.schemas import aif, ova
+from arguebuf.schemas import aif
 
 KIALO = """Discussion Title: Title
 
@@ -179,7 +178,7 @@ def test_sadface():
 
 
 def test_ova(caplog: pytest.LogCaptureFixture) -> None:
-    def node(id: int, type: aif.NodeType, text: str) -> ova.Node:
+    def node(id: int, type: aif.NodeType, text: str) -> dict[str, Any]:
         return {
             "id": id,
             "type": type,
@@ -193,23 +192,23 @@ def test_ova(caplog: pytest.LogCaptureFixture) -> None:
             "scheme": "",
             "cqdesc": {},
             "visible": True,
-            "participantID": "",
+            "participantID": "0",
             "imgurl": None,
         }
 
-    claim: ova.Node = {
+    claim: dict[str, Any] = {
         **node(1, "I", "A & B"),
         "majorClaim": True,
         "date": "23/03/2019 - 15:57:30",
         "participantID": "7",
     }
     premise = node(2, "I", "C")
-    scheme: ova.Node = {
+    scheme: dict[str, Any] = {
         **node(3, "RA", "ExpertOpinion"),
         "descriptors": {"s_Conclusion": 1, "s_Premise": 2, "s_Other": None},
     }
     locution = node(4, "L", "Bob: C")
-    obj: ova.Graph = {
+    obj: dict[str, Any] = {
         "nodes": [claim, premise, scheme, locution],
         "edges": [
             {
@@ -270,15 +269,76 @@ def test_ova(caplog: pytest.LogCaptureFixture) -> None:
     assert "unknown participant 'missing'" in caplog.text
 
 
+def test_ova_no_participant(caplog: pytest.LogCaptureFixture) -> None:
+    for value in ("0", 0):
+        node = {"id": 1, "type": "I", "text": "A", "participantID": value}
+        graph = ag.load.dict(
+            {"nodes": [node], "edges": [], "participants": [], "analysis": {}}
+        )
+
+        assert graph.atom_nodes["1"].participant is None
+
+    assert not caplog.text
+
+
+def test_null_optionals() -> None:
+    sadface = {
+        "nodes": [{"id": 1, "type": "atom", "text": None, "metadata": None}],
+        "edges": [],
+        "metadata": {"core": {"title": None, "version": None}},
+    }
+    aif_node = {"nodeID": 1, "text": "", "type": "I", "timestamp": None}
+    aif_participant = {"participantID": 1, "firstname": None, "surname": None}
+
+    assert ag.load.dict(sadface).atom_nodes["1"].text == ""
+    assert ag.load.dict({"nodes": [aif_node], "edges": []}).atom_nodes
+    assert ag.load.dict(
+        {"AIF": {"nodes": [], "edges": [], "participants": [aif_participant]}}
+    ).participants
+
+    for offset, valid in ((1.0, True), (1.5, False)):
+        source = {"resource_id": 1, "text": "x", "offset": offset}
+        node = {"id": 1, "type": "atom", "text": "x", "sources": [source]}
+        obj = {**sadface, "nodes": [node], "resources": [{"id": 1}]}
+
+        if valid:
+            assert ag.load.dict(obj).atom_nodes
+        else:
+            with pytest.raises(ag.GraphError, match="offset"):
+                ag.load.dict(obj)
+
+
 def test_numeric_ids() -> None:
-    for value in (-(2**53 - 1), 0, 2**53 - 1):
-        assert stringify_id(value) == str(value)
+    def load(value: object) -> ag.Graph:
+        return ag.load.dict(
+            {"nodes": [{"nodeID": value, "text": "", "type": "I"}], "edges": []}
+        )
 
-    assert stringify_id("9007199254740992") == "9007199254740992"
+    for value in (0, 2**60, 1.5):
+        assert load(value).atom_nodes.keys() == {str(value)}
 
-    for value in (-(2**53), 2**53, 1e21, 1.5, True):
-        with pytest.raises(ValueError, match="safe integer"):
-            stringify_id(value)
+    for value in (True, None, {}):
+        with pytest.raises(ag.GraphError, match="valid string"):
+            load(value)
+
+
+def test_argdown_unknown_member_type(caplog: pytest.LogCaptureFixture) -> None:
+    relation = {
+        "relationType": "support",
+        "from": "A",
+        "fromType": "unknown",
+        "to": "A",
+        "toType": "equivalence-class",
+        "conclusionIndex": None,
+    }
+    statement = {"title": "A", "members": [], "tags": None, "data": None}
+    graph = ag.load.dict(
+        {"statements": {"A": statement}, "arguments": {}, "relations": [relation]}
+    )
+
+    assert len(graph.atom_nodes) == 1
+    assert not graph.scheme_nodes
+    assert "unknown" in caplog.text
 
 
 def test_dict_argdown():

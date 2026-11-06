@@ -1,69 +1,75 @@
+"""Subset of the SADFace graph read by arguebuf."""
+
 import typing as t
 
 from arguebuf.model.userdata import JsonObject
 
-__all__ = (
-    "Core",
-    "Edge",
-    "Graph",
-    "Metadata",
-    "Node",
-    "NodeType",
-    "Resource",
-    "Source",
-)
+from ._types import Id
 
-# `scheme` is the generic type of older versions, it is refined by its name
-type NodeType = t.Literal["atom", "scheme", "inference", "conflict"]
+__all__ = ("Core", "Edge", "Graph", "Metadata", "Node", "Resource", "Source")
 
 
 class Source(t.TypedDict):
-    resource_id: t.ReadOnly[str]
-    text: t.ReadOnly[str]
-    offset: t.NotRequired[t.ReadOnly[int]]
-    length: t.NotRequired[t.ReadOnly[int]]
+    """Passage of a resource."""
+
+    resource_id: Id
+    text: str
+    offset: t.NotRequired[int | None]
 
 
 class Node(t.TypedDict):
-    id: t.ReadOnly[str]
-    type: t.ReadOnly[NodeType]
-    text: t.NotRequired[t.ReadOnly[str]]
-    name: t.NotRequired[t.ReadOnly[str]]
-    sources: t.NotRequired[t.ReadOnly[list[Source]]]
-    metadata: t.NotRequired[t.ReadOnly[JsonObject]]
+    """Node of a SADFace graph, unknown types are skipped by the loader.
+
+    The type `scheme` is the generic type of older versions, it is refined by its name.
+    """
+
+    id: Id
+    type: str
+    text: t.NotRequired[str | None]
+    name: t.NotRequired[str | None]
+    sources: t.NotRequired[list[Source] | None]
+    metadata: t.NotRequired[JsonObject | None]
 
 
 class Edge(t.TypedDict):
-    id: t.ReadOnly[str]
-    source_id: t.ReadOnly[str]
-    target_id: t.ReadOnly[str]
+    """Edge of a SADFace graph."""
+
+    id: Id
+    source_id: Id
+    target_id: Id
 
 
 class Resource(t.TypedDict):
-    id: t.ReadOnly[str]
-    content: t.NotRequired[t.ReadOnly[str]]
-    type: t.NotRequired[t.ReadOnly[str]]
-    metadata: t.NotRequired[t.ReadOnly[JsonObject]]
+    """Source document."""
+
+    id: Id
+    content: t.NotRequired[str | None]
+    metadata: t.NotRequired[JsonObject | None]
 
 
 class Core(t.TypedDict):
-    id: t.ReadOnly[str]
-    version: t.ReadOnly[str]
-    analyst_email: t.NotRequired[t.ReadOnly[str]]
-    analyst_name: t.NotRequired[t.ReadOnly[str]]
-    created: t.NotRequired[t.ReadOnly[str]]
-    edited: t.NotRequired[t.ReadOnly[str]]
-    description: t.NotRequired[t.ReadOnly[str]]
-    notes: t.NotRequired[t.ReadOnly[str]]
-    title: t.NotRequired[t.ReadOnly[str]]
+    """Metadata of the graph."""
+
+    version: t.NotRequired[str | None]
+    analyst_email: t.NotRequired[str | None]
+    analyst_name: t.NotRequired[str | None]
+    created: t.NotRequired[str | None]
+    edited: t.NotRequired[str | None]
+    description: t.NotRequired[str | None]
+    notes: t.NotRequired[str | None]
+    title: t.NotRequired[str | None]
 
 
 class Metadata(t.TypedDict):
-    core: t.ReadOnly[Core]
+    """Container of the core metadata."""
+
+    core: Core
 
 
 class Graph(t.TypedDict):
-    nodes: t.ReadOnly[list[Node]]
-    edges: t.ReadOnly[list[Edge]]
-    metadata: t.ReadOnly[Metadata]
-    resources: t.NotRequired[t.ReadOnly[list[Resource]]]
+    """SADFace graph."""
+
+    nodes: list[Node]
+    edges: list[Edge]
+    metadata: Metadata
+    resources: t.NotRequired[list[Resource] | None]

@@ -7,6 +7,7 @@ from arguebuf.load._load_aif import node_from_aif
 from arguebuf.load._load_aml import atom_from_aml, scheme_from_aml
 from arguebuf.load._load_sadface import atom_from_sadface, scheme_from_sadface
 from arguebuf.model.userdata import JSON_CODEC, Codecs
+from arguebuf.schemas import aif, sadface
 
 
 def test_aml_atom() -> None:
@@ -23,7 +24,10 @@ def test_aml_atom() -> None:
 
 def test_sadface_atom() -> None:
     node = atom_from_sadface(
-        {"id": "a", "text": "Claim", "type": "atom"}, {}, Context(Codecs()), JSON_CODEC
+        sadface.Node(id="a", text="Claim", type="atom"),
+        {},
+        Context(Codecs()),
+        JSON_CODEC,
     )
 
     assert node.id == "a"
@@ -34,12 +38,9 @@ def test_sadface_atom() -> None:
 
 def test_aif_atom() -> None:
     node = node_from_aif(
-        {
-            "nodeID": "a",
-            "text": "Claim",
-            "type": "I",
-            "timestamp": "2015-12-14 12:09:15",
-        },
+        aif.Node(
+            nodeID="a", text="Claim", type="I", timestamp="2015-12-14 12:09:15"
+        ),
         JSON_CODEC,
         JSON_CODEC,
     )
@@ -58,7 +59,7 @@ def test_aif_atom() -> None:
 
 def test_sadface_scheme() -> None:
     node = scheme_from_sadface(
-        {"id": "s", "name": "support", "type": "scheme"}, JSON_CODEC
+        sadface.Node(id="s", name="support", type="scheme"), JSON_CODEC
     )
 
     assert node.id == "s"
@@ -67,7 +68,7 @@ def test_sadface_scheme() -> None:
 
 def test_aif_scheme() -> None:
     node = node_from_aif(
-        {"nodeID": "s", "text": "Default Inference", "type": "RA"},
+        aif.Node(nodeID="s", text="Default Inference", type="RA"),
         JSON_CODEC,
         JSON_CODEC,
     )

@@ -27,6 +27,7 @@ type IssueCode = Literal[
     "atom-edge",
     "parallel-edge",
     "invalid-patch",
+    "invalid-input",
     "unknown-scheme",
     "untyped-scheme",
     "reference-mismatch",
@@ -63,6 +64,7 @@ _ERRORS: Final[frozenset[IssueCode]] = frozenset(
         "atom-edge",
         "parallel-edge",
         "invalid-patch",
+        "invalid-input",
         "untyped-scheme",
     )
 )
@@ -74,6 +76,7 @@ _HINTS: Final[dict[IssueCode, str]] = {
     "self-loop": "Connect the node to another node.",
     "atom-edge": "Connect atoms through a scheme node.",
     "parallel-edge": "Remove the duplicate connection.",
+    "invalid-input": "Check the input against the specification of its format.",
     "untyped-scheme": "Set the type to support, attack, rephrase, or preference.",
     "unknown-scheme": "Use a scheme of the type, e.g. Expert Opinion, or omit it.",
     "reference-mismatch": "Quote the source text verbatim.",

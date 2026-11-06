@@ -3,6 +3,8 @@ from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import Final
 
+from pydantic import TypeAdapter
+
 from arguebuf.model import Graph, GraphDraft
 from arguebuf.model.issue import Reporter
 from arguebuf.model.node import AtomNode, Node, SchemeNode
@@ -11,12 +13,14 @@ from arguebuf.model.userdata import DEFAULT_CODECS, Codecs, JsonObject, JsonValu
 from arguebuf.model.utils import uuid
 from arguebuf.schemas import argdown
 
-from ._helpers import Context, add_edge, compact, connect, lookup
+from ._helpers import Context, add_edge, compact, connect, lookup, validate
 
 __all__ = ("load_argdown",)
 
+_SCHEMA = TypeAdapter(argdown.Graph)
+
 # scheme of a relation and whether it also applies in the opposite direction
-_RELATION_SCHEMES: Final[Mapping[argdown.RelationType, tuple[Scheme, bool]]] = (
+_RELATION_SCHEMES: Final[Mapping[str, tuple[Scheme, bool]]] = (
     MappingProxyType(
         {
             "support": (Support.DEFAULT, False),
@@ -34,13 +38,13 @@ def _userdata(**fields: JsonValue) -> JsonObject:
     return {"argdown": compact(fields)}
 
 
-def _canonical_text(members: Sequence[argdown.Statement]) -> str | None:
+def _canonical_text(members: Sequence[argdown.Member]) -> str | None:
     """Text of the last defining member, preferring members marked as canonical (upstream rule)."""
     definitions = [member for member in members if not member.get("isReference")]
     canonical = [
         member
         for member in definitions
-        if member.get("data", {}).get("isCanonical") is True
+        if (data := member.get("data")) and data.get("isCanonical")
     ]
 
     if (candidates := canonical or definitions) and (
@@ -51,8 +55,16 @@ def _canonical_text(members: Sequence[argdown.Statement]) -> str | None:
     return None
 
 
+def _integer(value: JsonValue) -> int | None:
+    """Integers, including integral floats such as `1.0`, are valid numbers."""
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+
+    return value if type(value) is int else None
+
+
 def _is_conclusion(statement: argdown.Statement) -> bool:
-    return "inference" in statement and statement.get("role") in (
+    return statement.get("inference") is not None and statement.get("role") in (
         "intermediary-conclusion",
         "main-conclusion",
     )
@@ -62,10 +74,11 @@ def _premises(argument: argdown.Argument, index: int) -> list[argdown.Statement]
     """Premises of the conclusion at `index`, its `uses` or all statements back to the previous conclusion."""
     pcs = argument["pcs"]
     conclusion = pcs[index]
-    uses = conclusion.get("inference", {}).get("data", {}).get("uses")
+    inference = conclusion.get("inference")
+    uses = data.get("uses") if inference and (data := inference.get("data")) else None
 
-    if uses is None:
-        uses = conclusion.get("data", {}).get("uses")
+    if uses is None and (data := conclusion.get("data")):
+        uses = data.get("uses")
 
     if uses is None:
         start = index - 1
@@ -75,15 +88,16 @@ def _premises(argument: argdown.Argument, index: int) -> list[argdown.Statement]
 
         return pcs[max(start, 0) : index]
 
-    if not isinstance(uses, list) or not all(
-        type(n) is int and 1 <= n <= index for n in uses
+    numbers = [_integer(n) for n in uses] if isinstance(uses, list) else None
+
+    if numbers is None or not all(
+        n is not None and 1 <= n <= index for n in numbers
     ):
         raise ValueError(
             f"Invalid 'uses' {json.dumps(uses)} of statement {index + 1} in argument '{argument['title']}'."
         )
 
-    # the filter only narrows the type of the validated numbers
-    return [pcs[n - 1] for n in uses if type(n) is int]
+    return [pcs[n - 1] for n in numbers if n is not None]
 
 
 def load_argdown[
@@ -95,7 +109,7 @@ def load_argdown[
     N = JsonObject,
     G = JsonObject,
 ](
-    obj: argdown.Graph,
+    obj: Mapping[str, object],
     *,
     name: str | None = None,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
@@ -109,10 +123,13 @@ def load_argdown[
     Reconstructed arguments are represented by their main inference.
 
     Raises:
+        GraphError: If the input is invalid (code `invalid-input`).
         ValueError: If an inference `uses` invalid statement numbers.
     """
+    argdown_obj = validate("Argdown", _SCHEMA, obj)
     g: GraphDraft[A, S, E, R, P, N, G] = GraphDraft(
-        name, userdata=codecs.graph.validate_python(obj.get("frontMatter") or {})
+        name,
+        userdata=codecs.graph.validate_python(argdown_obj.get("frontMatter") or {}),
     )
     ctx = Context(codecs, on_issue, strict)
     # inference scheme nodes by argument title and conclusion index
@@ -136,7 +153,9 @@ def load_argdown[
 
         return node
 
-    statements = {title: add_atom(ec) for title, ec in obj["statements"].items()}
+    statements = {
+        title: add_atom(ec) for title, ec in argdown_obj["statements"].items()
+    }
 
     def add_inferences(title: str, argument: argdown.Argument) -> SchemeNode[S] | None:
         main = None
@@ -146,7 +165,7 @@ def load_argdown[
             if not _is_conclusion(statement):
                 continue
 
-            inference = statement.get("inference", {})
+            inference = statement.get("inference") or {}
             scheme = SchemeNode(
                 Support.DEFAULT,
                 userdata=codecs.scheme.validate_python(
@@ -162,12 +181,12 @@ def load_argdown[
 
             for premise in _premises(argument, index):
                 if node := lookup(
-                    ctx, statements, premise.get("title"), "equivalence-class", owner
+                    ctx, statements, premise["title"], "equivalence-class", owner
                 ):
                     add_edge(g, ctx, node.id, scheme.id, uuid())
 
             if conclusion := lookup(
-                ctx, statements, statement.get("title"), "equivalence-class", owner
+                ctx, statements, statement["title"], "equivalence-class", owner
             ):
                 add_edge(g, ctx, scheme.id, conclusion.id, uuid())
 
@@ -178,15 +197,15 @@ def load_argdown[
 
     arguments = {
         title: add_inferences(title, argument) or add_atom(argument, argument=True)
-        for title, argument in obj["arguments"].items()
+        for title, argument in argdown_obj["arguments"].items()
     }
-    members: dict[argdown.MemberType, Mapping[str, Node[A, S]]] = {
+    members: dict[str, Mapping[str, Node[A, S]]] = {
         "equivalence-class": statements,
         "argument": arguments,
     }
 
     def member(
-        title: str, type: argdown.MemberType, index: int | None, owner: str
+        title: str, type: str, index: int | None, owner: str
     ) -> Node[A, S] | None:
         if type != "inference":
             return lookup(ctx, members.get(type, {}), title, type, owner)
@@ -204,7 +223,7 @@ def load_argdown[
 
         return node
 
-    for relation in obj["relations"]:
+    for relation in argdown_obj["relations"]:
         relation_type = relation["relationType"]
         owner = f"{relation_type} relation"
 

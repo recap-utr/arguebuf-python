@@ -1,71 +1,29 @@
+"""Subset of the xAIF graph read and written by arguebuf."""
+
 import typing as t
 
-from arguebuf.schemas.aif import Graph as AifGraph
-from arguebuf.schemas.aif import Id
+from .aif import Graph as AifGraph
 
-__all__ = (
-    "Aif",
-    "DescriptorFulfillment",
-    "Graph",
-    "Ova",
-    "OvaEdge",
-    "OvaNode",
-    "SchemeFulfillment",
-    "Text",
-)
-
-
-class SchemeFulfillment(t.TypedDict):
-    nodeID: t.ReadOnly[Id]
-    schemeID: t.ReadOnly[Id]
-
-
-class DescriptorFulfillment(t.TypedDict):
-    nodeID: t.ReadOnly[Id]
-    descriptorID: t.ReadOnly[Id]
-    selectedID: t.ReadOnly[Id | None]
+__all__ = ("Aif", "Graph", "Text")
 
 
 class Aif(AifGraph):
-    schemefulfillments: t.ReadOnly[list[SchemeFulfillment] | None]
-    descriptorfulfillments: t.NotRequired[
-        t.ReadOnly[list[DescriptorFulfillment] | None]
-    ]
-    cqdescriptorfulfillments: t.NotRequired[
-        t.ReadOnly[list[DescriptorFulfillment] | None]
-    ]
+    """`AIF` part of an xAIF graph, the fulfillments are not read by the loader."""
+
+    schemefulfillments: t.NotRequired[list[object] | None]
+    descriptorfulfillments: t.NotRequired[list[object] | None]
+    cqdescriptorfulfillments: t.NotRequired[list[object] | None]
 
 
-class OvaNode(t.TypedDict):
-    nodeID: t.ReadOnly[Id]
-    visible: t.ReadOnly[bool]
-    x: t.ReadOnly[int]
-    y: t.ReadOnly[int]
-    timestamp: t.ReadOnly[str]
+class Text(t.TypedDict):
+    """HTML text wrapped in an object."""
 
-
-class OvaEdge(t.TypedDict):
-    fromID: t.ReadOnly[Id]
-    toID: t.ReadOnly[Id]
-    visible: t.ReadOnly[bool]
-
-
-class Ova(t.TypedDict):
-    firstname: t.ReadOnly[str]
-    surname: t.ReadOnly[str]
-    url: t.ReadOnly[str]
-    nodes: t.ReadOnly[list[OvaNode]]
-    edges: t.ReadOnly[list[OvaEdge]]
-
-
-class Text(t.TypedDict, total=False):
-    txt: t.ReadOnly[str]
-    url: t.ReadOnly[str]
+    txt: t.NotRequired[str | None]
 
 
 class Graph(t.TypedDict):
-    AIF: t.ReadOnly[Aif]
-    # a missing text yields no resource
-    text: t.NotRequired[t.ReadOnly[str | Text | None]]
-    OVA: t.NotRequired[t.ReadOnly[Ova]]
-    dialog: t.NotRequired[t.ReadOnly[bool]]
+    """xAIF graph, its `text` is HTML, a missing text yields no resource."""
+
+    AIF: Aif
+    text: t.NotRequired[str | Text | None]
+    dialog: t.NotRequired[bool | None]
