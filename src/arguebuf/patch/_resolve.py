@@ -8,14 +8,12 @@ from arguebuf.model.issue import Issue, fail, issue
 from arguebuf.model.reference import Reference
 from arguebuf.model.resource import Resource
 from arguebuf.model.scheme import (
-    SCHEME_CLASSES,
     SCHEME_TYPE_NAMES,
     Scheme,
     is_default_scheme,
     normalize_scheme_label,
     resolve_scheme,
 )
-from arguebuf.patch._schema import SchemePatch
 
 __all__ = ("Link", "ResolvedScheme", "link_text", "resolve_scheme_of")
 
@@ -90,19 +88,12 @@ def link_text[R](
 
 
 def resolve_scheme_of(
-    item: SchemePatch, current: type[Scheme] | None
+    id: str, scheme_type: type[Scheme], label: str | None
 ) -> ResolvedScheme:
-    """The scheme of the item, keeping the `current` type unless the item changes it."""
-    id = item["id"]
-    scheme_type = SCHEME_CLASSES[item["type"]] if "type" in item else current
-
-    if scheme_type is None:
-        fail("invalid-patch", f"Scheme '{id}' needs a type.", [id])
-
-    if "scheme" not in item:
+    """The scheme of the type with the label of the scheme `id`, the default without a label."""
+    if label is None:
         return ResolvedScheme(scheme_type.DEFAULT)
 
-    label = item["scheme"]
     scheme = resolve_scheme(scheme_type, label)
 
     if is_default_scheme(scheme) and normalize_scheme_label(label) != "default":

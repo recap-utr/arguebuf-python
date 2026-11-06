@@ -1,29 +1,30 @@
 import copy
-from collections.abc import Callable, Mapping
-from collections.abc import Set as AbstractSet
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
+from functools import partial
+
+from pydantic import ValidationError
 
 from arguebuf.locate import DEFAULT_THRESHOLD
 from arguebuf.model import Graph, GraphDraft
-from arguebuf.model.edge import Edge
-from arguebuf.model.issue import Issue, catch_graph_error, fail, has_errors
+from arguebuf.model.issue import Issue, catch_graph_error, fail, has_errors, issue
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
-from arguebuf.model.reference import Reference
 from arguebuf.model.resource import Resource
-from arguebuf.model.scheme import Scheme
+from arguebuf.model.scheme import SCHEME_CLASSES
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs
 from arguebuf.patch._resolve import link_text, resolve_scheme_of
 from arguebuf.patch._schema import (
     AtomPatch,
     ParticipantPatch,
     Patch,
-    Path,
     ResourcePatch,
     SchemePatch,
 )
 
 __all__ = ("PatchResult", "apply_patch")
+
+type Path = tuple[str | int, ...]
 
 
 @dataclass(slots=True, frozen=True)
@@ -36,7 +37,7 @@ class PatchResult[A, S, E, R, P, N, G]:
         graph: The changed graph, or the input if there are errors.
         issues: Errors and warnings, each pointing to its item via `path`.
         created: Ids of the new elements.
-        updated: Ids of the existing elements that the patch changed.
+        updated: Ids of the existing elements that the patch replaced.
         removed: Ids of the removed elements, including those removed by cascades.
     """
 
@@ -52,53 +53,43 @@ class _Editor[A, S, E, R, P, N, G]:
     graph: GraphDraft[A, S, E, R, P, N, G]
     codecs: Codecs[A, S, E, R, P, N, G]
     threshold: float
-    # ids of the nodes, resources, and participants of the input,
-    # which may be removed by cascades before `remove` names them
-    initial: AbstractSet[str]
     issues: list[Issue] = field(default_factory=list)
 
     def apply(self, patch: Patch) -> None:
         graph = self.graph
 
-        if patch.get("clear"):
-            graph.remove_elements(list(graph.nodes))
+        cleared = list(graph.nodes) if patch.clear else []
 
-        for index, id in enumerate(patch.get("remove", ())):
-            self._attempt(("remove", index), lambda id=id: self._remove(id))
-
-        for index, resource in enumerate(patch.get("resources", ())):
-            self._attempt(
-                ("resources", index), lambda item=resource: self._resource(item)
-            )
-
-        for index, participant in enumerate(patch.get("participants", ())):
-            self._attempt(
-                ("participants", index),
-                lambda item=participant: self._participant(item),
-            )
-
-        for index, atom in enumerate(patch.get("atoms", ())):
-            path = ("atoms", index)
-            self._attempt(path, lambda item=atom, path=path: self._atom(item, path))
+        # removals cascade, so ids that a cascade already removed are skipped
+        self._attempt(
+            ("delete",), partial(graph.remove_elements, [*cleared, *patch.delete])
+        )
+        self._each("resources", patch.resources, self._resource)
+        self._each("participants", patch.participants, self._participant)
+        self._each("atoms", patch.atoms, self._atom)
 
         # all schemes exist before they are wired, so that schemes can target schemes
-        schemes = patch.get("schemes", ())
-        created = [
+        added = self._each("schemes", patch.schemes, self._scheme)
+
+        for index, (item, ok) in enumerate(zip(patch.schemes, added, strict=True)):
+            if ok:
+                self._attempt(("schemes", index), partial(self._wire, item))
+
+        if (major_claim := patch.major_claim) is not None:
             self._attempt(
-                ("schemes", index),
-                lambda item=item, index=index: self._scheme(item, ("schemes", index)),
+                ("majorClaim",), partial(setattr, graph, "major_claim", major_claim)
             )
-            for index, item in enumerate(schemes)
+
+    def _each[T](
+        self, key: str, items: Sequence[T], action: Callable[[T, Path], None]
+    ) -> list[bool]:
+        """Apply the action to each item, returns whether each one succeeded."""
+        return [
+            self._attempt((key, index), partial(action, item, (key, index)))
+            for index, item in enumerate(items)
         ]
 
-        for index, (item, ok) in enumerate(zip(schemes, created, strict=True)):
-            if ok:
-                self._attempt(("schemes", index), lambda item=item: self._wire(item))
-
-        if "majorClaim" in patch:
-            self._attempt(("majorClaim",), lambda: self._major_claim(patch))
-
-    def _attempt(self, path: Path, action: Callable[[], None]) -> bool:
+    def _attempt(self, path: Path, action: Callable[[], object]) -> bool:
         """Run the action and record its `GraphError`, returns whether it succeeded."""
         if (error := catch_graph_error(action)) is not None:
             self.issues.append(copy.replace(error, path=path))
@@ -124,184 +115,109 @@ class _Editor[A, S, E, R, P, N, G]:
         )
         fail("invalid-patch", f"Node '{id}' is {actual}, not {expected}.", [id])
 
-    def _link(self, source: str, target: str) -> None:
-        self.graph.add_edge(
-            Edge(source, target, userdata=self.codecs.edge.validate_python({}))
-        )
-
-    def _remove(self, id: str) -> None:
+    def _resource(self, item: ResourcePatch, _: Path) -> None:
         graph = self.graph
-        present = id in graph.nodes or id in graph.resources or id in graph.participants
 
-        # skip elements already removed by a cascade or an earlier item
-        if present or id not in self.initial:
-            graph.remove_elements([id])
-
-    def _resource(self, item: ResourcePatch) -> None:
-        graph = self.graph
-        id = item["id"]
-
-        if id not in graph.resources:
-            if "text" not in item:
-                fail("invalid-patch", f"The new resource '{id}' needs a text.", [id])
-
+        if item.id in graph.resources:
+            self.issues.extend(
+                graph.update_resource(
+                    item.id,
+                    threshold=self.threshold,
+                    text=item.text,
+                    title=item.title,
+                    source=item.source,
+                )
+            )
+        else:
             graph.add_resource(
                 Resource(
-                    item["text"],
-                    title=item.get("title"),
-                    source=item.get("source"),
+                    item.text,
+                    title=item.title,
+                    source=item.source,
                     userdata=self.codecs.resource.validate_python({}),
-                    id=id,
+                    id=item.id,
                 )
             )
 
-            return
-
-        resource = graph.resources[id]
-        self.issues.extend(
-            graph.update_resource(
-                id,
-                threshold=self.threshold,
-                text=item.get("text", resource.text),
-                title=item.get("title", resource.title),
-                source=item.get("source", resource.source),
-            )
-        )
-
-    def _participant(self, item: ParticipantPatch) -> None:
+    def _participant(self, item: ParticipantPatch, _: Path) -> None:
         graph = self.graph
-        id = item["id"]
-        current = graph.participants.get(id)
 
-        if current is None:
-            current = Participant(
-                userdata=self.codecs.participant.validate_python({}), id=id
+        if item.id not in graph.participants:
+            graph.add_participant(
+                Participant(
+                    userdata=self.codecs.participant.validate_python({}), id=item.id
+                )
             )
-            graph.add_participant(current)
 
         graph.update_participant(
-            id,
-            name=item.get("name", current.name),
-            username=item.get("username", current.username),
-            email=item.get("email", current.email),
-            url=item.get("url", current.url),
-            location=item.get("location", current.location),
-            description=item.get("description", current.description),
+            item.id,
+            name=item.name,
+            username=item.username,
+            email=item.email,
+            url=item.url,
+            location=item.location,
+            description=item.description,
         )
 
     def _atom(self, item: AtomPatch, path: Path) -> None:
         graph = self.graph
-        id = item["id"]
-        atom = self._find(id, graph.atom_nodes)
-        participant = item.get("participant")
+        atom = self._find(item.id, graph.atom_nodes)
 
-        if participant is not None and participant not in graph.participants:
-            fail(
-                "unknown-element",
-                f"Participant '{participant}' does not exist.",
-                [participant],
+        reference = atom.reference if atom is not None else None
+
+        # an unchanged atom keeps its reference, which may have been chosen by hand
+        if (
+            atom is None
+            or atom.text != item.text
+            or item.resource not in (None, reference.resource if reference else None)
+        ):
+            link = link_text(
+                graph.resources, item.id, item.text, item.resource, self.threshold
             )
-
-        unlinked = "resource" in item and item["resource"] is None
+            self._warn(path, link.warning)
+            reference = link.reference
 
         if atom is None:
-            if "text" not in item:
-                fail("invalid-patch", f"The new atom '{id}' needs a text.", [id])
-
-            text = item["text"]
             graph.add_node(
                 AtomNode(
-                    text,
-                    participant=participant,
-                    reference=None
-                    if unlinked
-                    else self._reference(path, id, text, item.get("resource")),
+                    item.text,
+                    participant=item.participant,
+                    reference=reference,
                     userdata=self.codecs.atom.validate_python({}),
-                    id=id,
+                    id=item.id,
                 )
             )
-
-            return
-
-        text = item.get("text", atom.text)
-        reference = atom.reference
-
-        if "text" in item or "resource" in item:
-            scope = (
-                item.get("resource")
-                if "resource" in item
-                else (atom.reference.resource if atom.reference else None)
+        else:
+            graph.update_atom(
+                atom, text=item.text, reference=reference, participant=item.participant
             )
-            reference = None if unlinked else self._reference(path, id, text, scope)
-
-        graph.update_atom(
-            atom,
-            text=text,
-            reference=reference,
-            participant=participant if "participant" in item else atom.participant,
-        )
-
-    def _reference(
-        self, path: Path, id: str, text: str, scope: str | None
-    ) -> Reference | None:
-        """Link the text, reporting why it is not linked or only to a similar span."""
-        link = link_text(self.graph.resources, id, text, scope, self.threshold)
-        self._warn(path, link.warning)
-
-        return link.reference
-
-    def _scheme_of(
-        self, item: SchemePatch, current: type[Scheme] | None, path: Path
-    ) -> Scheme:
-        resolved = resolve_scheme_of(item, current)
-        self._warn(path, resolved.warning)
-
-        return resolved.scheme
 
     def _scheme(self, item: SchemePatch, path: Path) -> None:
-        """Create or retype the scheme node, it is wired afterwards."""
-        graph = self.graph
-        id = item["id"]
-        scheme = self._find(id, graph.scheme_nodes)
+        """Create or replace the scheme node, it is wired afterwards."""
+        resolved = resolve_scheme_of(item.id, SCHEME_CLASSES[item.type], item.scheme)
+        self._warn(path, resolved.warning)
+        node = self._find(item.id, self.graph.scheme_nodes)
 
-        if scheme is None:
-            if "premises" not in item or "conclusion" not in item:
-                fail(
-                    "invalid-patch",
-                    f"The new scheme '{id}' needs premises and a conclusion.",
-                    [id],
-                )
-
-            graph.add_node(
+        if node is None:
+            self.graph.add_node(
                 SchemeNode(
-                    self._scheme_of(item, None, path),
+                    resolved.scheme,
                     userdata=self.codecs.scheme.validate_python({}),
-                    id=id,
+                    id=item.id,
                 )
             )
-        elif "type" in item or "scheme" in item:
-            current = type(scheme.scheme) if scheme.scheme is not None else None
-            graph.update_scheme(scheme, scheme=self._scheme_of(item, current, path))
+        else:
+            self.graph.update_scheme(node, scheme=resolved.scheme)
 
     def _wire(self, item: SchemePatch) -> None:
-        """Replace the premises and the conclusion that the item specifies.
+        """Replace the premises and the conclusion.
 
         Premises are atoms, schemes targeting this scheme (e.g. undercutters) are kept.
         """
         graph = self.graph
-        id = item["id"]
-        premises = item.get("premises")
-        conclusion = item.get("conclusion")
-        sources = (
-            list(premises)
-            if premises is not None
-            else [node.id for node in graph.premise_nodes(id)]
-        )
+        id, conclusion = item.id, item.conclusion
 
-        if premises is not None and not premises:
-            fail("invalid-patch", f"Scheme '{id}' needs at least one premise.", [id])
-
-        for premise in premises or ():
+        for premise in item.premises:
             if self._find(premise, graph.atom_nodes) is None:
                 fail(
                     "unknown-element",
@@ -309,51 +225,49 @@ class _Editor[A, S, E, R, P, N, G]:
                     [id, premise],
                 )
 
-        if conclusion is not None and conclusion not in graph.nodes:
+        if conclusion not in graph.nodes:
             fail(
                 "unknown-element",
                 f"Conclusion '{conclusion}' of scheme '{id}' does not exist.",
                 [id, conclusion],
             )
 
-        if conclusion is not None and conclusion in sources:
+        if conclusion in item.premises:
             fail(
                 "invalid-patch",
                 f"Scheme '{id}' uses its conclusion '{conclusion}' as premise.",
                 [id, conclusion],
             )
 
-        if premises is not None:
-            for edge in list(graph.incoming_edges(id)):
-                if edge.source in graph.atom_nodes:
-                    graph.remove_edge(edge)
-
-            for premise in premises:
-                self._link(premise, id)
-
-        if conclusion is not None:
-            for edge in list(graph.outgoing_edges(id)):
+        for edge in list(graph.incoming_edges(id)):
+            if edge.source in graph.atom_nodes:
                 graph.remove_edge(edge)
 
-            self._link(id, conclusion)
+        for edge in list(graph.outgoing_edges(id)):
+            graph.remove_edge(edge)
 
-    def _major_claim(self, patch: Patch) -> None:
-        self.graph.major_claim = patch.get("majorClaim")
+        graph.connect(
+            item.premises,
+            id,
+            conclusion,
+            edge_userdata=lambda: self.codecs.edge.validate_python({}),
+        )
 
 
 def apply_patch[A, S, E, R, P, N, G](
     graph: Graph[A, S, E, R, P, N, G],
-    patch: Patch,
+    patch: Patch | Mapping[str, object],
     *,
     codecs: Codecs[A, S, E, R, P, N, G] = DEFAULT_CODECS,
     threshold: float = DEFAULT_THRESHOLD,
 ) -> PatchResult[A, S, E, R, P, N, G]:
     """Apply a patch to a graph, all or nothing.
 
+    A mapping such as the arguments of a tool call is validated as `Patch`,
+    problems are `invalid-patch` errors.
     The patch is applied to a draft of the graph (see `Graph.draft`),
     so the result shares the unchanged elements with the input.
     Texts of atoms are linked to the most similar spans of the resources (see `locate`).
-    Validate untrusted input with `parse_patch` first.
 
     Args:
         graph: Graph to apply the patch to.
@@ -366,42 +280,48 @@ def apply_patch[A, S, E, R, P, N, G](
         or the input graph if an issue is an error.
 
     Examples:
-        >>> result = apply_patch(Graph(), {"atoms": [{"id": "a", "text": "Claim"}], "majorClaim": "a"})
+        >>> patch = {"atoms": [{"id": "a", "text": "Claim"}], "majorClaim": "a"}
+        >>> result = apply_patch(Graph(), patch)
         >>> result.graph.major_claim, result.issues, result.created
         ('a', (), ('a',))
     """
+    try:
+        parsed = Patch.model_validate(patch)
+    except ValidationError as error:
+        return PatchResult(
+            graph,
+            tuple(
+                copy.replace(issue("invalid-patch", item["msg"]), path=item["loc"])
+                for item in error.errors()
+            ),
+        )
+
     draft = graph.draft()
-    initial = graph.nodes.keys() | graph.resources.keys() | graph.participants.keys()
-    editor = _Editor(draft, codecs, threshold, initial)
-    editor.apply(patch)
+    editor = _Editor(draft, codecs, threshold)
+    editor.apply(parsed)
 
     if has_errors(editor.issues):
         return PatchResult(graph, tuple(editor.issues))
 
-    stores = (
-        (graph.nodes, draft.nodes),
-        (graph.resources, draft.resources),
-        (graph.participants, draft.participants),
-    )
-    named = {
-        item["id"]
-        for key in ("resources", "participants", "atoms", "schemes")
-        for item in patch.get(key, ())
-    }
+    created: list[str] = []
+    updated: list[str] = []
+    removed: list[str] = []
+
+    for before, after, items in (
+        (graph.atom_nodes, draft.atom_nodes, parsed.atoms),
+        (graph.scheme_nodes, draft.scheme_nodes, parsed.schemes),
+        (graph.resources, draft.resources, parsed.resources),
+        (graph.participants, draft.participants, parsed.participants),
+    ):
+        submitted = {item.id for item in items}
+        created.extend(id for id in after if id not in before)
+        updated.extend(id for id in after if id in before and id in submitted)
+        removed.extend(id for id in before if id not in after)
 
     return PatchResult(
         draft.freeze(),
         tuple(editor.issues),
-        created=tuple(
-            id for before, after in stores for id in after if id not in before
-        ),
-        updated=tuple(
-            id
-            for before, after in stores
-            for id in after
-            if id in before and id in named
-        ),
-        removed=tuple(
-            id for before, after in stores for id in before if id not in after
-        ),
+        tuple(created),
+        tuple(updated),
+        tuple(removed),
     )

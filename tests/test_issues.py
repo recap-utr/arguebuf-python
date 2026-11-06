@@ -1,8 +1,9 @@
 import json
-from collections.abc import Mapping
+from collections.abc import Iterable
 from pathlib import Path
 
 import pytest
+from pydantic import Field, ValidationError
 
 import arguebuf as ag
 
@@ -97,6 +98,18 @@ def test_check() -> None:
     assert ag.check(ag.Graph()) == []
 
 
+def _paths(
+    issues: Iterable[ag.Issue],
+) -> list[tuple[str, tuple[str | int, ...] | None]]:
+    return [(issue.code, issue.path) for issue in issues]
+
+
+def _schemes(graph: ag.Graph) -> list[dict[str, object]]:
+    return [
+        item.model_dump(exclude_defaults=True) for item in ag.outline(graph).schemes
+    ]
+
+
 def test_apply_patch() -> None:
     empty = ag.Graph()
     result = ag.apply_patch(
@@ -126,7 +139,7 @@ def test_apply_patch() -> None:
     graph = result.graph
 
     assert not empty.nodes
-    assert [(issue.code, issue.path) for issue in result.issues] == [
+    assert _paths(result.issues) == [
         ("reference-mismatch", ("atoms", 1)),
         ("reference-unresolved", ("atoms", 2)),
     ]
@@ -135,39 +148,35 @@ def test_apply_patch() -> None:
         "Cats 🐈 are the best pets", resource="r", offset=0
     )
     assert ag.check(graph) == []
-    assert ag.outline(graph)["schemes"] == [
+    assert _schemes(graph) == [
         {
             "id": "s",
             "type": "support",
             "scheme": "Expert Opinion",
-            "premises": ["p"],
+            "premises": ("p",),
             "conclusion": "mc",
         },
-        {"id": "x", "type": "attack", "premises": ["u"], "conclusion": "s"},
-        {"id": "y", "type": "support", "premises": ["c"], "conclusion": "mc"},
+        {"id": "x", "type": "attack", "premises": ("u",), "conclusion": "s"},
+        {"id": "y", "type": "support", "premises": ("c",), "conclusion": "mc"},
     ]
 
     failed = ag.apply_patch(
         graph,
-        {
-            "remove": ["c"],
-            "atoms": [{"id": "s", "text": "Wrong kind"}, {"id": "n"}],
-            "schemes": [
-                {
-                    "id": "z",
-                    "type": "support",
-                    "premises": ["missing"],
-                    "conclusion": "mc",
-                }
-            ],
-        },
+        ag.Patch(
+            delete=("c",),
+            atoms=(ag.AtomPatch(id="s", text="Wrong kind"),),
+            schemes=(
+                ag.SchemePatch(
+                    id="z", type="support", premises=("missing",), conclusion="mc"
+                ),
+            ),
+        ),
     )
 
     assert failed.graph is graph
     assert failed.created == failed.updated == failed.removed == ()
-    assert [(issue.code, issue.path) for issue in failed.issues] == [
+    assert _paths(failed.issues) == [
         ("invalid-patch", ("atoms", 0)),
-        ("invalid-patch", ("atoms", 1)),
         ("unknown-element", ("schemes", 0)),
     ]
 
@@ -175,7 +184,7 @@ def test_apply_patch() -> None:
         graph,
         {
             # the scheme of p is already removed together with p
-            "remove": ["p", "s"],
+            "delete": ["p", "s"],
             "atoms": [{"id": "c", "text": "They are clean"}],
             "schemes": [
                 {
@@ -183,16 +192,14 @@ def test_apply_patch() -> None:
                     "type": "attack",
                     "scheme": "Unknown Label",
                     "premises": ["c", "u"],
+                    "conclusion": "mc",
                 }
             ],
-            "majorClaim": None,
         },
     )
 
     # unknown scheme labels fall back to the default
-    assert [(issue.code, issue.path) for issue in edited.issues] == [
-        ("unknown-scheme", ("schemes", 0))
-    ]
+    assert _paths(edited.issues) == [("unknown-scheme", ("schemes", 0))]
     # the scheme without premise and its undercutter are removed
     assert list(edited.graph.nodes) == ["mc", "u", "c", "y"]
     assert (edited.created, edited.updated, edited.removed) == (
@@ -200,73 +207,54 @@ def test_apply_patch() -> None:
         ("c", "y"),
         ("p", "s", "x"),
     )
-    assert ag.outline(edited.graph)["schemes"] == [
-        {"id": "y", "type": "attack", "premises": ["c", "u"], "conclusion": "mc"}
+    assert _schemes(edited.graph) == [
+        {"id": "y", "type": "attack", "premises": ("c", "u"), "conclusion": "mc"}
     ]
-    assert edited.graph.major_claim is None
+    assert edited.graph.major_claim == "mc"
     assert "p" in graph.nodes
 
 
-def test_parse_patch() -> None:
-    assert [(issue.code, issue.path) for issue in ag.parse_patch([]).issues] == [
-        ("invalid-patch", ())
-    ]
-    parsed = ag.parse_patch(
+def test_patch_namespaces() -> None:
+    graph = ag.Graph(resources=[ag.Resource("", id="a")])
+    added = ag.apply_patch(graph, {"atoms": [{"id": "a", "text": "Claim"}]})
+
+    assert (added.created, added.updated, added.removed) == (("a",), (), ())
+    edited = ag.apply_patch(added.graph, {"atoms": [{"id": "a", "text": "Changed"}]})
+    assert (edited.created, edited.updated, edited.removed) == ((), ("a",), ())
+    removed = ag.apply_patch(added.graph, {"clear": True})
+    assert (removed.created, removed.updated, removed.removed) == ((), (), ("a",))
+    cleared = ag.apply_patch(added.graph, {"clear": True, "delete": ["a"]})
+    assert (cleared.issues, cleared.removed) == ((), ("a",))
+    unknown = ag.apply_patch(added.graph, {"clear": True, "delete": ["x"]})
+    assert _paths(unknown.issues) == [("unknown-element", ("delete",))]
+
+
+def test_patch_validation() -> None:
+    result = ag.apply_patch(
+        ag.Graph(),
         {
-            "atoms": [{"id": "a", "text": 1}, {"text": "b"}],
-            "schemes": [{"id": "s", "type": "rebut", "premises": []}],
-            "majorClaim": None,
+            "atoms": [{"id": "a"}],
+            "schemes": [
+                {"id": "s", "type": "rebut", "premises": [], "conclusion": "a"}
+            ],
             "extra": True,
-        }
+        },
     )
 
-    assert parsed.patch is None
-    assert len(parsed.issues) == 5
-    assert {(issue.code, issue.path) for issue in parsed.issues} == {
+    assert not result.graph.nodes
+    assert _paths(result.issues) == [
         ("invalid-patch", ("atoms", 0, "text")),
-        ("invalid-patch", ("atoms", 1)),
         ("invalid-patch", ("schemes", 0, "type")),
         ("invalid-patch", ("schemes", 0, "premises")),
-        ("invalid-patch", ()),
-    }
-    assert ag.parse_patch({"remove": ["a"], "majorClaim": None}) == ag.ParsedPatch(
-        {"remove": ["a"], "majorClaim": None}
-    )
+        ("invalid-patch", ("extra",)),
+    ]
 
-    # an extended schema validates additional fields, which are kept
-    properties = ag.PATCH_SCHEMA["properties"]
-    assert isinstance(properties, Mapping)
-    schema = {
-        **ag.PATCH_SCHEMA,
-        "properties": {
-            **properties,
-            "explanations": {
-                "type": "object",
-                "additionalProperties": {"type": "string"},
-            },
-        },
-    }
+    class Extended(ag.Patch):
+        confidence: float = Field(ge=0, le=1)
 
-    assert [
-        item.path
-        for item in ag.parse_patch({"explanations": {"a": 1}}, schema=schema).issues
-    ] == [("explanations", "a")]
-    assert ag.parse_patch({"explanations": {"a": "Why"}}, schema=schema).patch == {
-        "explanations": {"a": "Why"}
-    }
-
-    extended = {
-        **schema,
-        "properties": {
-            **properties,
-            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-        },
-    }
-
-    assert ag.parse_patch({"confidence": 2}, schema=extended).patch is None
-    assert ag.parse_patch({"confidence": 0.5}, schema=extended).patch == {
-        "confidence": 0.5
-    }
+    assert Extended.model_json_schema()["required"] == ["confidence"]
+    with pytest.raises(ValidationError):
+        Extended(confidence=2)
 
 
 def test_graph_edits() -> None:
@@ -289,7 +277,7 @@ def test_graph_edits() -> None:
     assert g.atom_nodes["p"].metadata == created
 
     # a repeated id was removed by its first occurrence
-    result = ag.apply_patch(g.freeze(), {"remove": ["r", "r", "c"]})
+    result = ag.apply_patch(g.freeze(), {"delete": ["r", "r", "c"]})
 
     assert result.issues == ()
     assert result.removed == ("c", scheme.id, "r")

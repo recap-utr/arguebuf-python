@@ -20,8 +20,8 @@ classifiers = [
 dependencies = [
   "arg-services>=2,<3",
   "fuzzysearch>=0.8,<0.9",
-  "jsonschema>=4,<5",
   "networkx>=3,<4",
+  "pydantic>=2,<3",
   "pygraphviz>=2,<3",
 ]
 
@@ -39,7 +39,6 @@ cli = ["arg-services[grpcio]>=2,<3", "deepl>=1,<2", "typer>=0.27,<0.28"]
 
 [dependency-groups]
 dev = [
-  "types-jsonschema>=4,<5",
   "types-networkx>=3,<4",
 ]
 docs = ["pdoc>=16,<17"]

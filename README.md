@@ -193,14 +193,13 @@ ag.locate("Cats are the best pets. They are independent.", "they are independant
 ### Patches for Agents
 
 `ag.apply_patch` applies a patch to a graph, which references all elements by id and is meant to be written by agents.
-An item creates an element if its id is new and otherwise updates the given fields, `remove` deletes elements.
-Texts of atoms are linked to the most similar spans of the resources.
+An item with a new id creates an element and an item with an existing id replaces it, so all its fields are given again, `delete` and `clear` remove elements.
+Texts of atoms are linked to the most similar spans of the resources, an atom keeps its link if its text and resource are unchanged.
 A scheme is named by its type and optionally its label (e.g. "Expert Opinion"), unknown labels fall back to the default scheme with an `unknown-scheme` warning.
-The patch is applied all or nothing to a draft of the graph, so the result contains the unchanged input graph if there is an error.
+The patch is an `ag.Patch` model or a mapping such as the arguments of a tool call, which Pydantic validates.
+It is applied all or nothing to a draft of the graph, so the result contains the unchanged input graph if there is an error.
 Otherwise, the result lists the ids of the `created`, `updated`, and `removed` elements, removals include the schemes removed together with a node.
 Every issue points to the item that caused it via its `path`, so that an agent can correct it.
-`ag.parse_patch` validates untrusted input against `ag.PATCH_SCHEMA` and reports every problem as an `invalid-patch` error with its path.
-The schema forbids unknown keys, an application may pass an extension of it to validate additional fields of its own.
 
 ```python
 result = ag.apply_patch(
@@ -218,7 +217,9 @@ result = ag.apply_patch(
 )
 ```
 
-`ag.outline` returns a graph in the shape of a patch, and `ag.PATCH_SCHEMA` describes patches as JSON Schema for the tools of agents.
+`ag.outline` returns the elements of a graph as an `ag.Outline` model in the shape of a patch, e.g. to show them to an agent.
+Optional fields may be omitted or null, and `ag.Patch.model_json_schema()` describes patches for the tools of agents.
+An application with fields of its own subclasses `ag.Patch`.
 A scheme can be the conclusion of another scheme, e.g. to undercut it.
 
 ### Exporting a Graph

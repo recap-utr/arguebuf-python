@@ -1,15 +1,11 @@
 from arguebuf.model import GraphView
-from arguebuf.model.node import AtomNode, SchemeNode
-from arguebuf.model.participant import Participant
-from arguebuf.model.resource import Resource
 from arguebuf.model.scheme import SCHEME_TYPE_NAMES, is_default_scheme
 from arguebuf.patch._schema import (
-    PARTICIPANT_FIELDS,
     AtomPatch,
     Outline,
     ParticipantPatch,
-    ResourcePatch,
-    SchemePatch,
+    ResourceOutline,
+    SchemeOutline,
 )
 
 __all__ = ("outline",)
@@ -20,76 +16,38 @@ def outline[A, S, E, R, P, N, G](graph: GraphView[A, S, E, R, P, N, G]) -> Outli
 
     Examples:
         >>> from arguebuf import Graph
-        >>> outline(Graph())
-        {'resources': [], 'participants': [], 'atoms': [], 'schemes': []}
+        >>> outline(Graph()).model_dump()
+        {'resources': (), 'participants': (), 'atoms': (), 'schemes': (), 'majorClaim': None}
     """
-    result: Outline = {
-        "resources": [_resource_outline(item) for item in graph.resources.values()],
-        "participants": [
-            _participant_outline(item) for item in graph.participants.values()
-        ],
-        "atoms": [_atom_outline(item) for item in graph.atom_nodes.values()],
-        "schemes": [
-            _scheme_outline(graph, item) for item in graph.scheme_nodes.values()
-        ],
-    }
-
-    if graph.major_claim is not None:
-        result["majorClaim"] = graph.major_claim
-
-    return result
-
-
-def _scheme_outline[A, S, E, R, P, N, G](
-    graph: GraphView[A, S, E, R, P, N, G], scheme: SchemeNode[S]
-) -> SchemePatch:
-    item: SchemePatch = {"id": scheme.id}
-    value = scheme.scheme
-
-    if value is not None:
-        item["type"] = SCHEME_TYPE_NAMES[type(value)]
-
-        if not is_default_scheme(value):
-            item["scheme"] = value.value
-
-    item["premises"] = [node.id for node in graph.premise_nodes(scheme)]
-    conclusion = next(iter(graph.outgoing_nodes(scheme)), None)
-
-    if conclusion is not None:
-        item["conclusion"] = conclusion.id
-
-    return item
-
-
-def _resource_outline[R](resource: Resource[R]) -> ResourcePatch:
-    item: ResourcePatch = {"id": resource.id}
-
-    if resource.title is not None:
-        item["title"] = resource.title
-
-    if resource.source is not None:
-        item["source"] = resource.source
-
-    return item
-
-
-def _participant_outline[P](participant: Participant[P]) -> ParticipantPatch:
-    item: ParticipantPatch = {"id": participant.id}
-
-    for key in PARTICIPANT_FIELDS:
-        if (value := getattr(participant, key)) is not None:
-            item[key] = value
-
-    return item
-
-
-def _atom_outline[A](atom: AtomNode[A]) -> AtomPatch:
-    item: AtomPatch = {"id": atom.id, "text": atom.text}
-
-    if atom.reference is not None and atom.reference.resource is not None:
-        item["resource"] = atom.reference.resource
-
-    if atom.participant is not None:
-        item["participant"] = atom.participant
-
-    return item
+    return Outline(
+        resources=tuple(
+            ResourceOutline.model_validate(item, from_attributes=True)
+            for item in graph.resources.values()
+        ),
+        participants=tuple(
+            ParticipantPatch.model_validate(item, from_attributes=True)
+            for item in graph.participants.values()
+        ),
+        atoms=tuple(
+            AtomPatch(
+                id=item.id,
+                text=item.text,
+                resource=item.reference.resource if item.reference else None,
+                participant=item.participant,
+            )
+            for item in graph.atom_nodes.values()
+        ),
+        schemes=tuple(
+            SchemeOutline(
+                id=item.id,
+                type=SCHEME_TYPE_NAMES[type(item.scheme)] if item.scheme else None,
+                scheme=None
+                if item.scheme is None or is_default_scheme(item.scheme)
+                else item.scheme.value,
+                premises=tuple(node.id for node in graph.premise_nodes(item)),
+                conclusion=next((node.id for node in graph.outgoing_nodes(item)), None),
+            )
+            for item in graph.scheme_nodes.values()
+        ),
+        major_claim=graph.major_claim,
+    )

@@ -2,31 +2,27 @@
 
 from arguebuf.patch._apply import PatchResult, apply_patch
 from arguebuf.patch._outline import outline
-from arguebuf.patch._parse import ParsedPatch, parse_patch
 from arguebuf.patch._schema import (
-    PATCH_SCHEMA,
     AtomPatch,
     Outline,
     ParticipantPatch,
     Patch,
+    ResourceOutline,
     ResourcePatch,
+    SchemeOutline,
     SchemePatch,
-)
-from arguebuf.patch._schema import (
-    JsonSchema as JsonSchema,
 )
 
 __all__ = (
-    "PATCH_SCHEMA",
     "AtomPatch",
     "Outline",
-    "ParsedPatch",
     "ParticipantPatch",
     "Patch",
     "PatchResult",
+    "ResourceOutline",
     "ResourcePatch",
+    "SchemeOutline",
     "SchemePatch",
     "apply_patch",
     "outline",
-    "parse_patch",
 )

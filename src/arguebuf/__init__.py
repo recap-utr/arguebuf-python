@@ -56,10 +56,8 @@ from .model import (
     uuid,
 )
 from .patch import (
-    PATCH_SCHEMA,
     AtomPatch,
     Outline,
-    ParsedPatch,
     ParticipantPatch,
     Patch,
     PatchResult,
@@ -67,7 +65,6 @@ from .patch import (
     SchemePatch,
     apply_patch,
     outline,
-    parse_patch,
 )
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
@@ -77,7 +74,6 @@ __all__ = (
     "DEFAULT_THRESHOLD",
     "ISSUE_CODES",
     "NO_SCHEME_LABEL",
-    "PATCH_SCHEMA",
     "SCHEME_COLORS",
     "SCHEME_TYPE_LABELS",
     "AbstractNode",
@@ -107,7 +103,6 @@ __all__ = (
     "Metadata",
     "Node",
     "Outline",
-    "ParsedPatch",
     "Participant",
     "ParticipantChanges",
     "ParticipantPatch",
@@ -137,7 +132,6 @@ __all__ = (
     "locate",
     "model",
     "outline",
-    "parse_patch",
     "render",
     "schemas",
     "traverse",
