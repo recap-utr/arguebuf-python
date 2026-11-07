@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.0](https://github.com/recap-utr/arguebuf-python/compare/v4.0.1...v4.1.0) (2026-11-07)
+
+### Features
+
+* **load:** validate json import formats with pydantic ([ec41075](https://github.com/recap-utr/arguebuf-python/commit/ec41075c5f0d98d22b6c1ffc2c26cbd2bc18c20e))
+* **patch:** rewrite agent patches as pydantic models ([b1e3524](https://github.com/recap-utr/arguebuf-python/commit/b1e3524559355426b7aebafe753cc80d4ccdd58d))
+
 ## [4.0.1](https://github.com/recap-utr/arguebuf-python/compare/v4.0.0...v4.0.1) (2026-11-05)
 
 ### Bug Fixes

@@ -3,8 +3,6 @@ revision = 5
 requires-python = ">=3.13, <4"
 
 [options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
-exclude-newer-span = "P3D"
 
 [options.exclude-newer-package]
 arg-services = false
@@ -50,7 +48,7 @@ grpcio = [
 
 [[package]]
 name = "arguebuf"
-version = "4.0.1"
+version = "4.1.0"
 source = { editable = "." }
 default-groups = ["dev", "docs", "test"]
 dependencies = [
