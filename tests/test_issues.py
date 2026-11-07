@@ -237,6 +237,9 @@ def test_apply_patch() -> None:
                 ag.SchemePatch(
                     id="z", type="support", premises=("missing",), conclusion="mc"
                 ),
+                ag.SchemePatch(
+                    id="w", type="attack", premises=("p", "u"), conclusion="mc"
+                ),
             ),
         ),
     )
@@ -246,6 +249,7 @@ def test_apply_patch() -> None:
     assert _paths(failed.issues) == [
         ("invalid-patch", ("atoms", 0)),
         ("unknown-element", ("schemes", 0)),
+        ("invalid-patch", ("schemes", 1)),
     ]
 
     edited = ag.apply_patch(
@@ -257,7 +261,7 @@ def test_apply_patch() -> None:
             "schemes": [
                 {
                     "id": "y",
-                    "type": "attack",
+                    "type": "support",
                     "scheme": "Unknown Label",
                     "premises": ["c", "u"],
                     "conclusion": "mc",
@@ -276,7 +280,7 @@ def test_apply_patch() -> None:
         ("p", "s", "x"),
     )
     assert _schemes(edited.graph) == [
-        {"id": "y", "type": "attack", "premises": ("c", "u"), "conclusion": "mc"}
+        {"id": "y", "type": "support", "premises": ("c", "u"), "conclusion": "mc"}
     ]
     assert edited.graph.major_claim == "mc"
     assert "p" in graph.nodes

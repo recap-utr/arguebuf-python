@@ -11,7 +11,7 @@ from arguebuf.model.issue import Issue, catch_graph_error, fail, has_errors, iss
 from arguebuf.model.node import AbstractNode, AtomNode, SchemeNode
 from arguebuf.model.participant import Participant
 from arguebuf.model.resource import Resource
-from arguebuf.model.scheme import SCHEME_CLASSES
+from arguebuf.model.scheme import SCHEME_CLASSES, allows_multiple_premises
 from arguebuf.model.userdata import DEFAULT_CODECS, Codecs
 from arguebuf.patch._resolve import link_text, resolve_scheme_of
 from arguebuf.patch._schema import (
@@ -237,6 +237,15 @@ class _Editor[A, S, E, R, P, N, G]:
                 "invalid-patch",
                 f"Scheme '{id}' uses its conclusion '{conclusion}' as premise.",
                 [id, conclusion],
+            )
+
+        if len(item.premises) > 1 and not allows_multiple_premises(
+            SCHEME_CLASSES[item.type]
+        ):
+            fail(
+                "invalid-patch",
+                f"Scheme '{id}' has {len(item.premises)} premises, only supports take several.",
+                [id, *item.premises],
             )
 
         for edge in list(graph.incoming_edges(id)):

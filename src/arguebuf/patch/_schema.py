@@ -67,8 +67,10 @@ class SchemePatch(_Model):
         default=None,
         description="Argumentation scheme of the type, e.g. Expert Opinion.",
     )
-    premises: tuple[str, ...] = Field(min_length=1, description="Ids of atoms.")
-    conclusion: str = Field(description="Id of an atom or of a scheme to undercut.")
+    premises: tuple[str, ...] = Field(
+        min_length=1, description="Ids of atoms, only supports take several."
+    )
+    conclusion: str = Field(description="Id of an atom or of a scheme.")
 
 
 class Patch(_Model):
