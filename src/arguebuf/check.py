@@ -6,6 +6,7 @@ from arguebuf.locate import is_anchored
 from arguebuf.model import GraphView
 from arguebuf.model.issue import Issue, IssueCode, issue, unresolved_reference
 from arguebuf.model.node import AtomNode, Node, SchemeNode
+from arguebuf.model.scheme import allows_multiple_premises
 from arguebuf.traverse import dfs
 
 __all__ = ("check",)
@@ -18,6 +19,8 @@ def check[A, S, E, R, P, N, G](
 
     These are untyped schemes, references that do not match their resource,
     and quality problems of the argument.
+    Following AIF, every scheme needs a premise and a conclusion,
+    only supports may have several premises, and no premise may be the conclusion.
 
     Args:
         graph: Graph to check.
@@ -101,14 +104,15 @@ def _check_scheme[A, S, E, R, P, N, G](
     graph: GraphView[A, S, E, R, P, N, G], node: SchemeNode[S]
 ) -> list[Issue]:
     issues: list[Issue] = []
-    conclusions = len(graph.outgoing_edges(node))
+    premises = graph.premise_nodes(node)
+    conclusions = graph.outgoing_nodes(node)
 
     if node.scheme is None:
         issues.append(
             issue("untyped-scheme", f"Scheme '{node.id}' has no type.", [node.id])
         )
 
-    if not graph.premise_nodes(node):
+    if not premises:
         issues.append(
             issue(
                 "scheme-without-premise",
@@ -116,8 +120,20 @@ def _check_scheme[A, S, E, R, P, N, G](
                 [node.id],
             )
         )
+    elif (
+        node.scheme is not None
+        and len(premises) > 1
+        and not allows_multiple_premises(type(node.scheme))
+    ):
+        issues.append(
+            issue(
+                "scheme-multiple-premises",
+                f"Scheme '{node.id}' has {len(premises)} premises.",
+                [node.id],
+            )
+        )
 
-    if conclusions == 0:
+    if not conclusions:
         issues.append(
             issue(
                 "scheme-without-conclusion",
@@ -125,14 +141,24 @@ def _check_scheme[A, S, E, R, P, N, G](
                 [node.id],
             )
         )
-    elif conclusions > 1:
+    elif len(conclusions) > 1:
         issues.append(
             issue(
                 "scheme-multiple-conclusions",
-                f"Scheme '{node.id}' has {conclusions} conclusions.",
+                f"Scheme '{node.id}' has {len(conclusions)} conclusions.",
                 [node.id],
             )
         )
+
+    issues.extend(
+        issue(
+            "circular-scheme",
+            f"Scheme '{node.id}' uses '{other.id}' as premise and conclusion.",
+            [node.id, other.id],
+        )
+        for other in premises
+        if other in conclusions
+    )
 
     return issues
 

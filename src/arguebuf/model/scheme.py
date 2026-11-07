@@ -21,6 +21,7 @@ __all__ = (
     "Scheme",
     "SchemeType",
     "Support",
+    "allows_multiple_premises",
     "resolve_aif_scheme",
     "resolve_scheme",
 )
@@ -219,6 +220,15 @@ SCHEME_AIF_DEFAULTS: Final[Mapping[type[Scheme], str]] = MappingProxyType(
     }
 )
 """AIFdb labels of the default schemes."""
+
+
+def allows_multiple_premises(scheme_type: type[Scheme]) -> bool:
+    """Whether schemes of the type may have several premises, only supports may as in AIF.
+
+    >>> allows_multiple_premises(Support), allows_multiple_premises(Attack)
+    (True, False)
+    """
+    return scheme_type is Support
 
 
 def is_default_scheme(scheme: Scheme) -> bool:

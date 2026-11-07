@@ -130,12 +130,21 @@ def test_check() -> None:
         ag.SchemeNode(ag.Support.DEFAULT, id="s1"),
         ag.SchemeNode(id="s2"),
         ag.SchemeNode(ag.Attack.DEFAULT, id="s3"),
+        ag.SchemeNode(ag.Attack.DEFAULT, id="s4"),
     )
 
     for node in nodes:
         g.add_node(node)
 
-    for source, target in (("a", "s1"), ("s1", "mc"), ("s1", "b"), ("s2", "s3")):
+    for source, target in (
+        ("a", "s1"),
+        ("s1", "mc"),
+        ("s1", "b"),
+        ("s2", "s3"),
+        ("a", "s4"),
+        ("b", "s4"),
+        ("s4", "b"),
+    ):
         g.add_edge(ag.Edge(source, target))
 
     g.major_claim = "mc"
@@ -148,6 +157,8 @@ def test_check() -> None:
         ("scheme-without-premise", "s2"),
         ("scheme-without-premise", "s3"),
         ("scheme-without-conclusion", "s3"),
+        ("scheme-multiple-premises", "s4"),
+        ("circular-scheme", "s4"),
         ("orphaned-atom", "o"),
         ("disconnected", "mc"),
         ("unreachable-major-claim", "b"),
