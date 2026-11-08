@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.1](https://github.com/recap-utr/arguebuf-python/compare/v4.1.0...v4.1.1) (2026-11-08)
+
+### Bug Fixes
+
+* **check:** report schemes with several premises or circular relations ([8085ae2](https://github.com/recap-utr/arguebuf-python/commit/8085ae21fb95a9a2da169ba9735e98b4716b9ec5))
+* **patch:** reject several premises for schemes other than supports ([4e0fe7d](https://github.com/recap-utr/arguebuf-python/commit/4e0fe7d79864fcde69c661346da7794fe1dda7e8))
+
 ## [4.1.0](https://github.com/recap-utr/arguebuf-python/compare/v4.0.1...v4.1.0) (2026-11-07)
 
 ### Features
