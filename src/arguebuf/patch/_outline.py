@@ -12,7 +12,7 @@ __all__ = ("outline",)
 
 
 def outline[A, S, E, R, P, N, G](graph: GraphView[A, S, E, R, P, N, G]) -> Outline:
-    """The graph in the shape of a patch, e.g. to show it to an agent.
+    """The graph in the shape of a patch.
 
     Examples:
         >>> from arguebuf import Graph

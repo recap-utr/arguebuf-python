@@ -272,7 +272,7 @@ def apply_patch[A, S, E, R, P, N, G](
 ) -> PatchResult[A, S, E, R, P, N, G]:
     """Apply a patch to a graph, all or nothing.
 
-    A mapping such as the arguments of a tool call is validated as `Patch`,
+    A mapping such as parsed JSON is validated as `Patch`,
     problems are `invalid-patch` errors.
     The patch is applied to a draft of the graph (see `Graph.draft`),
     so the result shares the unchanged elements with the input.

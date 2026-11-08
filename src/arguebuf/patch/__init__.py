@@ -1,4 +1,4 @@
-"""Patches that change graphs by referencing their elements by id, e.g. written by agents."""
+"""Patches that change graphs by referencing their elements by id."""
 
 from arguebuf.patch._apply import PatchResult, apply_patch
 from arguebuf.patch._outline import outline

@@ -194,16 +194,16 @@ ag.locate("Cats are the best pets. They are independent.", "they are independant
 # Match(offset=24, text='They are independent', similarity=0.95)
 ```
 
-### Patches for Agents
+### Patches
 
-`ag.apply_patch` applies a patch to a graph, which references all elements by id and is meant to be written by agents.
+`ag.apply_patch` applies a patch to a graph, which references all elements by id.
 An item with a new id creates an element and an item with an existing id replaces it, so all its fields are given again, `delete` and `clear` remove elements.
 Texts of atoms are linked to the most similar spans of the resources, an atom keeps its link if its text and resource are unchanged.
 A scheme is named by its type and optionally its label (e.g. "Expert Opinion"), unknown labels fall back to the default scheme with an `unknown-scheme` warning.
-The patch is an `ag.Patch` model or a mapping such as the arguments of a tool call, which Pydantic validates.
+The patch is an `ag.Patch` model or a mapping such as parsed JSON, which Pydantic validates.
 It is applied all or nothing to a draft of the graph, so the result contains the unchanged input graph if there is an error.
 Otherwise, the result lists the ids of the `created`, `updated`, and `removed` elements, removals include the schemes removed together with a node.
-Every issue points to the item that caused it via its `path`, so that an agent can correct it.
+Every issue points to the item that caused it via its `path`.
 
 ```python
 result = ag.apply_patch(
@@ -221,8 +221,8 @@ result = ag.apply_patch(
 )
 ```
 
-`ag.outline` returns the elements of a graph as an `ag.Outline` model in the shape of a patch, e.g. to show them to an agent.
-Optional fields may be omitted or null, and `ag.Patch.model_json_schema()` describes patches for the tools of agents.
+`ag.outline` returns the elements of a graph as an `ag.Outline` model in the shape of a patch.
+Optional fields may be omitted or null, and `ag.Patch.model_json_schema()` describes patches as a JSON schema.
 An application with fields of its own subclasses `ag.Patch`.
 A scheme can be the conclusion of another scheme, e.g. to undercut it.
 

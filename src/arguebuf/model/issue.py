@@ -105,7 +105,7 @@ class Issue:
         code: Stable identifier, identical in all arguebuf implementations.
         severity: Whether the issue is an error or a warning.
         message: Complete sentence naming the affected elements.
-        hint: Imperative remediation for humans and agents.
+        hint: Imperative remediation.
         elements: Ids of the affected elements.
         path: Location in the input, e.g. `("schemes", 2, "premises")`.
     """
