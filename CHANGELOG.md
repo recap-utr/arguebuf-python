@@ -1,5 +1,11 @@
 # Changelog
 
+## [4.1.2](https://github.com/recap-utr/arguebuf-python/compare/v4.1.1...v4.1.2) (2026-11-13)
+
+### Bug Fixes
+
+* **issue:** include hints in graph error messages ([cb412e8](https://github.com/recap-utr/arguebuf-python/commit/cb412e8e30537806a5f8bc757bcf47e0d6c8e885))
+
 ## [4.1.1](https://github.com/recap-utr/arguebuf-python/compare/v4.1.0...v4.1.1) (2026-11-08)
 
 ### Bug Fixes
