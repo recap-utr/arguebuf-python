@@ -201,7 +201,7 @@ class Graph[
 
     name: str | None
     metadata: Metadata = field(repr=False)
-    userdata: G = field(repr=False)  # ty: ignore[invalid-attribute-override]
+    userdata: G = field(repr=False)  # ty: ignore[incompatible-attribute-override]
     _store: GraphStore[A, S, E, R, P, N] = field(repr=False)
 
     def draft(self) -> _Draft[A, S, E, R, P, N, G]:
