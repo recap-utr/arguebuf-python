@@ -71,7 +71,10 @@ def test_invalid_input() -> None:
         info.value.issue.hint
         == "Check the input against the specification of its format."
     )
-    assert str(info.value) == "The AIF input is invalid: nodes.0.text: Field required"
+    assert str(info.value) == (
+        "The AIF input is invalid: nodes.0.text: Field required "
+        "Check the input against the specification of its format."
+    )
 
     with pytest.raises(ag.GraphError, match=r"nodes\.0\.nodeID: .*valid string"):
         ag.load.dict({"nodes": [{**node, "nodeID": True}], "edges": []}, strict=False)

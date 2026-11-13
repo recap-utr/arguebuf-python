@@ -130,6 +130,15 @@ class Issue:
             if value is not None
         }
 
+    def __str__(self) -> str:
+        """Message of the issue followed by its hint, e.g. to show it to users.
+
+        Examples:
+            >>> str(issue("self-loop", "Node 'n' cannot be connected to itself."))
+            "Node 'n' cannot be connected to itself. Connect the node to another node."
+        """
+        return self.message if self.hint is None else f"{self.message} {self.hint}"
+
 
 type Reporter = Callable[[Issue], None]
 """Receives the issues of loaders and other lenient operations."""
@@ -163,12 +172,12 @@ def has_errors(issues: Iterable[Issue]) -> bool:
 
 
 class GraphError(ValueError):
-    """Error raised by the strict model, its `issue` describes the cause."""
+    """Error raised by the strict model, its `issue` describes the cause and its message includes the hint."""
 
     issue: Issue
 
     def __init__(self, issue: Issue) -> None:
-        super().__init__(issue.message)
+        super().__init__(str(issue))
         self.issue = issue
 
 
@@ -208,4 +217,4 @@ _log = logging.getLogger("arguebuf")
 
 def warn(item: Issue) -> None:
     """Default reporter of loaders, logs the issue as warning."""
-    _log.warning(item.message)
+    _log.warning(item)

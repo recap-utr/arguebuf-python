@@ -25,7 +25,7 @@ FailOn: TypeAlias = Literal["error", "warning"]  # noqa: UP040
 
 def _report_repairs(path: Path) -> ag.Reporter:
     def report(issue: ag.Issue) -> None:
-        typer.echo(f"{path}: {issue.message}", err=True)
+        typer.echo(f"{path}: {issue}", err=True)
 
     return report
 
@@ -285,7 +285,7 @@ def check(
     else:
         for path, issues in report.items():
             for item in issues:
-                typer.echo(f"{path}: {item.severity}: {item.message}")
+                typer.echo(f"{path}: {item.severity}: {item}")
 
     severities = {"error"} if fail_on == "error" else {"error", "warning"}
 
