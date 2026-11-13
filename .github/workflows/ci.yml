@@ -26,9 +26,11 @@ jobs:
     needs: test
     if: ${{ github.repository_owner == 'recap-utr' && github.event_name == 'push' }}
     permissions:
-      id-token: write
       contents: write
       packages: write
+    outputs:
+      version: ${{ steps.semanticrelease.outputs.version }}
+      released: ${{ steps.semanticrelease.outputs.released }}
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-qemu-action@v4
@@ -47,8 +49,34 @@ jobs:
       - run: nix profile install .#release-env
       - uses: cihelper/action-semanticrelease-uv@v1
         id: semanticrelease
+        with:
+          uv-publish: false
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ steps.semanticrelease.outputs.released == 'true' }}
+        with:
+          name: uv-build
+          path: ./dist
       - run: nix run .#docker-manifest --impure
         if: ${{ steps.semanticrelease.outputs.released == 'true' }}
         env:
           VERSION: ${{ steps.semanticrelease.outputs.version }}
           GH_TOKEN: ${{ github.token }}
+  deploy-pypi:
+    runs-on: ubuntu-latest
+    needs: release
+    if: ${{ needs.release.outputs.released == 'true' }}
+    permissions:
+      id-token: write
+    environment:
+      name: release
+      url: https://pypi.org/project/arguebuf/${{ needs.release.outputs.version }}/
+    steps:
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: false
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: uv-build
+          path: ./dist
+      - uses: astral-sh/attest-action@v0.0.7
+      - run: uv publish
