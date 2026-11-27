@@ -22,12 +22,14 @@ class Translator:
 
     def translate_texts(self, texts: Iterable[str]) -> list[str]:
         texts = list(texts)
+        # deepl rejects empty texts, so they are kept as they are
+        pending = [text for text in texts if text]
 
-        if not texts:
-            return []
+        if not pending:
+            return texts
 
         results = self.client.translate_text(
-            texts,
+            pending,
             source_lang=self.source_lang,
             target_lang=self.target_lang,
             preserve_formatting=True,
@@ -36,7 +38,9 @@ class Translator:
         if isinstance(results, TextResult):
             results = [results]
 
-        return [result.text for result in results]
+        translations = iter(result.text for result in results)
+
+        return [next(translations) if text else text for text in texts]
 
     def translate_graph(self, graph: ag.GraphDraft) -> list[ag.Issue]:
         """Translate the texts of a graph and re-anchor the translated references.
