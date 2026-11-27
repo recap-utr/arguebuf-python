@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.3](https://github.com/recap-utr/arguebuf-python/compare/v4.1.2...v4.1.3) (2026-11-27)
+
+### Bug Fixes
+
+* **cli/translator:** adapt to deepl v2 ([4993081](https://github.com/recap-utr/arguebuf-python/commit/4993081779a806d883f978189f583657d0cc89e8))
+* **deps/typer:** loosen upper bound ([0c46a15](https://github.com/recap-utr/arguebuf-python/commit/0c46a15849b0b533ff6d044f559e1671e1ae0fb2))
+
 ## [4.1.2](https://github.com/recap-utr/arguebuf-python/compare/v4.1.1...v4.1.2) (2026-11-13)
 
 ### Bug Fixes
