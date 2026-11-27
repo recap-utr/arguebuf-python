@@ -38,7 +38,7 @@ arguebuf = "arguebuf.cli.app:cli"
 cli = [
     "arg-services[grpcio]>=2,<3",
     "deepl>=2,<3",
-    "typer>=0.29,<0.30",
+    "typer>=0.29,<1",
 ]
 
 [dependency-groups]

@@ -91,7 +91,7 @@ requires-dist = [
     { name = "networkx", specifier = ">=3,<4" },
     { name = "pydantic", specifier = ">=2,<3" },
     { name = "pygraphviz", specifier = ">=2,<3" },
-    { name = "typer", marker = "extra == 'cli'", specifier = ">=0.29,<0.30" },
+    { name = "typer", marker = "extra == 'cli'", specifier = ">=0.29,<1" },
 ]
 provides-extras = ["cli"]
 
