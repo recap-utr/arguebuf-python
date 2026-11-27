@@ -84,7 +84,7 @@ test = [
 requires-dist = [
     { name = "arg-services", specifier = ">=2,<3" },
     { name = "arg-services", extras = ["grpcio"], marker = "extra == 'cli'", specifier = ">=2,<3" },
-    { name = "deepl", marker = "extra == 'cli'", specifier = ">=1,<2" },
+    { name = "deepl", marker = "extra == 'cli'", specifier = ">=2,<3" },
     { name = "fuzzysearch", specifier = ">=0.8,<0.9" },
     { name = "networkx", specifier = ">=3,<4" },
     { name = "pydantic", specifier = ">=2,<3" },
@@ -420,14 +420,14 @@ wheels = [
 
 [[package]]
 name = "deepl"
-version = "1.33.0"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/68/1e/4b6e9fbf38831222f585716f29e95698e6cf872452ccc3057cbd5e6f62c8/deepl-1.33.0.tar.gz", hash = "sha256:ddec330fc7b617406131fed81137fd3bb43d1bae03ecbd48c8b8e9cb5851e303", size = 109590, upload-time = "2026-11-02T11:38:06.092Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/74/1f/5835640ac2b20cc9a7511c38c0ddf61e8491536c214cb9935bc56eab538e/deepl-2.0.0.tar.gz", hash = "sha256:4afccd198328996afd13808c1d83914abeb690230dec3156f8d68bb06e4f3fee", size = 107393, upload-time = "2026-11-24T12:14:33.797Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9b/76/d19edbd1b7e5efd4739aa9080898a1bc954d23e8a808fd11dc3c5be01094/deepl-1.33.0-py3-none-any.whl", hash = "sha256:68f59500c65998e3b6a250060820f3e3552b739314dde996375272f7aa27bf66", size = 94935, upload-time = "2026-11-02T11:38:04.817Z" },
+    { url = "https://files.pythonhosted.org/packages/93/73/da4393068df0c918104da8f02fbc51bcc2c81a0fa0e38edf2b11876ba6cd/deepl-2.0.0-py3-none-any.whl", hash = "sha256:fcb347c0a71bde230090f0fbb72e7d8ec7c220894e4839a29e579334f1558a47", size = 91527, upload-time = "2026-11-24T12:14:32.515Z" },
 ]
 
 [[package]]

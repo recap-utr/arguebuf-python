@@ -35,7 +35,7 @@ Repository = "https://github.com/recap-utr/arguebuf-python"
 arguebuf = "arguebuf.cli.app:cli"
 
 [project.optional-dependencies]
-cli = ["arg-services[grpcio]>=2,<3", "deepl>=1,<2", "typer>=0.27,<0.28"]
+cli = ["arg-services[grpcio]>=2,<3", "deepl>=2,<3", "typer>=0.27,<0.28"]
 
 [dependency-groups]
 dev = [
